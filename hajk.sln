@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hajk", "hajk.csproj", "{DA2BE91F-F82F-40CE-B570-D41391B4F714}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OfflineMaps", "..\..\..\Development\OfflineMaps\OfflineMaps\OfflineMaps.csproj", "{689CCF6F-F388-4075-995D-ED3452005DCF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DA2BE91F-F82F-40CE-B570-D41391B4F714}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA2BE91F-F82F-40CE-B570-D41391B4F714}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA2BE91F-F82F-40CE-B570-D41391B4F714}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{DA2BE91F-F82F-40CE-B570-D41391B4F714}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA2BE91F-F82F-40CE-B570-D41391B4F714}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA2BE91F-F82F-40CE-B570-D41391B4F714}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{689CCF6F-F388-4075-995D-ED3452005DCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{689CCF6F-F388-4075-995D-ED3452005DCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{689CCF6F-F388-4075-995D-ED3452005DCF}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{689CCF6F-F388-4075-995D-ED3452005DCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{689CCF6F-F388-4075-995D-ED3452005DCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{689CCF6F-F388-4075-995D-ED3452005DCF}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FA5E43F8-7912-4A1E-A598-A93CDB097BBB}
+	EndGlobalSection
+EndGlobal
