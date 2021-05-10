@@ -10,12 +10,19 @@ using AndroidX.DrawerLayout.Widget;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Navigation;
 using Google.Android.Material.Snackbar;
+using Mapsui.Layers;
+using Mapsui.Projection;
+using Mapsui.UI.Android;
+using BruTile.Predefined;
+using BruTile.Web;
 
 namespace hajk
 {
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
     public class MainActivity : AppCompatActivity, NavigationView.IOnNavigationItemSelectedListener
     {
+        private Mapsui.Map map = new Mapsui.Map();
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -34,6 +41,22 @@ namespace hajk
 
             NavigationView navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
             navigationView.SetNavigationItemSelectedListener(this);
+
+            //Add map
+            var mapControl = FindViewById<MapControl>(Resource.Id.mapcontrol);
+            map = new Mapsui.Map
+            {
+                CRS = "EPSG:3857", //https://epsg.io/3857
+                Transformation = new MinimalTransformation(),
+            };
+            mapControl.Map = map;
+
+            /**///Change to configuration item due to usage policy
+            var tileSource = new HttpTileSource(new GlobalSphericalMercator(), 
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", new[] { "a", "b", "c" }, 
+                name: "OpenStreetMap", userAgent: "OpenStreetMap in Mapsui (hajk)");
+            var tileLayer = new TileLayer(tileSource) { Name = "OSM" };
+            map.Layers.Add(tileLayer);
         }
 
         public override void OnBackPressed()
