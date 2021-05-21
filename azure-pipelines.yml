@@ -30,7 +30,7 @@ steps:
       apkFiles: '$(outputDirectory)\*.apk'
       apksignerKeystoreFile: 'hajk.keystore'
       apksignerKeystorePassword: '$(Keystore_Password)'
-      apksignerKeystoreAlias: 'kala'
+      apksignerKeystoreAlias: 'Kala'
       apksignerKeyPassword: '$(Keystore_Password)'
 
 - task: PublishBuildArtifacts@1
