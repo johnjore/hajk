@@ -21,7 +21,7 @@ steps:
 
 - task: XamarinAndroid@1
   inputs:
-    projectFile: '**/hajk.csproj'
+    projectFile: '**/*droid*.csproj'
     outputDirectory: '$(outputDirectory)'
     configuration: '$(buildConfiguration)'
     
@@ -30,7 +30,7 @@ steps:
       apkFiles: '$(outputDirectory)\*.apk'
       apksignerKeystoreFile: 'hajk.keystore'
       apksignerKeystorePassword: '$(Keystore_Password)'
-      apksignerKeystoreAlias: 'hajk'
+      apksignerKeystoreAlias: 'kala'
       apksignerKeyPassword: '$(Keystore_Password)'
 
 - task: PublishBuildArtifacts@1
