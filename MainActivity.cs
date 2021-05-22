@@ -15,18 +15,49 @@ using Mapsui.Projection;
 using Mapsui.UI.Android;
 using BruTile.Predefined;
 using BruTile.Web;
+using Serilog;
+using hajk.Data;
+using Xamarin.Essentials;
 
 namespace hajk
 {
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
     public class MainActivity : AppCompatActivity, NavigationView.IOnNavigationItemSelectedListener
     {
-        private Mapsui.Map map = new Mapsui.Map();
+        public static Activity mContext;
+        public static Mapsui.Map map = new Mapsui.Map();
+        public static RouteDatabase routedatabase;
+        public static string RouteDB = "Routes.db3"; /**///Move to preferences class
+        private static string logFile = "hajk_.txt"; /**///Move to preferences class
+
+        readonly string[] permission =
+        {
+            Android.Manifest.Permission.AccessCoarseLocation,
+            Android.Manifest.Permission.AccessFineLocation,
+            Android.Manifest.Permission.ReadExternalStorage,
+            Android.Manifest.Permission.WriteExternalStorage,
+            Android.Manifest.Permission.Internet
+        };
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+
+            //Init and permissions
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
+            RequestPermissions(permission, 0);
+
+            //Logging
+            string _Path = System.IO.Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath, logFile);
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .Enrich.FromLogContext()
+                .WriteTo.AndroidLog(outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}")
+                .WriteTo.File(_Path, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 2, outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}{NewLine}"
+                ).CreateLogger();
+            Log.Information($"Logging to '{_Path}'");
+
+            //GUI
             SetContentView(Resource.Layout.activity_main);
             Toolbar toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
@@ -52,17 +83,19 @@ namespace hajk
             mapControl.Map = map;
 
             /**///Change to configuration item due to usage policy
-            var tileSource = new HttpTileSource(new GlobalSphericalMercator(), 
-                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", new[] { "a", "b", "c" }, 
+            var tileSource = new HttpTileSource(new GlobalSphericalMercator(),
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", new[] { "a", "b", "c" },
                 name: "OpenStreetMap", userAgent: "OpenStreetMap in Mapsui (hajk)");
             var tileLayer = new TileLayer(tileSource) { Name = "OSM" };
             map.Layers.Add(tileLayer);
+
+            mContext = this;
         }
 
         public override void OnBackPressed()
         {
             DrawerLayout drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
-            if(drawer.IsDrawerOpen(GravityCompat.Start))
+            if (drawer.IsDrawerOpen(GravityCompat.Start))
             {
                 drawer.CloseDrawer(GravityCompat.Start);
             }
@@ -88,10 +121,15 @@ namespace hajk
 
             return base.OnOptionsItemSelected(item);
         }
+        protected override void OnDestroy()
+        {
+            Serilog.Log.CloseAndFlush();
 
+            base.OnDestroy();
+        }
         private void FabOnClick(object sender, EventArgs eventArgs)
         {
-            View view = (View) sender;
+            View view = (View)sender;
             Snackbar.Make(view, "Replace with your own action", Snackbar.LengthLong)
                 .SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();
         }
@@ -100,11 +138,13 @@ namespace hajk
         {
             int id = item.ItemId;
 
-            if (id == Resource.Id.nav_camera)
+            if (id == Resource.Id.nav_import)
             {
-                // Handle the camera action
+                //Import GPX file (routes and tracks), save to SQLite DB
+                /**///and display on map. Change this to open Route view instead. Give user option to download maps for each route / track
+                Import.GetRoute();
             }
-            else if (id == Resource.Id.nav_gallery)
+            else if (id == Resource.Id.nav_offlinemap)
             {
 
             }
@@ -129,6 +169,7 @@ namespace hajk
             drawer.CloseDrawer(GravityCompat.Start);
             return true;
         }
+
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
         {
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -137,4 +178,3 @@ namespace hajk
         }
     }
 }
-
