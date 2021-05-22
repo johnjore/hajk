@@ -15,6 +15,7 @@ using Mapsui.Projection;
 using Mapsui.UI.Android;
 using BruTile.Predefined;
 using BruTile.Web;
+using BruTile.MbTiles;
 using Serilog;
 using hajk.Data;
 using Xamarin.Essentials;
@@ -27,8 +28,8 @@ namespace hajk
         public static Activity mContext;
         public static Mapsui.Map map = new Mapsui.Map();
         public static RouteDatabase routedatabase;
-        public static string RouteDB = "Routes.db3"; /**///Move to preferences class
-        private static string logFile = "hajk_.txt"; /**///Move to preferences class
+        public readonly static string RouteDB = "Routes.db3"; /**///Move to preferences class
+        private readonly static string logFile = "hajk_.txt"; /**///Move to preferences class
 
         readonly string[] permission =
         {
@@ -83,9 +84,7 @@ namespace hajk
             mapControl.Map = map;
 
             /**///Change to configuration item due to usage policy
-            var tileSource = new HttpTileSource(new GlobalSphericalMercator(),
-                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", new[] { "a", "b", "c" },
-                name: "OpenStreetMap", userAgent: "OpenStreetMap in Mapsui (hajk)");
+            var tileSource = new HttpTileSource(new GlobalSphericalMercator(), "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", new[] { "a", "b", "c" }, name: "OpenStreetMap", userAgent: "OpenStreetMap in Mapsui (hajk)");
             var tileLayer = new TileLayer(tileSource) { Name = "OSM" };
             map.Layers.Add(tileLayer);
 
@@ -123,7 +122,7 @@ namespace hajk
         }
         protected override void OnDestroy()
         {
-            Serilog.Log.CloseAndFlush();
+            Log.CloseAndFlush();
 
             base.OnDestroy();
         }
@@ -146,7 +145,7 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_offlinemap)
             {
-
+                OfflineMaps.LoadMap();
             }
             else if (id == Resource.Id.nav_slideshow)
             {

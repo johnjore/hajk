@@ -166,7 +166,7 @@ namespace hajk
 
                 return gpx;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // The user canceled or something went wrong
             }

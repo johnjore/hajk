@@ -7,7 +7,7 @@
         <item
             android:id="@+id/nav_import"
             android:icon="@drawable/ic_create_new_folder_black_24dp"
-            android:title="Import" />
+            android:title="Import GPX file" />
         <item
             android:id="@+id/nav_offlinemap"
             android:icon="@android:drawable/ic_menu_mapmode"
