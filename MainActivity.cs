@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using Android.App;
 using Android.OS;
 using Android.Runtime;
@@ -10,12 +14,19 @@ using AndroidX.DrawerLayout.Widget;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Navigation;
 using Google.Android.Material.Snackbar;
+using Mapsui;
+using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Projection;
+using Mapsui.UI;
 using Mapsui.UI.Android;
+using Mapsui.Providers;
+using Mapsui.Styles;
+using Mapsui.Utilities;
+using Mapsui.Widgets;
+using Mapsui.Widgets.ScaleBar;
 using BruTile.Predefined;
 using BruTile.Web;
-using BruTile.MbTiles;
 using Serilog;
 using hajk.Data;
 using Xamarin.Essentials;
@@ -27,6 +38,7 @@ namespace hajk
     {
         public static Activity mContext;
         public static Mapsui.Map map = new Mapsui.Map();
+        public static MapControl mapControl;
         public static RouteDatabase routedatabase;
         public readonly static string RouteDB = "Routes.db3"; /**///Move to preferences class
         private readonly static string logFile = "hajk_.txt"; /**///Move to preferences class
@@ -75,7 +87,7 @@ namespace hajk
             navigationView.SetNavigationItemSelectedListener(this);
 
             //Add map
-            var mapControl = FindViewById<MapControl>(Resource.Id.mapcontrol);
+            mapControl = FindViewById<MapControl>(Resource.Id.mapcontrol);
             map = new Mapsui.Map
             {
                 CRS = "EPSG:3857", //https://epsg.io/3857
@@ -88,6 +100,12 @@ namespace hajk
             var tileLayer = new TileLayer(tileSource) { Name = "OSM" };
             map.Layers.Add(tileLayer);
 
+            //Add location marker
+            Location.UpdateLocationMarker(true);
+
+            // Add scalebar
+            map.Widgets.Add(new ScaleBarWidget(map) { ScaleBarMode = ScaleBarMode.Both, MarginX = 10, MarginY = 10 });
+            
             mContext = this;
         }
 
@@ -128,9 +146,11 @@ namespace hajk
         }
         private void FabOnClick(object sender, EventArgs eventArgs)
         {
-            View view = (View)sender;
+            Location.UpdateLocationMarker(true);
+
+            /*View view = (View)sender;
             Snackbar.Make(view, "Replace with your own action", Snackbar.LengthLong)
-                .SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();
+                .SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();*/
         }
 
         public bool OnNavigationItemSelected(IMenuItem item)
@@ -145,6 +165,7 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_offlinemap)
             {
+                /**///This is temp until app can download tiles and store in sqlite DB on device
                 OfflineMaps.LoadMap();
             }
             else if (id == Resource.Id.nav_slideshow)
