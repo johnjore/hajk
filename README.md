@@ -1,5 +1,6 @@
-# hajk
-Hiking with (free) Offline Maps
+# hajk 
+See https://www.wordhippo.com/what-is/the-meaning-of/swedish-word-f02572be276e973e5f778c2f99907eca1db7b7b1.html</br>
+Hiking with (free) Offline Maps. <br>
 
 Xamarin Android Project, using a number of 3rd party libraries. Without these libraries, this project would not have seen the day of light.
 
@@ -8,8 +9,9 @@ please reach out and we'll migrate it to Xamarin.Forms.
 
 
 # Build Status
-[![Build Status](https://johnjore.visualstudio.com/hajk/_apis/build/status/hajk-CI)](https://johnjore.visualstudio.com/hajk/_build/latest?definitionId=2)
+[![Build Status](https://dev.azure.com/johnjore/hajk/_apis/build/status/johnjore.hajk?branchName=master)](https://dev.azure.com/johnjore/hajk/_build/latest?definitionId=3&branchName=master)
 ![Deployment Status](https://johnjore.vsrm.visualstudio.com/_apis/public/Release/badge/f717d501-17e3-4cc9-92b2-ab152d1e57ec/1/1)
+
 
 # History
 Project is a result of ViewRanger changing owners and being replaced by a new app, but offline maps is no longer a free feature.
