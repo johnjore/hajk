@@ -1,5 +1,6 @@
-# hajk
-Hiking with (free) Offline Maps
+# hajk 
+See https://www.wordhippo.com/what-is/the-meaning-of/swedish-word-f02572be276e973e5f778c2f99907eca1db7b7b1.html</br>
+Hiking with (free) Offline Maps. <br>
 
 Xamarin Android Project, using a number of 3rd party libraries. Without these libraries, this project would not have seen the day of light.
 
