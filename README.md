@@ -10,7 +10,7 @@ please reach out and we'll migrate it to Xamarin.Forms.
 
 # Build Status
 [![Build Status](https://dev.azure.com/johnjore/hajk/_apis/build/status/johnjore.hajk?branchName=master)](https://dev.azure.com/johnjore/hajk/_build/latest?definitionId=3&branchName=master)
-![Deployment Status](https://johnjore.vsrm.visualstudio.com/_apis/public/Release/badge/f717d501-17e3-4cc9-92b2-ab152d1e57ec/1/1)
+![Deployment Status](https://vsrm.dev.azure.com/johnjore/_apis/public/Release/badge/ed10b094-cc40-4607-a7e3-ad89daab836b/1/1)
 
 
 # History
