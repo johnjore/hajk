@@ -12,6 +12,11 @@ please reach out and we'll migrate it to Xamarin.Forms.
 [![Build Status](https://dev.azure.com/johnjore/hajk/_apis/build/status/johnjore.hajk?branchName=master)](https://dev.azure.com/johnjore/hajk/_build/latest?definitionId=3&branchName=master)
 ![Deployment Status](https://vsrm.dev.azure.com/johnjore/_apis/public/Release/badge/ed10b094-cc40-4607-a7e3-ad89daab836b/1/1)
 
+# Screenshots
+|  Main menu | Current Location | Import GPX | Route Imported |
+|  --- | --- | --- | --- |
+|  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212405_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212411_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212437_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212507_hajk.jpg" alt="screenshot" width="100px"/> |
+
 
 # History
 Project is a result of ViewRanger changing owners and being replaced by a new app, but offline maps is no longer a free feature.
