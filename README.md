@@ -30,5 +30,5 @@ This app is available for free under the GPL license. No ads will be added to fu
 # License
 Copyright 2021 - John Jore
 
-Software licensed under GPL version 3 available in GPLv3.TXT and online on http://www.gnu.org/licenses/gpl.txt.
+Software licensed under GPL version 2 available in GPLv2.TXT and online on https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 Parts from other developers, sometimes with small changes, references on authorship and specific licenses are on individual source files.
