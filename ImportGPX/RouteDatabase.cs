@@ -15,11 +15,7 @@ namespace hajk.Data
 
         static RouteDatabase()
         {
-#if DEBUG
-            string dbPath = Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath, MainActivity.RouteDB);
-#else
-            string dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), MainActivity.RouteDB);
-#endif
+            string dbPath = Path.Combine(MainActivity.rootPath, MainActivity.RouteDB);
             database = new SQLiteAsyncConnection(dbPath);
             database.CreateTableAsync<Route>().Wait();
         }

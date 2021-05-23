@@ -51,6 +51,11 @@ namespace hajk
         public static bool DrawTrackOnGui = false; /**///Move to preferences class. Draw recorded track on screen, or not
         public static int UpdateGPSLocation_s = 5; /**///Move to preferences class. Howe often do we update the GUI with our current location
         public static bool RecordingTrack = false; /**///Move to preferences class. True when recording a Track
+#if DEBUG
+        public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
+#else
+        public static string rootPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+#endif
 
         readonly string[] permission =
         {
@@ -70,7 +75,7 @@ namespace hajk
             RequestPermissions(permission, 0);
 
             //Logging
-            string _Path = System.IO.Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath, logFile);
+            string _Path = System.IO.Path.Combine(rootPath, logFile);
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .Enrich.FromLogContext()
@@ -189,8 +194,7 @@ namespace hajk
                 {
                     RecordTrack.SaveTrack();
                     item.SetTitle("Record Track");
-                } else
-                {
+                } else {
                     RecordTrack.StartTrackTimer();
                     item.SetTitle("Stop Recording");
                 }

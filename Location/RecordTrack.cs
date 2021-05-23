@@ -70,7 +70,8 @@ namespace hajk
 
             track.Metadata.bounds = track.GetBounds();
 
-            string trackPath = Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath, DateTime.Now.ToString("yyyy-MM-dd HH-mm") + ".gpx");
+            /**///This should be saved to the sqlite DB for analysis and export
+            string trackPath = Path.Combine(MainActivity.rootPath, DateTime.Now.ToString("yyyy-MM-dd HH-mm") + ".gpx");
             track.ToFile(trackPath);
 
             MainActivity.RecordingTrack = false;
