@@ -69,6 +69,7 @@
     <Compile Include="ImportGPX\ImportGPX.cs" />
     <Compile Include="ImportGPX\RouteDatabase.cs" />
     <Compile Include="Location\Location.cs" />
+    <Compile Include="Location\RecordTrack.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="Models\Route.cs" />
     <Compile Include="OfflineMaps.cs" />

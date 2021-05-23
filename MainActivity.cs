@@ -30,6 +30,11 @@ using BruTile.Web;
 using Serilog;
 using hajk.Data;
 using Xamarin.Essentials;
+using Android.Content;
+using System.IO;
+using System.Threading;
+
+//Location service: https://github.com/shernandezp/XamarinForms.LocationService
 
 namespace hajk
 {
@@ -40,8 +45,12 @@ namespace hajk
         public static Mapsui.Map map = new Mapsui.Map();
         public static MapControl mapControl;
         public static RouteDatabase routedatabase;
-        public readonly static string RouteDB = "Routes.db3"; /**///Move to preferences class
-        private readonly static string logFile = "hajk_.txt"; /**///Move to preferences class
+        public readonly static string RouteDB = "Routes.db3"; /**///Move to preferences class. Database to store all routes
+        private readonly static string logFile = "hajk_.txt"; /**///Move to preferences class. Log file
+        public static int freq_s = 5; /**///Move to preferences class. Howe often do we get/save current position for track recordings
+        public static bool DrawTrackOnGui = false; /**///Move to preferences class. Draw recorded track on screen, or not
+        public static int UpdateGPSLocation_s = 5; /**///Move to preferences class. Howe often do we update the GUI with our current location
+        public static bool RecordingTrack = false; /**///Move to preferences class. True when recording a Track
 
         readonly string[] permission =
         {
@@ -97,7 +106,9 @@ namespace hajk
 
             /**///Change to configuration item due to usage policy
             var tileSource = new HttpTileSource(new GlobalSphericalMercator(), "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", new[] { "a", "b", "c" }, name: "OpenStreetMap", userAgent: "OpenStreetMap in Mapsui (hajk)");
-            var tileLayer = new TileLayer(tileSource) { Name = "OSM" };
+            var tileLayer = new TileLayer(tileSource) { 
+                Name = "OSM",
+            };
             map.Layers.Add(tileLayer);
 
             //Add location marker
@@ -105,7 +116,10 @@ namespace hajk
 
             // Add scalebar
             map.Widgets.Add(new ScaleBarWidget(map) { ScaleBarMode = ScaleBarMode.Both, MarginX = 10, MarginY = 10 });
-            
+
+            //Update location every UpdateGPSLocation_s seconds
+            Timer Order_Timer = new Timer(new TimerCallback(Location.UpdateLocationMarker), null, 0, UpdateGPSLocation_s * 1000);
+
             mContext = this;
         }
 
@@ -170,11 +184,11 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_slideshow)
             {
-
+                RecordTrack.StartTrackTimer();
             }
             else if (id == Resource.Id.nav_manage)
             {
-
+                RecordTrack.SaveTrack();
             }
             else if (id == Resource.Id.nav_share)
             {

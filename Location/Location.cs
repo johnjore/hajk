@@ -9,6 +9,14 @@ namespace hajk
 {
     class Location
     {
+        private static readonly string LocationLayerName = "Location";
+
+
+        public static void UpdateLocationMarker(object state)
+        {       
+            UpdateLocationMarker(false);
+        }
+
         public static void UpdateLocationMarker(bool navigate)
         {
             var location = Geolocation.GetLastKnownLocationAsync().Result;
@@ -20,7 +28,7 @@ namespace hajk
             }
 
             /**///This is bad. Is there not a better way to update the current location than removing and adding layers?
-            foreach (ILayer layer in MainActivity.map.Layers.FindLayer("Location"))
+            foreach (ILayer layer in MainActivity.map.Layers.FindLayer(LocationLayerName))
             {
                 MainActivity.map.Layers.Remove(layer);
             }
@@ -31,7 +39,7 @@ namespace hajk
         {
             return new MemoryLayer
             {
-                Name = "Location",
+                Name = LocationLayerName,
                 DataSource = CreateMemoryProviderWithDiverseSymbols(GPSLocation),
                 Style = null,
                 IsMapInfoLayer = true
@@ -55,13 +63,20 @@ namespace hajk
         private static IFeature CreateLocationFeature(Point GPSLocation)
         {
             var feature = new Feature { Geometry = GPSLocation};
+            Color marker = Color.Blue;
+
+            if (MainActivity.RecordingTrack)
+            {
+                marker = Color.Red;
+            }
 
             feature.Styles.Add(new SymbolStyle
             {
                 SymbolScale = 1.5f,
                 Fill = null,
-                Outline = new Pen { Color = Color.Red, Width = 2.0}
+                Outline = new Pen { Color = marker, Width = 2.0 }
             });
+
 
             return feature;
         }

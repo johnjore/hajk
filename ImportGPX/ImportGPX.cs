@@ -101,11 +101,11 @@ namespace hajk
                 dist = dist * 60 * 1.1515;
                 if (unit == 'K')
                 {
-                    dist = dist * 1.609344;
+                    dist *= 1.609344;
                 }
                 else if (unit == 'N')
                 {
-                    dist = dist * 0.8684;
+                    dist *= 0.8684;
                 }
                 return (dist);
             }
@@ -125,7 +125,18 @@ namespace hajk
         {
             try
             {
-                var result = await FilePicker.PickAsync();
+                var options = new PickOptions
+                {
+                    PickerTitle = "Please select a GPX file",
+                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                        /**///What is mime type for GPX files?!?
+                        //{ DevicePlatform.Android, new string[] { "gpx/gpx"} },
+                        { DevicePlatform.Android, null },
+                    })
+                };
+
+                var result = await FilePicker.PickAsync(options);
 
                 if (result == null)
                     return null;
@@ -176,18 +187,52 @@ namespace hajk
 
         private static ILayer CreateRouteLayer(string strRoute, IStyle style = null)
         {
+            var features = new Features();
+
+            //Convert from string and line strings
             var lineString = (LineString)Geometry.GeomFromText(strRoute);
             lineString = new LineString(lineString.Vertices.Select(v => SphericalMercator.FromLonLat(v.Y, v.X)));
+            features.Add(new Feature { Geometry = lineString });
+
+            //Waypoint markers
+            foreach (var waypoint in lineString.Vertices)
+            {
+                var feature = new Feature { Geometry = waypoint };
+                feature.Styles.Add(new SymbolStyle
+                {
+                    SymbolScale = 1.0f,
+                    MaxVisible = 2.0f,
+                    MinVisible = 0.0f,
+                    RotateWithMap = true, /**/// For future when adding arrows?
+                    SymbolType = SymbolType.Ellipse,
+                    Fill = null, /**/// new Brush { FillStyle = FillStyle.Cross, Color = Color.Red, Background = Color.Transparent},
+                    Outline = new Pen { Color = Color.Blue, Width = 1.5f }
+                });
+                features.Add(feature);
+            }
 
             return new MemoryLayer
             {
-                DataSource = new MemoryProvider(new Feature { Geometry = lineString }),
+                DataSource = new MemoryProvider(features),
                 Name = "RouteLayer",
                 Style = style
             };
         }
 
-        private static IStyle CreateRouteStyle()
+        public static ILayer CreateTrackLayer(string strTrack, IStyle style = null)
+        {
+            var lineString = (LineString)Geometry.GeomFromText(strTrack);
+            lineString = new LineString(lineString.Vertices.Select(v => SphericalMercator.FromLonLat(v.Y, v.X)));
+
+            return new MemoryLayer
+            {
+                DataSource = new MemoryProvider(new Feature { Geometry = lineString }),
+                Name = "TrackLayer",
+                Style = style
+            };
+        }
+
+        public static IStyle CreateRouteStyle()
         {
             return new VectorStyle
             {
@@ -198,13 +243,13 @@ namespace hajk
 
         }
 
-        private static IStyle CreateTrackStyle()
+        public static IStyle CreateTrackStyle()
         {
             return new VectorStyle
             {
                 Fill = null,
                 Outline = null,
-                Line = { Color = Color.FromString("Red"), Width = 4 }
+                Line = { Color = Color.FromString("Red"), Width = 4, PenStyle = PenStyle.Solid }
             };
         }
     }
