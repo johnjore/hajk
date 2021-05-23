@@ -167,6 +167,7 @@ namespace hajk
                 .SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();*/
         }
 
+
         public bool OnNavigationItemSelected(IMenuItem item)
         {
             int id = item.ItemId;
@@ -182,13 +183,21 @@ namespace hajk
                 /**///This is temp until app can download tiles and store in sqlite DB on device
                 OfflineMaps.LoadMap();
             }
-            else if (id == Resource.Id.nav_slideshow)
+            else if (id == Resource.Id.nav_recordtrack)
             {
-                RecordTrack.StartTrackTimer();
+                if (RecordingTrack)
+                {
+                    RecordTrack.SaveTrack();
+                    item.SetTitle("Record Track");
+                } else
+                {
+                    RecordTrack.StartTrackTimer();
+                    item.SetTitle("Stop Recording");
+                }
             }
             else if (id == Resource.Id.nav_manage)
             {
-                RecordTrack.SaveTrack();
+
             }
             else if (id == Resource.Id.nav_share)
             {

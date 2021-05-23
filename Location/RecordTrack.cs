@@ -31,6 +31,9 @@ namespace hajk
             MainActivity.RecordingTrack = true;
             /**///Move to a proper thread?
             Order_Timer = new Timer(new TimerCallback(GetGPSLocationEvent), null, 0, MainActivity.freq_s * 1000);
+
+            //Update location marker with correct colour
+            Location.UpdateLocationMarker(false);
         }
 
         public static void SaveTrack()
@@ -67,10 +70,13 @@ namespace hajk
 
             track.Metadata.bounds = track.GetBounds();
 
-            string trackPath = Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath, "JJTesting.gpx");
+            string trackPath = Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath, DateTime.Now.ToString("yyyy-MM-dd HH-mm") + ".gpx");
             track.ToFile(trackPath);
 
             MainActivity.RecordingTrack = false;
+
+            //Update location marker with correct colour
+            Location.UpdateLocationMarker(false);
         }
 
         private static void GetGPSLocationEvent(object state)

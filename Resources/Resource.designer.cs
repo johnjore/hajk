@@ -6243,13 +6243,13 @@ namespace hajk
 			public const int nav_offlinemap = 2131230993;
 			
 			// aapt resource value: 0x7F080112
-			public const int nav_send = 2131230994;
+			public const int nav_recordtrack = 2131230994;
 			
 			// aapt resource value: 0x7F080113
-			public const int nav_share = 2131230995;
+			public const int nav_send = 2131230995;
 			
 			// aapt resource value: 0x7F080114
-			public const int nav_slideshow = 2131230996;
+			public const int nav_share = 2131230996;
 			
 			// aapt resource value: 0x7F080115
 			public const int nav_view = 2131230997;

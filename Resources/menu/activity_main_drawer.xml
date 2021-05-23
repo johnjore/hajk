@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
+    <group android:checkableBehavior="none">
         <item
             android:id="@+id/nav_import"
             android:icon="@drawable/ic_create_new_folder_black_24dp"
@@ -13,9 +13,9 @@
             android:icon="@android:drawable/ic_menu_mapmode"
             android:title="Load Offline Map" />
         <item
-            android:id="@+id/nav_slideshow"
+            android:id="@+id/nav_recordtrack"
             android:icon="@drawable/ic_menu_slideshow"
-            android:title="Slideshow" />
+            android:title="Record Track" />
         <item
             android:id="@+id/nav_manage"
             android:icon="@drawable/ic_menu_manage"
