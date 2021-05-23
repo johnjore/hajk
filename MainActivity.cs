@@ -54,7 +54,7 @@ namespace hajk
 #if DEBUG
         public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
 #else
-        public static string rootPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+        public static string rootPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 #endif
 
         readonly string[] permission =
