@@ -57,7 +57,8 @@ namespace hajk
             Android.Manifest.Permission.AccessFineLocation,
             Android.Manifest.Permission.ReadExternalStorage,
             Android.Manifest.Permission.WriteExternalStorage,
-            Android.Manifest.Permission.Internet
+            Android.Manifest.Permission.Internet,
+            Android.Manifest.Permission.AccessNetworkState,
         };
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -116,8 +117,13 @@ namespace hajk
             };
             map.Layers.Add(tileLayer);
 
+            /**///This is poor. Create a dedicated background thread for location data
             //Add location marker
-            Location.UpdateLocationMarker(true);
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await Location.GetCurrentLocation();
+                Location.UpdateLocationMarker(true);
+            });
 
             // Add scalebar
             map.Widgets.Add(new ScaleBarWidget(map)
@@ -180,10 +186,16 @@ namespace hajk
 
         protected override void OnDestroy()
         {
+            //Cleanup Log file
             Log.CloseAndFlush();
+
+            //Terminate Location Task
+            if (Location.cts != null && !Location.cts.IsCancellationRequested)
+                Location.cts.Cancel();
 
             base.OnDestroy();
         }
+
         private void FabOnClick(object sender, EventArgs eventArgs)
         {
             Location.UpdateLocationMarker(true);

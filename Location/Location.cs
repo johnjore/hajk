@@ -5,13 +5,16 @@ using Mapsui.Styles;
 using Xamarin.Essentials;
 using Mapsui.Projection;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace hajk
 {
     class Location
     {
         private static readonly string LocationLayerName = "Location";
-
+        public static CancellationTokenSource cts;
+        public static Xamarin.Essentials.Location location = null;
 
         public static void UpdateLocationMarker(object state)
         {
@@ -22,7 +25,8 @@ namespace hajk
         {
             try
             {
-                var location = Geolocation.GetLastKnownLocationAsync().Result;
+                //var location = Geolocation.GetLastKnownLocationAsync().Result;
+                GetCurrentLocation();
                 var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
 
                 if (navigate)
@@ -40,6 +44,37 @@ namespace hajk
             catch (Exception ex)
             {
                 Serilog.Log.Information($"No location information? '{ex}'");
+            }
+        }
+
+        public static async Task GetCurrentLocation()
+        {
+            try
+            {
+                var request = new GeolocationRequest(GeolocationAccuracy.Best, TimeSpan.FromSeconds(2));
+                cts = new CancellationTokenSource();
+                location = await Geolocation.GetLocationAsync(request, cts.Token);
+
+                if (location != null)
+                {
+                    Console.WriteLine($"Latitude: {location.Latitude}, Longitude: {location.Longitude}, Altitude: {location.Altitude}");
+                }
+            }
+            catch (FeatureNotSupportedException fnsEx)
+            {
+                Serilog.Log.Information($"FeatureNotSupportedException: '{fnsEx}'");
+            }
+            catch (FeatureNotEnabledException fneEx)
+            {
+                Serilog.Log.Information($"FeatureNotEnabledException: '{fneEx}'");
+            }
+            catch (PermissionException pEx)
+            {
+                Serilog.Log.Information($"PermissionException: '{pEx}'");
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Information($"Unable to get location: '{ex}'");
             }
         }
 
