@@ -120,7 +120,23 @@ namespace hajk
             Location.UpdateLocationMarker(true);
 
             // Add scalebar
-            map.Widgets.Add(new ScaleBarWidget(map) { ScaleBarMode = ScaleBarMode.Both, MarginX = 10, MarginY = 10 });
+            map.Widgets.Add(new ScaleBarWidget(map)
+            {
+                MaxWidth = 300,
+                ShowEnvelop = true,
+                Font = new Font { FontFamily = "sans serif", Size = 20 },
+                TickLength = 15,
+                TextColor = new Color(0, 0, 0, 255),
+                Halo = new Color(0, 0, 0, 0),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                TextAlignment = Alignment.Left,
+                ScaleBarMode = ScaleBarMode.Both,
+                UnitConverter = MetricUnitConverter.Instance,
+                SecondaryUnitConverter = NauticalUnitConverter.Instance,
+                MarginX = 10,
+                MarginY = 20,
+            });
 
             //Update location every UpdateGPSLocation_s seconds
             Timer Order_Timer = new Timer(new TimerCallback(Location.UpdateLocationMarker), null, 0, UpdateGPSLocation_s * 1000);
