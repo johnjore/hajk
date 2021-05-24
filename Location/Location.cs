@@ -4,6 +4,7 @@ using Mapsui.Geometries;
 using Mapsui.Styles;
 using Xamarin.Essentials;
 using Mapsui.Projection;
+using System;
 
 namespace hajk
 {
@@ -19,22 +20,30 @@ namespace hajk
 
         public static void UpdateLocationMarker(bool navigate)
         {
-            var location = Geolocation.GetLastKnownLocationAsync().Result;
-            var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
-
-            if (navigate)
+            try
             {
-                MainActivity.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
+                var location = Geolocation.GetLastKnownLocationAsync().Result;
+                var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
+
+                if (navigate)
+                {
+                    MainActivity.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
+                }
+
+                /**///This is bad. Is there not a better way to update the current location than removing and adding layers? 
+                foreach (ILayer layer in MainActivity.map.Layers.FindLayer(LocationLayerName))
+                {
+                    MainActivity.map.Layers.Remove(layer);
+                }
+
+                MainActivity.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Information($"No location information? '{ex}'");
             }
 
-            /**///This is bad. Is there not a better way to update the current location than removing and adding layers?
-            foreach (ILayer layer in MainActivity.map.Layers.FindLayer(LocationLayerName))
-            {
-                MainActivity.map.Layers.Remove(layer);
-            }
-            MainActivity.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
         }
-
         public static ILayer CreateLocationLayer(Point GPSLocation)
         {
             return new MemoryLayer
