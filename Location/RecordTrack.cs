@@ -28,9 +28,12 @@ namespace hajk
 
         public static void StartTrackTimer()
         {
-            MainActivity.RecordingTrack = true;
+            Preferences.Set("RecordingTrack", true);
+            //This is plain stupid. Why not Int type in preferences
+            int freq_s = Int32.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
+
             /**///Move to a proper thread?
-            Order_Timer = new Timer(new TimerCallback(GetGPSLocationEvent), null, 0, MainActivity.freq_s * 1000);
+            Order_Timer = new Timer(new TimerCallback(GetGPSLocationEvent), null, 0, freq_s * 1000);
 
             //Update location marker with correct colour
             Location.UpdateLocationMarker(false);
@@ -74,7 +77,7 @@ namespace hajk
             string trackPath = Path.Combine(MainActivity.rootPath, DateTime.Now.ToString("yyyy-MM-dd HH-mm") + ".gpx");
             track.ToFile(trackPath);
 
-            MainActivity.RecordingTrack = false;
+            Preferences.Set("RecordingTrack", false);
 
             //Update location marker with correct colour
             Location.UpdateLocationMarker(false);
@@ -98,7 +101,7 @@ namespace hajk
 
             Log.Information($"Got {trackGpx.Waypoints.Count} waypoints");
 
-            if (MainActivity.DrawTrackOnGui)
+            if (Preferences.Get("DrawTrackOnGui", PrefsActivity.DrawTrackOnGui_b))
                 DrawTrackOnGui();
         }
 
@@ -108,9 +111,9 @@ namespace hajk
 
             string mapTrack = "LINESTRING(";
 
+            //WayPoint
             for (int i = 0; i < trackGpx.Waypoints.Count; i++)
             {
-                //WayPoint
                 if (!(mapTrack.Equals("LINESTRING(")))
                 {
                     mapTrack += ",";
@@ -124,7 +127,7 @@ namespace hajk
             foreach (ILayer layer in MainActivity.map.Layers.FindLayer("TrackLayer"))
             {
                 MainActivity.map.Layers.Remove(layer);
-            }            
+            }
             MainActivity.map.Layers.Add(lineStringLayer);
 
             Log.Information($"Got {MainActivity.map.Layers.Count} layers");

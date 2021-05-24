@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+  <PreferenceCategory android:title="General">
+    <SwitchPreference
+            android:title="Track Recordings"
+            android:summary="Show Recorded Track"
+            android:key="DrawTrackOnGui"
+            android:defaultValue="true" />
+
+    <EditTextPreference
+            android:title="Update GPS Location"
+			android:summary="How frequently does GPS location update"
+			android:key="UpdateGPSLocation"
+			android:inputType="numberDecimal"
+			android:digits="0123456789"
+			android:defaultValue="5" />
+
+    <EditTextPreference
+			android:title="Track Recording"
+			android:summary="How frequently does Track recording save current postion"
+			android:key="freq"
+			android:inputType="numberDecimal"
+			android:digits="0123456789"
+			android:defaultValue="5" />
+
+  </PreferenceCategory>
+</PreferenceScreen>
+
+
+<!-- For future reference:
+PreferenceCategory android:title="Notifications">
+		<SwitchPreference
+            android:title="Notifications"
+            android:summary="Get notifications when you receive messages"
+            android:key="notifications"
+            android:defaultValue="true" />
+	</PreferenceCategory -->

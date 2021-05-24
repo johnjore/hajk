@@ -14,7 +14,7 @@ namespace hajk
 
 
         public static void UpdateLocationMarker(object state)
-        {       
+        {
             UpdateLocationMarker(false);
         }
 
@@ -30,20 +30,19 @@ namespace hajk
                     MainActivity.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
                 }
 
-                /**///This is bad. Is there not a better way to update the current location than removing and adding layers? 
+                /**///This is bad. Is there not a better way to update the current location than removing and adding layers?
                 foreach (ILayer layer in MainActivity.map.Layers.FindLayer(LocationLayerName))
                 {
                     MainActivity.map.Layers.Remove(layer);
                 }
-
                 MainActivity.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
             }
             catch (Exception ex)
             {
                 Serilog.Log.Information($"No location information? '{ex}'");
             }
-
         }
+
         public static ILayer CreateLocationLayer(Point GPSLocation)
         {
             return new MemoryLayer
@@ -71,10 +70,10 @@ namespace hajk
 
         private static IFeature CreateLocationFeature(Point GPSLocation)
         {
-            var feature = new Feature { Geometry = GPSLocation};
+            var feature = new Feature { Geometry = GPSLocation };
             Color marker = Color.Blue;
 
-            if (MainActivity.RecordingTrack)
+            if (Preferences.Get("RecordingTrack", PrefsActivity.RecordingTrack))
             {
                 marker = Color.Red;
             }

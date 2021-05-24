@@ -4,6 +4,7 @@ using System.IO;
 using SQLite;
 using hajk.Models;
 using System.Threading.Tasks;
+using Xamarin.Essentials;
 
 //https://docs.microsoft.com/en-us/xamarin/get-started/quickstarts/database?pivots=windows
 
@@ -15,7 +16,7 @@ namespace hajk.Data
 
         static RouteDatabase()
         {
-            string dbPath = Path.Combine(MainActivity.rootPath, MainActivity.RouteDB);
+            string dbPath = Path.Combine(MainActivity.rootPath, Preferences.Get("RouteDB", PrefsActivity.RouteDB));
             database = new SQLiteAsyncConnection(dbPath);
             database.CreateTableAsync<Route>().Wait();
         }

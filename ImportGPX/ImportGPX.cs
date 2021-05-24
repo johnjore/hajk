@@ -185,7 +185,7 @@ namespace hajk
             return null;
         }
 
-        private static ILayer CreateRouteLayer(string strRoute, IStyle style = null)
+        public static ILayer CreateRouteLayer(string strRoute, IStyle style = null)
         {
             var features = new Features();
 
@@ -221,12 +221,33 @@ namespace hajk
 
         public static ILayer CreateTrackLayer(string strTrack, IStyle style = null)
         {
+            var features = new Features();
+
+            //Convert from string and line strings
             var lineString = (LineString)Geometry.GeomFromText(strTrack);
             lineString = new LineString(lineString.Vertices.Select(v => SphericalMercator.FromLonLat(v.Y, v.X)));
+            features.Add(new Feature { Geometry = lineString });
+
+            //Waypoint markers
+            foreach (var waypoint in lineString.Vertices)
+            {
+                var feature = new Feature { Geometry = waypoint };
+                feature.Styles.Add(new SymbolStyle
+                {
+                    SymbolScale = 0.2f,
+                    MaxVisible = 10.0f,
+                    MinVisible = 0.0f,
+                    RotateWithMap = true,
+                    SymbolType = SymbolType.Ellipse,
+                    Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Red, Background = Color.Transparent },
+                    Outline = new Pen { Color = Color.Red, Width = 0.2f }
+                });
+                features.Add(feature);
+            }
 
             return new MemoryLayer
             {
-                DataSource = new MemoryProvider(new Feature { Geometry = lineString }),
+                DataSource = new MemoryProvider(features),
                 Name = "TrackLayer",
                 Style = style
             };
@@ -249,7 +270,7 @@ namespace hajk
             {
                 Fill = null,
                 Outline = null,
-                Line = { Color = Color.FromString("Red"), Width = 4, PenStyle = PenStyle.Solid }
+                Line = { Color = Color.FromString("Red"), Width = 4, PenStyle = PenStyle.Dot }
             };
         }
     }

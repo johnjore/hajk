@@ -45,12 +45,6 @@ namespace hajk
         public static Mapsui.Map map = new Mapsui.Map();
         public static MapControl mapControl;
         public static RouteDatabase routedatabase;
-        public readonly static string RouteDB = "Routes.db3"; /**///Move to preferences class. Database to store all routes
-        private readonly static string logFile = "hajk_.txt"; /**///Move to preferences class. Log file
-        public static int freq_s = 5; /**///Move to preferences class. Howe often do we get/save current position for track recordings
-        public static bool DrawTrackOnGui = false; /**///Move to preferences class. Draw recorded track on screen, or not
-        public static int UpdateGPSLocation_s = 5; /**///Move to preferences class. Howe often do we update the GUI with our current location
-        public static bool RecordingTrack = false; /**///Move to preferences class. True when recording a Track
 #if DEBUG
         public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
 #else
@@ -74,8 +68,10 @@ namespace hajk
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             RequestPermissions(permission, 0);
 
+            //Preferences.Clear();
+
             //Logging
-            string _Path = System.IO.Path.Combine(rootPath, logFile);
+            string _Path = System.IO.Path.Combine(rootPath, Preferences.Get("logFile", PrefsActivity.logFile));
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .Enrich.FromLogContext()
@@ -100,6 +96,9 @@ namespace hajk
             NavigationView navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
             navigationView.SetNavigationItemSelectedListener(this);
 
+            //Sanity
+            Preferences.Set("RecordingTrack", false);
+
             //Add map
             mapControl = FindViewById<MapControl>(Resource.Id.mapcontrol);
             map = new Mapsui.Map
@@ -111,7 +110,8 @@ namespace hajk
 
             /**///Change to configuration item due to usage policy
             var tileSource = new HttpTileSource(new GlobalSphericalMercator(), "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", new[] { "a", "b", "c" }, name: "OpenStreetMap", userAgent: "OpenStreetMap in Mapsui (hajk)");
-            var tileLayer = new TileLayer(tileSource) { 
+            var tileLayer = new TileLayer(tileSource)
+            {
                 Name = "OSM",
             };
             map.Layers.Add(tileLayer);
@@ -139,6 +139,8 @@ namespace hajk
             });
 
             //Update location every UpdateGPSLocation_s seconds
+            //This is plain stupid. Why not Int type in preferences
+            int UpdateGPSLocation_s = Int32.Parse(Preferences.Get("UpdateGPSLocation", PrefsActivity.UpdateGPSLocation_s.ToString()));
             Timer Order_Timer = new Timer(new TimerCallback(Location.UpdateLocationMarker), null, 0, UpdateGPSLocation_s * 1000);
 
             mContext = this;
@@ -168,11 +170,14 @@ namespace hajk
             int id = item.ItemId;
             if (id == Resource.Id.action_settings)
             {
+                Log.Information($"Change to Settings");
+                StartActivity(new Intent(this, typeof(PrefsActivity)));
                 return true;
             }
 
             return base.OnOptionsItemSelected(item);
         }
+
         protected override void OnDestroy()
         {
             Log.CloseAndFlush();
@@ -206,11 +211,13 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_recordtrack)
             {
-                if (RecordingTrack)
+                if (Preferences.Get("RecordingTrack", PrefsActivity.RecordingTrack))
                 {
                     RecordTrack.SaveTrack();
                     item.SetTitle("Record Track");
-                } else {
+                }
+                else
+                {
                     RecordTrack.StartTrackTimer();
                     item.SetTitle("Stop Recording");
                 }
