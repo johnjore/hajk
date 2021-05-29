@@ -27,6 +27,7 @@ namespace hajk
             {
                 //var location = Geolocation.GetLastKnownLocationAsync().Result;
                 GetCurrentLocation();
+
                 var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
 
                 if (navigate)

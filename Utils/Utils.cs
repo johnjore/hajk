@@ -29,5 +29,19 @@ namespace Utils
 
             return decodedByte;
         }
+
+        public static Mapsui.Geometries.Point CalculateCenter(double BoundsRight, double BoundsTop, double BoundsLeft, double BoundsBottom)
+        {
+            double lat = (BoundsLeft + BoundsRight) / 2;
+            double lng = (BoundsBottom + BoundsTop) / 2;
+
+            Mapsui.Geometries.Point p = new Mapsui.Geometries.Point()
+            {
+                X = lng,
+                Y = lat
+            };
+
+            return p;
+        }
     }
 }

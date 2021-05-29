@@ -33,6 +33,7 @@ using Xamarin.Essentials;
 using Android.Content;
 using System.IO;
 using System.Threading;
+using System.Net;
 
 //Location service: https://github.com/shernandezp/XamarinForms.LocationService
 
@@ -68,6 +69,8 @@ namespace hajk
             //Init and permissions
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             RequestPermissions(permission, 0);
+
+            ServicePointManager.ServerCertificateValidationCallback = (message, certificate, chain, sslPolicyErrors) => true;
 
             //Preferences.Clear();
 
@@ -108,6 +111,9 @@ namespace hajk
                 Transformation = new MinimalTransformation(),
             };
             mapControl.Map = map;
+
+            //Import all Offline Maps
+            OfflineMaps.LoadAllOfflineMaps();
 
             /**///Change to configuration item due to usage policy
             var tileSource = new HttpTileSource(new GlobalSphericalMercator(), "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", new[] { "a", "b", "c" }, name: "OpenStreetMap", userAgent: "OpenStreetMap in Mapsui (hajk)");

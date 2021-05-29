@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Android.Content;
 using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Projection;
@@ -12,11 +11,10 @@ using Mapsui.Providers;
 using Mapsui.Styles;
 using Mapsui.Utilities;
 using Xamarin.Essentials;
-using SharpGPX.GPX1_1;
-using SharpGPX.GPX1_0;
 using SharpGPX;
-using Android.App;
 using hajk.Data;
+using System.Text.RegularExpressions;
+using Serilog;
 
 namespace hajk
 {
@@ -28,10 +26,18 @@ namespace hajk
 
             MainThread.BeginInvokeOnMainThread(async () =>
             {
+                bool DownloadOfflineMap = false;
                 GpxClass gpxData = await PickAndParse();
 
                 if (gpxData == null)
                     return;
+
+                //Does the user want maps downloaded for offline usage?
+                Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                if (await msg1.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                {
+                    DownloadOfflineMap = true;
+                }
 
                 foreach (var route in gpxData.Routes)
                 {
@@ -75,9 +81,36 @@ namespace hajk
                     };
                     RouteDatabase.SaveRouteAsync(r).Wait();
 
+                    //Does the user want the maps downloaded?
+                    if (DownloadOfflineMap)
+                    {
+                        var bounds = route.GetBounds();
+                        //map.BoundsLeft = -37.5718; map.BoundsRight = -37.5076; map.BoundsBottom = 145.5424; map.BoundsTop = 145.5189;
+                        //Left: -10.2455, Top:  110.5426 Right: -43.2748, Bottom:  154.3179
+
+                        Models.Map map = new Models.Map
+                        {
+                            Name = Regex.Replace(route.name, @"[^\u0000-\u007F]+", ""), //Removes non-ascii characters from filename
+                            ZoomMin = 13,
+                            ZoomMax = 17,
+                            BoundsLeft = (double)bounds.minlat,
+                            BoundsBottom = (double)bounds.maxlon,
+                            BoundsRight = (double)bounds.maxlat,
+                            BoundsTop = (double)bounds.minlon                            
+                        };
+
+                        //Download map
+                        await DownloadRasterImageMap.DownloadMap(map);
+
+                        //Load map
+                        string dbPath = MainActivity.rootPath + "/MBTiles/" + map.Name + ".mbtiles";
+                        Log.Information($"Loading '{dbPath}' as layer name '{map.Name}'");
+                        MainActivity.map.Layers.Add(OfflineMaps.CreateMbTilesLayer(dbPath, map.Name));
+                    }
+
                     //Add to map
                     ILayer lineStringLayer = CreateRouteLayer(mapRoute, CreateRouteStyle());
-                    //MainActivity.map.Layers.Remove(RouteLayer);
+                    /**///MainActivity.map.Layers.Remove(RouteLayer);
                     MainActivity.map.Layers.Add(lineStringLayer);
                 }
             });
@@ -170,7 +203,7 @@ namespace hajk
                     t = "track";
 
                 Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
-                if (await msg1.ShowDialog($"{result.FileName}", $"Found {gpx.Routes.Count} {r} and {gpx.Tracks.Count} {t}. Import?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.CANCEL) != Show_Dialog.MessageResult.YES)
+                if (await msg1.ShowDialog($"{result.FileName}", $"Found {gpx.Routes.Count} {r} and {gpx.Tracks.Count} {t}. Import?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) != Show_Dialog.MessageResult.YES)
                 {
                     return null;
                 }
