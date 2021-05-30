@@ -18,7 +18,7 @@ public class Show_Dialog
         NO = 7
     }
 
-    Activity mcontext;
+    readonly Activity mcontext;
     public Show_Dialog(Activity activity) : base()
     {
         this.mcontext = activity;

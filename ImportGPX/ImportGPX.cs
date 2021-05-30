@@ -119,6 +119,9 @@ namespace hajk
                     var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = file };
                     MainActivity.map.Layers.Add(mbTilesLayer);*/
                 }
+
+                Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
+                await msg3.ShowDialog($"Done", $"GPX Import Completed", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
             });
 
             return null;
