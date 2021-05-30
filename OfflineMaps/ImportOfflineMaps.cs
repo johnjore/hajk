@@ -63,6 +63,7 @@ namespace hajk
         public static void LoadAllOfflineMaps()
         {
             string MBTilesPath = MainActivity.rootPath + "/MBTiles";
+            
             var filesList = Directory.GetFiles(MBTilesPath);
 
             //Load Australia First
@@ -91,7 +92,7 @@ namespace hajk
             {
                 if (file.EndsWith(".mbtiles"))
                 {
-                    if (!file.EndsWith("Australia.mbtiles"))
+                    if (!file.EndsWith("Country.mbtiles"))
                     {
                         Log.Information($"File {file}");
 

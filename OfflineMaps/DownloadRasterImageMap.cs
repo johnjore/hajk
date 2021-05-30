@@ -67,6 +67,7 @@ namespace hajk
             }
             conn.Close();
             Log.Information($"Done downloading map for {metadata.name}");
+
         }
 
         private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn)

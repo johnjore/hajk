@@ -51,8 +51,9 @@ namespace hajk
                     zoom_level = t.Z,
                     tile_column = t.X,
                     tile_row = tmsY,
-                    tile_data = data
-                };
+                    tile_data = data,
+                    createDate = DateTime.UtcNow
+            };
 
                 tiles oldTile = sqliteConnection.Table<tiles>().Where(x => x.zoom_level == t.Z && x.tile_column == t.X && x.tile_row == tmsY).FirstOrDefault();
                 if (oldTile == null)
