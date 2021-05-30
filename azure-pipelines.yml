@@ -20,7 +20,7 @@ steps:
   inputs:
     script: |
       echo 'Cloning into sources folder at: $(Build.SourcesDirectory)'
-      git clone https://github.com/OsmSharp/tiles.git --progress $(Build.SourcesDirectory)
+      git clone https://github.com/OsmSharp/tiles.git --progress
       exit
 
 - task: NuGetCommand@2
