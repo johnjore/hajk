@@ -39,10 +39,33 @@ namespace hajk
 
         public static int WriteTile(SQLiteConnection sqliteConnection, Tile t, byte[] data)
         {
-            try {
+            try
+            {
                 // mbtiles uses tms format so reverse y-axis...
-                var tmsY = Math.Pow(2, t.Z) - 1 - t.Y;
-                int rowsAffected = sqliteConnection.Execute($"INSERT INTO tiles (zoom_level, tile_column, tile_row, tile_data) VALUES ({t.Z}, {t.X}, {tmsY}, @bytes)", data);
+                int tmsY = (int)Math.Pow(2, t.Z) - 1 - t.Y;
+                int rowsAffected = 0;
+
+                //Create tile for DB
+                tiles mbtile = new tiles
+                {
+                    zoom_level = t.Z,
+                    tile_column = t.X,
+                    tile_row = tmsY,
+                    tile_data = data
+                };
+
+                tiles oldTile = sqliteConnection.Table<tiles>().Where(x => x.zoom_level == t.Z && x.tile_column == t.X && x.tile_row == tmsY).FirstOrDefault();
+                if (oldTile == null)
+                {
+                    //rowsAffected = sqliteConnection.Execute($"INSERT INTO tiles (zoom_level, tile_column, tile_row, tile_data) VALUES ({t.Z}, {t.X}, {tmsY}, @bytes)", data);
+                    rowsAffected = sqliteConnection.Insert(mbtile);
+                }
+                else
+                {
+                    mbtile.id = oldTile.id;
+                    rowsAffected = sqliteConnection.Update(mbtile);
+                }
+                
                 return rowsAffected;
             }
             catch (Exception ex)

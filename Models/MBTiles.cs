@@ -1,4 +1,6 @@
-﻿namespace hajk.Models
+﻿using SQLite;
+
+namespace hajk.Models
 {
     public class metadata
     {
@@ -8,6 +10,8 @@
 
     public class tiles
     {
+        [PrimaryKey, AutoIncrement]
+        public int id { get; set; }
         public int zoom_level { get; set; }
         public int tile_column { get; set; }
         public int tile_row { get; set; }
