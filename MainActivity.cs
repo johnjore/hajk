@@ -112,16 +112,17 @@ namespace hajk
             };
             mapControl.Map = map;
 
-            //Import all Offline Maps
-            OfflineMaps.LoadAllOfflineMaps();
-
             /**///Change to configuration item due to usage policy
-            var tileSource = new HttpTileSource(new GlobalSphericalMercator(), "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", new[] { "a", "b", "c" }, name: "OpenStreetMap", userAgent: "OpenStreetMap in Mapsui (hajk)");
+            //var tileSource = new HttpTileSource(new GlobalSphericalMercator(), "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", new[] { "a", "b", "c" }, name: "OpenStreetMap", userAgent: "OpenStreetMap in Mapsui (hajk)");
+            var tileSource = TileCache.GetOSMBasemap(rootPath + "/CacheDB.mbtiles");
             var tileLayer = new TileLayer(tileSource)
             {
                 Name = "OSM",
             };
             map.Layers.Add(tileLayer);
+
+            //Import all Offline Maps
+            OfflineMaps.LoadAllOfflineMaps();
 
             /**///This is poor. Create a dedicated background thread for location data
             //Add location marker
