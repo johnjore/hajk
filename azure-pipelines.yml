@@ -15,6 +15,14 @@ variables:
 steps:
 - task: NuGetToolInstaller@1
 
+- task: CmdLine@2
+  displayName: 'git clone awsometiles'
+  inputs:
+    script: |
+      echo 'Cloning into sources folder at: $(Build.SourcesDirectory)'
+      git clone https://github.com/OsmSharp/tiles.git --progress $(Build.SourcesDirectory)
+      exit
+
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '**/*.sln'
