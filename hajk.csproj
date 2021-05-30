@@ -76,7 +76,7 @@
     <Compile Include="Models\MBTiles.cs" />
     <Compile Include="Models\Route.cs" />
     <Compile Include="OfflineMaps\DownloadRasterImageMap.cs" />
-    <Compile Include="OfflineMaps\OfflineMaps.cs" />
+    <Compile Include="OfflineMaps\ImportOfflineMaps.cs" />
     <Compile Include="Preferences.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

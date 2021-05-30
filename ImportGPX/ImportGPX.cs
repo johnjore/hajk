@@ -110,8 +110,14 @@ namespace hajk
 
                     //Add to map
                     ILayer lineStringLayer = CreateRouteLayer(mapRoute, CreateRouteStyle());
+                    lineStringLayer.IsMapInfoLayer = true;
+                    lineStringLayer.Enabled = true;
                     /**///MainActivity.map.Layers.Remove(RouteLayer);
                     MainActivity.map.Layers.Add(lineStringLayer);
+
+                    /*var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true), null, MbTilesType.Overlay, true, true);
+                    var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = file };
+                    MainActivity.map.Layers.Add(mbTilesLayer);*/
                 }
             });
 
@@ -294,7 +300,6 @@ namespace hajk
                 Outline = null,
                 Line = { Color = Color.FromString("Blue"), Width = 4, PenStyle = PenStyle.Solid }
             };
-
         }
 
         public static IStyle CreateTrackStyle()

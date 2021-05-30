@@ -65,19 +65,48 @@ namespace hajk
             string MBTilesPath = MainActivity.rootPath + "/MBTiles";
             var filesList = Directory.GetFiles(MBTilesPath);
 
+            //Load Australia First
             foreach (var file in filesList)
             {
-                Log.Information($"File {file}");
-                if (file.EndsWith("mbtiles"))
+                if (file.EndsWith(".mbtiles"))
                 {
-                    Log.Information($"File {file}");
-                    //MainActivity.map.Layers.Add(CreateMbTilesLayer(file, "regular"));
+                    if (file.EndsWith("Country.mbtiles"))
+                    {
+                        Log.Information($"File {file}");
 
-                    var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true), null, MbTilesType.Overlay, true, true);
-                    var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = "Offline" };
-                    MainActivity.map.Layers.Add(mbTilesLayer);
+                        //Map not clear. GPX visible
+                        var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true));
+
+                        //GPX not visible
+                        //var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true), null, MbTilesType.Overlay, true, true);
+
+                        var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = file };
+                        MainActivity.map.Layers.Add(mbTilesLayer);
+                    }
                 }
             }
+
+            //Load the rest 
+            foreach (var file in filesList)
+            {
+                if (file.EndsWith(".mbtiles"))
+                {
+                    if (!file.EndsWith("Australia.mbtiles"))
+                    {
+                        Log.Information($"File {file}");
+
+                        //Map not clear. GPX visible
+                        var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true));
+
+                        //GPX not visible
+                        //var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true), null, MbTilesType.Overlay, true, true);
+
+                        var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = file };
+                        MainActivity.map.Layers.Add(mbTilesLayer);
+                    }
+                }
+            }
+
         }
     }
 }
