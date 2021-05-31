@@ -33,15 +33,30 @@ namespace hajk
                         })
                     };
 
-                    var result = await FilePicker.PickAsync(options);
-                    if (result != null)
+                    var sourceFile = await FilePicker.PickAsync(options);
+                    if (sourceFile != null)
                     {
-                        MainActivity.map.Layers.Add(CreateMbTilesLayer(result.FullPath, "regular"));
+                        string destinationFile = MainActivity.rootPath + "/MBTiles/" + sourceFile.FileName;
+
+                        if (File.Exists(destinationFile))
+                        {
+                            Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                            if (await msg1.ShowDialog($"Overwrite", $"Overwrite '{sourceFile.FileName}'", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NO, Show_Dialog.MessageResult.YES) == Show_Dialog.MessageResult.NO)
+                            {
+                                return;
+                            }
+                        }
+
+                        File.Copy(sourceFile.FullPath, destinationFile, true);
+                        MainActivity.map.Layers.Add(CreateMbTilesLayer(destinationFile, sourceFile.FileName));
+
+                        Show_Dialog msg2 = new Show_Dialog(MainActivity.mContext);
+                        await msg2.ShowDialog($"Done", $"Map Imported and Loaded", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // The user canceled or something went wrong
+                    Log.Information($"Failed to import map file: '{ex}'");
                 }
             });
         }

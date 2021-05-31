@@ -11,7 +11,7 @@
         <item
             android:id="@+id/nav_offlinemap"
             android:icon="@android:drawable/ic_menu_mapmode"
-            android:title="Load Offline Map" />
+            android:title="Import Map" />
         <item
             android:id="@+id/nav_recordtrack"
             android:icon="@drawable/ic_menu_slideshow"
