@@ -121,7 +121,6 @@ namespace hajk
                 Outline = new Pen { Color = marker, Width = 2.0 }
             });
 
-
             return feature;
         }
     }

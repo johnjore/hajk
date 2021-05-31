@@ -66,12 +66,14 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AwesomeTiles\Tile.cs" />
+    <Compile Include="AwesomeTiles\TileRange.cs" />
     <Compile Include="ImportGPX\ImportGPX.cs" />
     <Compile Include="ImportGPX\RouteDatabase.cs" />
     <Compile Include="Location\Location.cs" />
     <Compile Include="Location\RecordTrack.cs" />
     <Compile Include="MainActivity.cs" />
-    <Compile Include="MBTiles.cs" />
+    <Compile Include="OfflineMaps\MBTiles.cs" />
     <Compile Include="Models\Map.cs" />
     <Compile Include="Models\MBTiles.cs" />
     <Compile Include="Models\Route.cs" />
@@ -186,12 +188,6 @@
     <AndroidResource Include="Resources\Xml\Preferences.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\tiles\src\AwesomeTiles\AwesomeTiles.csproj">
-      <Project>{646fd4a8-4c8e-4815-a6bd-deb53bbdd55c}</Project>
-      <Name>AwesomeTiles</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

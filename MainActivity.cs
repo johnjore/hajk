@@ -34,6 +34,7 @@ using Android.Content;
 using System.IO;
 using System.Threading;
 using System.Net;
+using Android.Content.Res;
 
 //Location service: https://github.com/shernandezp/XamarinForms.LocationService
 
@@ -205,7 +206,34 @@ namespace hajk
 
         private void FabOnClick(object sender, EventArgs eventArgs)
         {
-            Location.UpdateLocationMarker(true);
+            //Toggle tracking
+            bool currentStatus = Preferences.Get("TrackLocation", true);
+            Preferences.Set("TrackLocation", !currentStatus);
+
+            //Floating Button
+            FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
+
+            //Inverse as pref has been updated
+            if (Preferences.Get("TrackLocation", true) == false)
+            {
+                fab.Background.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.Red));
+
+
+                var task = Task.Run(async () =>
+                {
+                    while (Preferences.Get("TrackLocation", PrefsActivity.TrackLocation) == false)
+                    {
+                        Log.Information($"Re-center Map on our location");
+                        Location.UpdateLocationMarker(true);
+
+                        await Task.Delay(500);
+                    }
+                });
+            }
+            else
+            {
+                fab.Background.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.LightBlue));
+            }
 
             /*View view = (View)sender;
             Snackbar.Make(view, "Replace with your own action", Snackbar.LengthLong)

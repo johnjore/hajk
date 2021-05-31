@@ -1,10 +1,4 @@
-﻿using Android.App;
-using Android.Content;
-using Android.OS;
-using Android.Runtime;
-using Android.Views;
-using Android.Widget;
-using Mapsui.Layers;
+﻿using Mapsui.Layers;
 using SQLite;
 using System;
 using System.Collections.Generic;
