@@ -50,7 +50,7 @@ namespace hajk
                     }
 
                     string mapRoute = "LINESTRING(";
-                    decimal mapDistanceKm = 0;
+                    float mapDistanceKm = 0;
                     for (int i = 0; i < route.rtept.Count; i++)
                     {
                         //WayPoint
@@ -63,7 +63,7 @@ namespace hajk
                         //Calculate Distance
                         if (i >= 1)
                         {
-                            mapDistanceKm += (decimal)Distance((double)route.rtept[i - 1].lat, (double)route.rtept[i - 1].lon, (double)route.rtept[i].lat, (double)route.rtept[i].lon, 'K');
+                            mapDistanceKm += (float)Distance((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, (float)route.rtept[i].lat, (float)route.rtept[i].lon, 'K');
                         }
 
                         /**///Calculate ascent / descent data

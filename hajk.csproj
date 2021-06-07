@@ -81,6 +81,8 @@
     <Compile Include="OfflineMaps\ImportOfflineMaps.cs" />
     <Compile Include="OfflineMaps\TileCache.cs" />
     <Compile Include="Preferences.cs" />
+    <Compile Include="GPX\GPXAdapter.cs" />
+    <Compile Include="GPX\GPX.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\Show_Dialog.cs" />
@@ -165,11 +167,17 @@
     <PackageReference Include="sqlite-net-pcl">
       <Version>1.7.335</Version>
     </PackageReference>
-    <PackageReference Include="System.Data.SQLite">
-      <Version>1.0.114</Version>
-    </PackageReference>
     <PackageReference Include="tilebelt">
       <Version>1.3.4</Version>
+    </PackageReference>
+    <PackageReference Include="Xamarin.Android.Support.v7.AppCompat">
+      <Version>28.0.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="Xamarin.Android.Support.v7.CardView">
+      <Version>28.0.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="Xamarin.Android.Support.v7.RecyclerView">
+      <Version>28.0.0.3</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.2.0.7" />
     <PackageReference Include="Xamarin.Google.Android.Material" Version="1.3.0.1" />
@@ -186,6 +194,11 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\Xml\Preferences.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\activity_gpx.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>

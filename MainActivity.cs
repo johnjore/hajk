@@ -1,12 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Net;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Android.App;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
+using Android.Widget;
+using Android.Content;
+using Android.Content.Res;
+using Android.Support.V7.Widget;
 using AndroidX.AppCompat.App;
 using AndroidX.AppCompat.Widget;
 using AndroidX.Core.View;
@@ -28,13 +35,9 @@ using Mapsui.Widgets.ScaleBar;
 using BruTile.Predefined;
 using BruTile.Web;
 using Serilog;
-using hajk.Data;
 using Xamarin.Essentials;
-using Android.Content;
-using System.IO;
-using System.Threading;
-using System.Net;
-using Android.Content.Res;
+using hajk.Data;
+using hajk.Adapter;
 
 //Location service: https://github.com/shernandezp/XamarinForms.LocationService
 
@@ -47,6 +50,10 @@ namespace hajk
         public static Mapsui.Map map = new Mapsui.Map();
         public static MapControl mapControl;
         public static RouteDatabase routedatabase;
+        RecyclerView mRecycleView;
+        RecyclerView.LayoutManager mLayoutManager;
+        GpxData mGpxData;
+        GpxAdapter mAdapter;
 #if DEBUG
         public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
 #else
@@ -87,7 +94,7 @@ namespace hajk
 
             //GUI
             SetContentView(Resource.Layout.activity_main);
-            Toolbar toolbar = FindViewById<Toolbar>(Resource.Id.toolbar);
+            AndroidX.AppCompat.Widget.Toolbar toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
 
             FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
@@ -106,6 +113,7 @@ namespace hajk
 
             //Add map
             mapControl = FindViewById<MapControl>(Resource.Id.mapcontrol);
+            mapControl.Visibility = ViewStates.Visible;
             map = new Mapsui.Map
             {
                 CRS = "EPSG:3857", //https://epsg.io/3857
@@ -113,8 +121,7 @@ namespace hajk
             };
             mapControl.Map = map;
 
-            /**///Change to configuration item due to usage policy
-            //var tileSource = new HttpTileSource(new GlobalSphericalMercator(), "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", new[] { "a", "b", "c" }, name: "OpenStreetMap", userAgent: "OpenStreetMap in Mapsui (hajk)");
+            //Cache downloaded tiles
             var tileSource = TileCache.GetOSMBasemap(rootPath + "/CacheDB.mbtiles");
             var tileLayer = new TileLayer(tileSource)
             {
@@ -157,15 +164,32 @@ namespace hajk
             int UpdateGPSLocation_s = Int32.Parse(Preferences.Get("UpdateGPSLocation", PrefsActivity.UpdateGPSLocation_s.ToString()));
             Timer Order_Timer = new Timer(new TimerCallback(Location.UpdateLocationMarker), null, 0, UpdateGPSLocation_s * 1000);
 
+            //View GPX DB
+            mGpxData = new GpxData();
+            mRecycleView = FindViewById<RecyclerView>(Resource.Id.recyclerView);
+            mRecycleView.Visibility = ViewStates.Invisible;
+            mLayoutManager = new LinearLayoutManager(this);
+            mRecycleView.SetLayoutManager(mLayoutManager);
+            mAdapter = new GpxAdapter(mGpxData);
+            mAdapter.ItemClick += GpxAdapter.MAdapter_ItemClick;
+            mRecycleView.SetAdapter(mAdapter);
+
             mContext = this;
         }
 
         public override void OnBackPressed()
         {
             DrawerLayout drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
-            if (drawer.IsDrawerOpen(GravityCompat.Start))
+            if (drawer != null)
             {
-                drawer.CloseDrawer(GravityCompat.Start);
+                if (drawer.IsDrawerOpen(GravityCompat.Start))
+                {
+                    drawer.CloseDrawer(GravityCompat.Start);
+                }
+                else
+                {
+                    base.OnBackPressed();
+                }
             }
             else
             {
@@ -218,7 +242,6 @@ namespace hajk
             {
                 fab.Background.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.Red));
 
-
                 var task = Task.Run(async () =>
                 {
                     while (Preferences.Get("TrackLocation", PrefsActivity.TrackLocation) == false)
@@ -240,7 +263,6 @@ namespace hajk
                 .SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();*/
         }
 
-
         public bool OnNavigationItemSelected(IMenuItem item)
         {
             int id = item.ItemId;
@@ -248,12 +270,11 @@ namespace hajk
             if (id == Resource.Id.nav_import)
             {
                 //Import GPX file (routes and tracks), save to SQLite DB
-                /**///and display on map. Change this to open Route view instead. Give user option to download maps for each route / track
                 Import.GetRoute();
             }
             else if (id == Resource.Id.nav_offlinemap)
             {
-                /**///This is temp until app can download tiles and store in sqlite DB on device
+                //Import .mbtiles file
                 OfflineMaps.LoadMap();
             }
             else if (id == Resource.Id.nav_recordtrack)
@@ -271,7 +292,20 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_manage)
             {
-
+                if (mapControl.Visibility == ViewStates.Invisible)
+                {
+                    mapControl.Visibility = ViewStates.Visible;
+                    FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
+                    FindViewById<RecyclerView>(Resource.Id.recyclerView).Visibility = ViewStates.Invisible;
+                    item.SetTitle("Routes / Tracks");
+                } 
+                else
+                {
+                    mapControl.Visibility = ViewStates.Invisible;
+                    FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
+                    FindViewById<RecyclerView>(Resource.Id.recyclerView).Visibility = ViewStates.Visible;
+                    item.SetTitle("Map");
+                }
             }
             else if (id == Resource.Id.nav_share)
             {

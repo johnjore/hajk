@@ -15,6 +15,8 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Xamarin.Essentials;
+using Android.Widget;
+using Android.OS;
 
 namespace hajk
 {
@@ -26,7 +28,7 @@ namespace hajk
         public static async Task DownloadMap(Models.Map map)
         {
             //Make sure the folder for the offline maps exists
-            InitMBTilesFolder();
+            InitMBTilesFolder();            
 
             //Calculate the the sqlite / mbtiles metadata
             Point p = Utils.Misc.CalculateCenter(map.BoundsRight, map.BoundsTop, map.BoundsLeft, map.BoundsBottom);
@@ -75,22 +77,22 @@ namespace hajk
             string OSMServer = Preferences.Get("OSMServer", PrefsActivity.OSMServer_s);
 
             //Same, but without parallell processing. 
-/*            foreach (var tile in range)
-            {
-                byte[] data = null;
-                for (int i = 0; i < 10; i++)
-                {
-                    var url = OSMServer + $"{zoom}/{tile.X}/{tile.Y}.png";
-                    data = await DownloadImageAsync(url);
-                    if (data != null)
-                        break;
+            /*            foreach (var tile in range)
+                        {
+                            byte[] data = null;
+                            for (int i = 0; i < 10; i++)
+                            {
+                                var url = OSMServer + $"{zoom}/{tile.X}/{tile.Y}.png";
+                                data = await DownloadImageAsync(url);
+                                if (data != null)
+                                    break;
 
-                    Thread.Sleep(10000);
-                }
+                                Thread.Sleep(10000);
+                            }
 
-                Log.Information($"Zoomindex: {zoom}, x/y: {tile.X}/{tile.Y}, ID: {tile.Id}. Done:{++done}/{totalTilesCount}");
-                WriteOsmSQlite(data, zoom, tile.X, tile.Y);
-            };*/
+                            Log.Information($"Zoomindex: {zoom}, x/y: {tile.X}/{tile.Y}, ID: {tile.Id}. Done:{++done}/{totalTilesCount}");
+                            WriteOsmSQlite(data, zoom, tile.X, tile.Y);
+                        };*/
 
             await range.ParallelForEachAsync(async tile =>
             {
