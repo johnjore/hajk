@@ -26,21 +26,21 @@ namespace hajk
             try
             {
                 //var location = Geolocation.GetLastKnownLocationAsync().Result;
-                GetCurrentLocation();
+                _ = GetCurrentLocation();
 
                 var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
 
                 if (navigate)
                 {
-                    MainActivity.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
+                    Fragments.Map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
                 }
 
                 /**///This is bad. Is there not a better way to update the current location than removing and adding layers?
-                foreach (ILayer layer in MainActivity.map.Layers.FindLayer(LocationLayerName))
+                foreach (ILayer layer in Fragments.Map.map.Layers.FindLayer(LocationLayerName))
                 {
-                    MainActivity.map.Layers.Remove(layer);
+                    Fragments.Map.map.Layers.Remove(layer);
                 }
-                MainActivity.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
+                Fragments.Map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
             }
             catch (Exception ex)
             {

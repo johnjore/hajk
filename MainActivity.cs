@@ -16,6 +16,8 @@ using Android.Content.Res;
 using Android.Support.V7.Widget;
 using AndroidX.AppCompat.App;
 using AndroidX.AppCompat.Widget;
+using AndroidX.Fragment;
+using AndroidX.Fragment.App;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using Google.Android.Material.FloatingActionButton;
@@ -38,6 +40,7 @@ using Serilog;
 using Xamarin.Essentials;
 using hajk.Data;
 using hajk.Adapter;
+using hajk.Fragments;
 
 //Location service: https://github.com/shernandezp/XamarinForms.LocationService
 
@@ -47,13 +50,7 @@ namespace hajk
     public class MainActivity : AppCompatActivity, NavigationView.IOnNavigationItemSelectedListener
     {
         public static Activity mContext;
-        public static Mapsui.Map map = new Mapsui.Map();
-        public static MapControl mapControl;
         public static RouteDatabase routedatabase;
-        RecyclerView mRecycleView;
-        RecyclerView.LayoutManager mLayoutManager;
-        GpxData mGpxData;
-        GpxAdapter mAdapter;
 #if DEBUG
         public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
 #else
@@ -92,71 +89,35 @@ namespace hajk
                 ).CreateLogger();
             Log.Information($"Logging to '{_Path}'");
 
-            //GUI
+            Log.Debug($"Create toolbar");
             SetContentView(Resource.Layout.activity_main);
             AndroidX.AppCompat.Widget.Toolbar toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
 
+            Log.Debug($"Create floating action button");
             FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
             fab.Click += FabOnClick;
 
+            Log.Debug($"Create drawer layout");
             DrawerLayout drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
             drawer.AddDrawerListener(toggle);
             toggle.SyncState();
 
+            Log.Debug($"Create navigation view");
             NavigationView navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
             navigationView.SetNavigationItemSelectedListener(this);
 
             //Sanity
+            Log.Debug($"Set RecordingTrack to false - sanity check");
             Preferences.Set("RecordingTrack", false);
 
-            //Add map
-            mapControl = FindViewById<MapControl>(Resource.Id.mapcontrol);
-            mapControl.Visibility = ViewStates.Visible;
-            map = new Mapsui.Map
-            {
-                CRS = "EPSG:3857", //https://epsg.io/3857
-                Transformation = new MinimalTransformation(),
-            };
-            mapControl.Map = map;
-
-            //Cache downloaded tiles
-            var tileSource = TileCache.GetOSMBasemap(rootPath + "/CacheDB.mbtiles");
-            var tileLayer = new TileLayer(tileSource)
-            {
-                Name = "OSM",
-            };
-            map.Layers.Add(tileLayer);
-
-            //Import all Offline Maps
-            OfflineMaps.LoadAllOfflineMaps();
-
             /**///This is poor. Create a dedicated background thread for location data
-            //Add location marker
+            Log.Debug($"Add location marker");
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 await Location.GetCurrentLocation();
                 Location.UpdateLocationMarker(true);
-            });
-
-            // Add scalebar
-            map.Widgets.Add(new ScaleBarWidget(map)
-            {
-                MaxWidth = 300,
-                ShowEnvelop = true,
-                Font = new Font { FontFamily = "sans serif", Size = 20 },
-                TickLength = 15,
-                TextColor = new Color(0, 0, 0, 255),
-                Halo = new Color(0, 0, 0, 0),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Bottom,
-                TextAlignment = Alignment.Left,
-                ScaleBarMode = ScaleBarMode.Both,
-                UnitConverter = MetricUnitConverter.Instance,
-                SecondaryUnitConverter = NauticalUnitConverter.Instance,
-                MarginX = 10,
-                MarginY = 20,
             });
 
             //Update location every UpdateGPSLocation_s seconds
@@ -164,17 +125,16 @@ namespace hajk
             int UpdateGPSLocation_s = Int32.Parse(Preferences.Get("UpdateGPSLocation", PrefsActivity.UpdateGPSLocation_s.ToString()));
             Timer Order_Timer = new Timer(new TimerCallback(Location.UpdateLocationMarker), null, 0, UpdateGPSLocation_s * 1000);
 
-            //View GPX DB
-            mGpxData = new GpxData();
-            mRecycleView = FindViewById<RecyclerView>(Resource.Id.recyclerView);
-            mRecycleView.Visibility = ViewStates.Invisible;
-            mLayoutManager = new LinearLayoutManager(this);
-            mRecycleView.SetLayoutManager(mLayoutManager);
-            mAdapter = new GpxAdapter(mGpxData);
-            mAdapter.ItemClick += GpxAdapter.MAdapter_ItemClick;
-            mRecycleView.SetAdapter(mAdapter);
 
+            Log.Debug($"Create Fragment");
+            var mapTransaction = SupportFragmentManager.BeginTransaction();
+            mapTransaction.Add(Resource.Id.fragment_container, new Fragments.Map(), "Map");
+            mapTransaction.Commit();
+
+            Log.Debug($"Save context");
             mContext = this;
+
+            Log.Debug($"Done with OnCreate()");
         }
 
         public override void OnBackPressed()
@@ -292,19 +252,25 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_manage)
             {
-                if (mapControl.Visibility == ViewStates.Invisible)
+                if (Fragments.Map.mapControl.Visibility == ViewStates.Invisible)
                 {
-                    mapControl.Visibility = ViewStates.Visible;
+                    Fragments.Map.mapControl.Visibility = ViewStates.Visible;
                     FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
-                    FindViewById<RecyclerView>(Resource.Id.recyclerView).Visibility = ViewStates.Invisible;
                     item.SetTitle("Routes / Tracks");
-                } 
+
+                    var menuTransaction = SupportFragmentManager.BeginTransaction();
+                    menuTransaction.Replace(Resource.Id.fragment_container, new Fragments.Map(), "Map");
+                    menuTransaction.Commit();
+                }
                 else
                 {
-                    mapControl.Visibility = ViewStates.Invisible;
+                    Fragments.Map.mapControl.Visibility = ViewStates.Invisible;
                     FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
-                    FindViewById<RecyclerView>(Resource.Id.recyclerView).Visibility = ViewStates.Visible;
                     item.SetTitle("Map");
+
+                    var menuTransaction = SupportFragmentManager.BeginTransaction();
+                    menuTransaction.Replace(Resource.Id.fragment_container, new Fragments.Fragment1(), "Fragment1");
+                    menuTransaction.Commit();
                 }
             }
             else if (id == Resource.Id.nav_share)
