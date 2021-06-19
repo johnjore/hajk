@@ -24,7 +24,7 @@ namespace hajk.Adapter
         {
             GPXViewHolder vh = holder as GPXViewHolder;
             vh.Name.Text = mGpxData[position].Name;
-            vh.Distance.Text = (mGpxData[position].Distance).ToString();
+            vh.Distance.Text = (mGpxData[position].Distance) .ToString("N2") + " km";
             //vh.Image.SetImageResource(mPhotoAlbum[position].mPhotoID);
         }
 
@@ -43,7 +43,14 @@ namespace hajk.Adapter
         public static void MAdapter_ItemClick(object sender, int e)
         {
             int gpxNum = e + 1;
-            Toast.MakeText(MainActivity.mContext, "This is photo number " + gpxNum, ToastLength.Short).Show();
+            Toast.MakeText(MainActivity.mContext, "This is route/track number " + gpxNum, ToastLength.Short).Show();
+            /**/
+            //Start route
+            //Show on map
+            //Delete route
+            //Reverse route
+            //Export to GPX
+            //Save Offline Map
         }
     }
 }

@@ -10,11 +10,6 @@ using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
-
-
-
-
-using System.IO;
 using System.Threading;
 using System.Net;
 using System.Reflection;
@@ -25,22 +20,6 @@ using AndroidX.AppCompat.App;
 using AndroidX.AppCompat.Widget;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
-using Google.Android.Material.FloatingActionButton;
-using Google.Android.Material.Navigation;
-using Google.Android.Material.Snackbar;
-using Mapsui;
-using Mapsui.Geometries;
-using Mapsui.Layers;
-using Mapsui.Projection;
-using Mapsui.UI;
-using Mapsui.UI.Android;
-using Mapsui.Providers;
-using Mapsui.Styles;
-using Mapsui.Utilities;
-using Mapsui.Widgets;
-using Mapsui.Widgets.ScaleBar;
-using BruTile.Predefined;
-using BruTile.Web;
 using Serilog;
 using Xamarin.Essentials;
 using hajk.Data;
@@ -70,6 +49,7 @@ namespace hajk.Fragments
             mRecycleView.Visibility = ViewStates.Visible;
 
             mLayoutManager = new LinearLayoutManager(view.Context);
+            //mLayoutManager = new GridLayoutManager(view.Context, 3);
             mRecycleView.SetLayoutManager(mLayoutManager);
             mAdapter = new GpxAdapter(mGpxData);
             mAdapter.ItemClick += GpxAdapter.MAdapter_ItemClick;

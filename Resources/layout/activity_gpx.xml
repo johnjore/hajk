@@ -11,12 +11,12 @@
         card_view:cardCornerRadius="5dp"
         card_view:cardUseCompatPadding="true">
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="8dp">
-
+          
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -30,12 +30,23 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:layout_below="@id/Name"
+                android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textColor="#333333"
                 android:text="Distance"
                 android:id="@+id/Distance"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginLeft="4dp"/>
+
+            <TextView
+                android:id="@+id/textViewOptions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:text="&#8942;"
+                android:textAppearance="?android:textAppearanceLarge" />
 
             <ImageView
                 android:layout_width="match_parent"
@@ -44,6 +55,6 @@
                 android:scaleType="fitCenter"
                 android:contentDescription="routemap" />
 
-        </LinearLayout>
+        </RelativeLayout>
     </android.support.v7.widget.CardView>
 </FrameLayout>
