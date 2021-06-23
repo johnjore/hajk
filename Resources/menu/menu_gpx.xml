@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <item
+      android:id="@+id/gpx_menu_followroute"
+      android:title="Follow route" />
+
+  <item
+      android:id="@+id/gpx_menu_showonmap"
+      android:title="Show on map" />
+
+  <item
+      android:id="@+id/gpx_menu_deleteroute"
+      android:title="Delete route" />
+
+  <item
+      android:id="@+id/gpx_menu_reverseroute"
+      android:title="Reverse route" />
+
+  <item
+      android:id="@+id/gpx_menu_exporttogpx"
+      android:title="Export to GPX" />
+
+  <item
+      android:id="@+id/gpx_menu_saveofflinemap"
+      android:title="Save offline map" />
+
+</menu>

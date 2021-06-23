@@ -28,6 +28,8 @@ namespace hajk
         {
             get { return gpx[i]; }
         }
+
+        public ImageButton img_more;
     }
 
     public class GPXViewHolder : RecyclerView.ViewHolder
@@ -35,12 +37,14 @@ namespace hajk
         public ImageView Image { get; set; }
         public TextView Name { get; set; }
         public TextView Distance { get; set; }
+        public TextView img_more;
         public GPXViewHolder(View itemview, Action<int> listener) : base(itemview)
         {
             Image = itemview.FindViewById<ImageView>(Resource.Id.imageView);
             Name = itemview.FindViewById<TextView>(Resource.Id.Name);
             Distance = itemview.FindViewById<TextView>(Resource.Id.Distance);
-            itemview.Click += (sender, e) => listener(Position);
+            img_more = itemview.FindViewById<TextView>(Resource.Id.textViewOptions);
+            //itemview.Click += (sender, e) => listener(Position);
         }
     }
 }

@@ -176,8 +176,35 @@ namespace hajk
             return base.OnOptionsItemSelected(item);
         }
 
+        protected override void OnStart()
+        {            
+            base.OnStart();
+            Log.Information($"OnStart()");
+        }
+
+        protected override void OnStop()
+        {
+            base.OnStart();
+            Log.Information($"OnStart()");
+        }
+
+        protected override void OnPause()
+        {
+            base.OnResume();
+            Log.Information($"OnPause()");
+        }
+
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+            Log.Information($"OnResume()");
+        }
+
         protected override void OnDestroy()
         {
+            Log.Information($"OnDestroy()");
+
             //Cleanup Log file
             Log.CloseAndFlush();
 

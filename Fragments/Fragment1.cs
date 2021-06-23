@@ -49,10 +49,9 @@ namespace hajk.Fragments
             mRecycleView.Visibility = ViewStates.Visible;
 
             mLayoutManager = new LinearLayoutManager(view.Context);
-            //mLayoutManager = new GridLayoutManager(view.Context, 3);
             mRecycleView.SetLayoutManager(mLayoutManager);
             mAdapter = new GpxAdapter(mGpxData);
-            mAdapter.ItemClick += GpxAdapter.MAdapter_ItemClick;
+            //mAdapter.ItemClick += GpxAdapter.MAdapter_ItemClick;
             mRecycleView.SetAdapter(mAdapter);
 
             return view;
