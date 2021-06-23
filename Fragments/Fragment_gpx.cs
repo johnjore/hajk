@@ -28,7 +28,7 @@ using hajk.Fragments;
 
 namespace hajk.Fragments
 {
-    public class Fragment1 : Fragment
+    public class Fragment_gpx : Fragment
     {
         RecyclerView mRecycleView;
         RecyclerView.LayoutManager mLayoutManager;
@@ -42,7 +42,7 @@ namespace hajk.Fragments
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
-            var view = inflater.Inflate(Resource.Layout.fragment1, container, false);
+            var view = inflater.Inflate(Resource.Layout.fragment_gpx, container, false);
 
             mGpxData = new GpxData();
             mRecycleView = view.FindViewById<RecyclerView>(Resource.Id.recyclerView);

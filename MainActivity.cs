@@ -296,7 +296,7 @@ namespace hajk
                     item.SetTitle("Map");
 
                     var menuTransaction = SupportFragmentManager.BeginTransaction();
-                    menuTransaction.Replace(Resource.Id.fragment_container, new Fragments.Fragment1(), "Fragment1");
+                    menuTransaction.Replace(Resource.Id.fragment_container, new Fragments.Fragment_gpx(), "Fragment_gpx");
                     menuTransaction.Commit();
                 }
             }

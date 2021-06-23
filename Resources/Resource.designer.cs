@@ -7068,10 +7068,10 @@ namespace hajk
 			public const int design_text_input_start_icon = 2131427377;
 			
 			// aapt resource value: 0x7F0B0032
-			public const int fragment1 = 2131427378;
+			public const int fragment2 = 2131427378;
 			
 			// aapt resource value: 0x7F0B0033
-			public const int fragment2 = 2131427379;
+			public const int fragment_gpx = 2131427379;
 			
 			// aapt resource value: 0x7F0B0034
 			public const int fragment_map = 2131427380;
