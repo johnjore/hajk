@@ -128,8 +128,8 @@ namespace hajk
 
             Log.Debug($"Create Fragments");
             var FragmentsTransaction = SupportFragmentManager.BeginTransaction();
-            FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragments.Fragment_map(), "Fragment_map");
-            FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragments.Fragment_gpx(), "Fragment_gpx");
+            FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx");
+            FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragment_map(), "Fragment_map");
             FragmentsTransaction.Commit();
 
             Log.Debug($"Save context");
@@ -284,21 +284,21 @@ namespace hajk
                 {
                     Fragment_map.mapControl.Visibility = ViewStates.Visible;
                     FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
-                    item.SetTitle("Routes / Tracks");
 
-                    var menuTransaction = SupportFragmentManager.BeginTransaction();
-                    menuTransaction.Replace(Resource.Id.fragment_container, new Fragment_map(), "Fragment_map");
-                    menuTransaction.Commit();
+                    SupportFragmentManager.BeginTransaction().Show(SupportFragmentManager.FindFragmentByTag("Fragment_map"));
+                    SupportFragmentManager.BeginTransaction().Commit();
+
+                    item.SetTitle("Routes / Tracks");
                 }
                 else
                 {
                     Fragment_map.mapControl.Visibility = ViewStates.Invisible;
                     FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
-                    item.SetTitle("Map");
 
-                    var menuTransaction = SupportFragmentManager.BeginTransaction();
-                    menuTransaction.Replace(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx");
-                    menuTransaction.Commit();
+                    SupportFragmentManager.BeginTransaction().Show(SupportFragmentManager.FindFragmentByTag("Fragment_gpx"));
+                    SupportFragmentManager.BeginTransaction().Commit();
+
+                    item.SetTitle("Map");
                 }
             }
             else if (id == Resource.Id.nav_share)
