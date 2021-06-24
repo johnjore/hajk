@@ -121,13 +121,13 @@ namespace hajk
 
             //Add to map as a layer
             ILayer lineStringLayer = Import.CreateTrackLayer(mapTrack, Import.CreateTrackStyle());
-            foreach (ILayer layer in Fragments.Map.map.Layers.FindLayer("TrackLayer"))
+            foreach (ILayer layer in Fragments.Fragment_map.map.Layers.FindLayer("TrackLayer"))
             {
-                Fragments.Map.map.Layers.Remove(layer);
+                Fragments.Fragment_map.map.Layers.Remove(layer);
             }
-            Fragments.Map.map.Layers.Add(lineStringLayer);
+            Fragments.Fragment_map.map.Layers.Add(lineStringLayer);
 
-            Log.Information($"Got {Fragments.Map.map.Layers.Count} layers");
+            Log.Information($"Got {Fragments.Fragment_map.map.Layers.Count} layers");
         }
     }
 }

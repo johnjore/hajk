@@ -5,6 +5,23 @@ using Android.Widget;
 using AndroidX.Fragment;
 using AndroidX.Fragment.App;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Mapsui.Geometries;
+using Mapsui.Layers;
+using Mapsui.Projection;
+using Mapsui.Providers;
+using Mapsui.Styles;
+using Mapsui.Utilities;
+using Xamarin.Essentials;
+using SharpGPX;
+using hajk.Data;
+using System.Text.RegularExpressions;
+using Serilog;
+
 
 namespace hajk.Adapter
 {
@@ -49,16 +66,27 @@ namespace hajk.Adapter
                     switch (args.Item.ItemId)
                     {
                         case Resource.Id.gpx_menu_followroute:
-                            Toast.MakeText(parent.Context, "follow " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
+                            Log.Information($"Follow route '{vh.Name.Text}'");
+                            //Toast.MakeText(parent.Context, "follow " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
+
+                            var route  = RouteDatabase.GetRouteAsync(vh.Id).Result;
+
+                            ILayer lineStringLayer = Import.CreateRouteLayer(route.WayPoints, Import.CreateRouteStyle());
+                            lineStringLayer.IsMapInfoLayer = true;
+                            lineStringLayer.Enabled = true;
+                            Fragments.Fragment_map.map.Layers.Add(lineStringLayer);
+
                             break;
                         case Resource.Id.gpx_menu_showonmap:
+                            Log.Information($"Show route on map '{vh.Name.Text}'");
                             Toast.MakeText(parent.Context, "show on map  " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
                             break;
                         case Resource.Id.gpx_menu_deleteroute:
+                            Log.Information($"Delete route '{vh.Name.Text}'");
                             //Toast.MakeText(parent.Context, "delete " + vh.AdapterPosition.ToString() + " " +  vh.Id.ToString(), ToastLength.Short).Show();
 
                             Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
-                            if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}'?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                            if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}' ?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                             {
                                 _ = Data.RouteDatabase.DeleteRouteAsync(vh.Id);
                                 mGpxData.RemoveAt(vh.AdapterPosition);
@@ -67,12 +95,15 @@ namespace hajk.Adapter
                         
                             break;
                         case Resource.Id.gpx_menu_reverseroute:
+                            Log.Information($"Reverse route '{vh.Name.Text}'");
                             Toast.MakeText(parent.Context, "reverse " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
                             break;
                         case Resource.Id.gpx_menu_exporttogpx:
+                            Log.Information($"Export route '{vh.Name.Text}'");
                             Toast.MakeText(parent.Context, "export to gpx " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
                             break;
                         case Resource.Id.gpx_menu_saveofflinemap:
+                            Log.Information($"Download and save offline map '{vh.Name.Text}'");
                             Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
                             break;
                     }

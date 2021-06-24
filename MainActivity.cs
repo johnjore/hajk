@@ -126,10 +126,11 @@ namespace hajk
             Timer Order_Timer = new Timer(new TimerCallback(Location.UpdateLocationMarker), null, 0, UpdateGPSLocation_s * 1000);
 
 
-            Log.Debug($"Create Fragment");
-            var mapTransaction = SupportFragmentManager.BeginTransaction();
-            mapTransaction.Add(Resource.Id.fragment_container, new Fragments.Map(), "Map");
-            mapTransaction.Commit();
+            Log.Debug($"Create Fragments");
+            var FragmentsTransaction = SupportFragmentManager.BeginTransaction();
+            FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragments.Fragment_map(), "Fragment_map");
+            FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragments.Fragment_gpx(), "Fragment_gpx");
+            FragmentsTransaction.Commit();
 
             Log.Debug($"Save context");
             mContext = this;
@@ -279,24 +280,24 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_manage)
             {
-                if (Fragments.Map.mapControl.Visibility == ViewStates.Invisible)
+                if (Fragment_map.mapControl.Visibility == ViewStates.Invisible)
                 {
-                    Fragments.Map.mapControl.Visibility = ViewStates.Visible;
+                    Fragment_map.mapControl.Visibility = ViewStates.Visible;
                     FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
                     item.SetTitle("Routes / Tracks");
 
                     var menuTransaction = SupportFragmentManager.BeginTransaction();
-                    menuTransaction.Replace(Resource.Id.fragment_container, new Fragments.Map(), "Map");
+                    menuTransaction.Replace(Resource.Id.fragment_container, new Fragment_map(), "Fragment_map");
                     menuTransaction.Commit();
                 }
                 else
                 {
-                    Fragments.Map.mapControl.Visibility = ViewStates.Invisible;
+                    Fragment_map.mapControl.Visibility = ViewStates.Invisible;
                     FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
                     item.SetTitle("Map");
 
                     var menuTransaction = SupportFragmentManager.BeginTransaction();
-                    menuTransaction.Replace(Resource.Id.fragment_container, new Fragments.Fragment_gpx(), "Fragment_gpx");
+                    menuTransaction.Replace(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx");
                     menuTransaction.Commit();
                 }
             }

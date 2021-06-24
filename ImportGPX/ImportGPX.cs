@@ -105,7 +105,7 @@ namespace hajk
                         //Load map
                         string dbPath = MainActivity.rootPath + "/MBTiles/" + map.Name + ".mbtiles";
                         Log.Information($"Loading '{dbPath}' as layer name '{map.Name}'");
-                        Fragments.Map.map.Layers.Add(OfflineMaps.CreateMbTilesLayer(dbPath, map.Name));
+                        Fragments.Fragment_map.map.Layers.Add(OfflineMaps.CreateMbTilesLayer(dbPath, map.Name));
                     }
 
                     //Add to map
@@ -113,7 +113,7 @@ namespace hajk
                     lineStringLayer.IsMapInfoLayer = true;
                     lineStringLayer.Enabled = true;
                     /**///MainActivity.map.Layers.Remove(RouteLayer);
-                    Fragments.Map.map.Layers.Add(lineStringLayer);
+                    Fragments.Fragment_map.map.Layers.Add(lineStringLayer);
 
                     /*var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true), null, MbTilesType.Overlay, true, true);
                     var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = file };

@@ -32,15 +32,15 @@ namespace hajk
 
                 if (navigate)
                 {
-                    Fragments.Map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
+                    Fragments.Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
                 }
 
                 /**///This is bad. Is there not a better way to update the current location than removing and adding layers?
-                foreach (ILayer layer in Fragments.Map.map.Layers.FindLayer(LocationLayerName))
+                foreach (ILayer layer in Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName))
                 {
-                    Fragments.Map.map.Layers.Remove(layer);
+                    Fragments.Fragment_map.map.Layers.Remove(layer);
                 }
-                Fragments.Map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
+                Fragments.Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
             }
             catch (Exception ex)
             {

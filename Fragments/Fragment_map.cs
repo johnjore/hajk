@@ -17,7 +17,7 @@ using Log = Serilog.Log;
 
 namespace hajk.Fragments
 {
-    public class Map : Fragment
+    public class Fragment_map : Fragment
     {
         public static MapControl mapControl;
         public static Mapsui.Map map = new Mapsui.Map();

@@ -48,7 +48,7 @@ namespace hajk
                         }
 
                         File.Copy(sourceFile.FullPath, destinationFile, true);
-                        Fragments.Map.map.Layers.Add(CreateMbTilesLayer(destinationFile, sourceFile.FileName));
+                        Fragments.Fragment_map.map.Layers.Add(CreateMbTilesLayer(destinationFile, sourceFile.FileName));
 
                         Show_Dialog msg2 = new Show_Dialog(MainActivity.mContext);
                         await msg2.ShowDialog($"Done", $"Map Imported and Loaded", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
@@ -91,7 +91,7 @@ namespace hajk
                         //var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true), null, MbTilesType.Overlay, true, true);
 
                         var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = file };
-                        Fragments.Map.map.Layers.Add(mbTilesLayer);
+                        Fragments.Fragment_map.map.Layers.Add(mbTilesLayer);
                     }
                 }
             }
@@ -112,7 +112,7 @@ namespace hajk
                         //var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true), null, MbTilesType.Overlay, true, true);
 
                         var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = file };
-                        Fragments.Map.map.Layers.Add(mbTilesLayer);
+                        Fragments.Fragment_map.map.Layers.Add(mbTilesLayer);
                     }
                 }
             }
