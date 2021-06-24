@@ -52,5 +52,12 @@ namespace hajk.Data
             // Delete a route
             return database.DeleteAsync(route);
         }
+
+        public static Task<int> DeleteRouteAsync(int id)
+        {
+            // Delete a route
+            return database.DeleteAsync(database.Table<Route>().Where(i => i.Id == id).FirstAsync().Result);
+        }
+
     }
 }

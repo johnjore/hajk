@@ -23,13 +23,16 @@ namespace hajk
         {
             get { return gpx.Count; }
         }
-
+                
         public Route this[int i]
         {
             get { return gpx[i]; }
         }
 
-        public ImageButton img_more;
+        internal void RemoveAt(int adapterPosition)
+        {
+            gpx.RemoveAt(adapterPosition);
+        }
     }
 
     public class GPXViewHolder : RecyclerView.ViewHolder
@@ -38,6 +41,7 @@ namespace hajk
         public TextView Name { get; set; }
         public TextView Distance { get; set; }
         public TextView img_more;
+        public int Id;
         public GPXViewHolder(View itemview, Action<int> listener) : base(itemview)
         {
             Image = itemview.FindViewById<ImageView>(Resource.Id.imageView);

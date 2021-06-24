@@ -2,6 +2,8 @@
 using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
+using AndroidX.Fragment;
+using AndroidX.Fragment.App;
 using System;
 
 namespace hajk.Adapter
@@ -24,6 +26,7 @@ namespace hajk.Adapter
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
             GPXViewHolder vh = holder as GPXViewHolder;
+            vh.Id = mGpxData[position].Id;
             vh.Name.Text = mGpxData[position].Name;
             vh.Distance.Text = (mGpxData[position].Distance) .ToString("N2") + " km";
             //vh.Image.SetImageResource(mPhotoAlbum[position].mPhotoID);
@@ -32,13 +35,14 @@ namespace hajk.Adapter
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
             View itemView = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.activity_gpx, parent, false);
-            GPXViewHolder vh = new GPXViewHolder(itemView, OnClick);            
+            GPXViewHolder vh = new GPXViewHolder(itemView, OnClick);
 
             vh.img_more.Click += (o, e) =>
             {
                 Android.Support.V7.Widget.PopupMenu popup = new Android.Support.V7.Widget.PopupMenu(parent.Context, vh.img_more);
                 popup.Inflate(Resource.Menu.menu_gpx);
-                popup.MenuItemClick += (s, args) =>
+
+                popup.MenuItemClick += async (s, args) =>
                 {
                     //Context context = parent.Context;
                     //FragmentManager fm = ((Activity)context).FragmentManager;
@@ -51,7 +55,16 @@ namespace hajk.Adapter
                             Toast.MakeText(parent.Context, "show on map  " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
                             break;
                         case Resource.Id.gpx_menu_deleteroute:
-                            Toast.MakeText(parent.Context, "delete " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
+                            //Toast.MakeText(parent.Context, "delete " + vh.AdapterPosition.ToString() + " " +  vh.Id.ToString(), ToastLength.Short).Show();
+
+                            Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                            if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}'?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                            {
+                                _ = Data.RouteDatabase.DeleteRouteAsync(vh.Id);
+                                mGpxData.RemoveAt(vh.AdapterPosition);
+                                NotifyDataSetChanged();
+                            }
+                        
                             break;
                         case Resource.Id.gpx_menu_reverseroute:
                             Toast.MakeText(parent.Context, "reverse " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
