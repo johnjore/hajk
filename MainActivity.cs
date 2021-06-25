@@ -125,7 +125,6 @@ namespace hajk
             int UpdateGPSLocation_s = Int32.Parse(Preferences.Get("UpdateGPSLocation", PrefsActivity.UpdateGPSLocation_s.ToString()));
             Timer Order_Timer = new Timer(new TimerCallback(Location.UpdateLocationMarker), null, 0, UpdateGPSLocation_s * 1000);
 
-
             Log.Debug($"Create Fragments");
             var FragmentsTransaction = SupportFragmentManager.BeginTransaction();
             FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx");
@@ -163,7 +162,7 @@ namespace hajk
             MenuInflater.Inflate(Resource.Menu.menu_main, menu);
             return true;
         }
-
+        
         public override bool OnOptionsItemSelected(IMenuItem item)
         {
             int id = item.ItemId;
@@ -194,7 +193,6 @@ namespace hajk
             base.OnResume();
             Log.Information($"OnPause()");
         }
-
 
         protected override void OnResume()
         {
@@ -282,23 +280,11 @@ namespace hajk
             {
                 if (Fragment_map.mapControl.Visibility == ViewStates.Invisible)
                 {
-                    Fragment_map.mapControl.Visibility = ViewStates.Visible;
-                    FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
-
-                    SupportFragmentManager.BeginTransaction().Show(SupportFragmentManager.FindFragmentByTag("Fragment_map"));
-                    SupportFragmentManager.BeginTransaction().Commit();
-
-                    item.SetTitle("Routes / Tracks");
+                    SwitchFragment("Fragment_map", item);
                 }
                 else
                 {
-                    Fragment_map.mapControl.Visibility = ViewStates.Invisible;
-                    FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
-
-                    SupportFragmentManager.BeginTransaction().Show(SupportFragmentManager.FindFragmentByTag("Fragment_gpx"));
-                    SupportFragmentManager.BeginTransaction().Commit();
-
-                    item.SetTitle("Map");
+                    SwitchFragment("Fragment_gpx", item);
                 }
             }
             else if (id == Resource.Id.nav_share)
@@ -313,6 +299,53 @@ namespace hajk
             DrawerLayout drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             drawer.CloseDrawer(GravityCompat.Start);
             return true;
+        }
+
+        public void SwitchFragment(string Fragment_Tag, IMenuItem item)
+        {
+            SupportFragmentManager.BeginTransaction().Show(SupportFragmentManager.FindFragmentByTag(Fragment_Tag));
+            SupportFragmentManager.BeginTransaction().Commit();
+
+            switch (Fragment_Tag) {
+                case "Fragment_gpx":
+                    Fragment_map.mapControl.Visibility = ViewStates.Invisible;
+                    FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
+                    
+                    item.SetTitle("Map");
+                    break;
+                case "Fragment_map":
+                    Fragment_map.mapControl.Visibility = ViewStates.Visible;
+                    FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
+
+                    item.SetTitle("Routes / Tracks");
+                    break;
+            }
+        }
+
+        public static void SwitchFragment(string Fragment_Tag, FragmentActivity activity)
+        {
+            var sfm = activity.SupportFragmentManager;
+            sfm.BeginTransaction().Show(sfm.FindFragmentByTag(Fragment_Tag));
+            sfm.BeginTransaction().Commit();
+
+            NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
+            var item = nav.Menu.FindItem(Resource.Id.nav_manage);
+
+            switch (Fragment_Tag)
+            {
+                case "Fragment_gpx":
+                    Fragment_map.mapControl.Visibility = ViewStates.Invisible;
+                    mContext.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
+
+                    item.SetTitle("Map");
+                    break;
+                case "Fragment_map":
+                    Fragment_map.mapControl.Visibility = ViewStates.Visible;
+                    mContext.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
+
+                    item.SetTitle("Routes / Tracks");
+                    break;
+            }
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)

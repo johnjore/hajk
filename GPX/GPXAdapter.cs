@@ -16,10 +16,8 @@ using Mapsui.Projection;
 using Mapsui.Providers;
 using Mapsui.Styles;
 using Mapsui.Utilities;
-using Xamarin.Essentials;
-using SharpGPX;
 using hajk.Data;
-using System.Text.RegularExpressions;
+using hajk.Fragments;
 using Serilog;
 
 
@@ -61,20 +59,19 @@ namespace hajk.Adapter
 
                 popup.MenuItemClick += async (s, args) =>
                 {
-                    //Context context = parent.Context;
-                    //FragmentManager fm = ((Activity)context).FragmentManager;
                     switch (args.Item.ItemId)
                     {
                         case Resource.Id.gpx_menu_followroute:
                             Log.Information($"Follow route '{vh.Name.Text}'");
-                            //Toast.MakeText(parent.Context, "follow " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
 
                             var route  = RouteDatabase.GetRouteAsync(vh.Id).Result;
 
                             ILayer lineStringLayer = Import.CreateRouteLayer(route.WayPoints, Import.CreateRouteStyle());
                             lineStringLayer.IsMapInfoLayer = true;
                             lineStringLayer.Enabled = true;
-                            Fragments.Fragment_map.map.Layers.Add(lineStringLayer);
+                            Fragment_map.map.Layers.Add(lineStringLayer);
+
+                            MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
 
                             break;
                         case Resource.Id.gpx_menu_showonmap:
@@ -83,7 +80,6 @@ namespace hajk.Adapter
                             break;
                         case Resource.Id.gpx_menu_deleteroute:
                             Log.Information($"Delete route '{vh.Name.Text}'");
-                            //Toast.MakeText(parent.Context, "delete " + vh.AdapterPosition.ToString() + " " +  vh.Id.ToString(), ToastLength.Short).Show();
 
                             Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
                             if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}' ?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)

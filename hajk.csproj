@@ -73,7 +73,6 @@
     <Compile Include="AwesomeTiles\Tile.cs" />
     <Compile Include="AwesomeTiles\TileRange.cs" />
     <Compile Include="Fragments\Fragment_gpx.cs" />
-    <Compile Include="Fragments\Fragment2.cs" />
     <Compile Include="Fragments\Fragment_map.cs" />
     <Compile Include="ImportGPX\ImportGPX.cs" />
     <Compile Include="ImportGPX\RouteDatabase.cs" />
@@ -211,12 +210,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\fragment_gpx.xml">
-      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\layout\fragment2.xml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
