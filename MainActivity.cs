@@ -92,6 +92,7 @@ namespace hajk
             Log.Debug($"Create toolbar");
             SetContentView(Resource.Layout.activity_main);
             AndroidX.AppCompat.Widget.Toolbar toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
+            //toolbar.
             SetSupportActionBar(toolbar);
 
             Log.Debug($"Create floating action button");
