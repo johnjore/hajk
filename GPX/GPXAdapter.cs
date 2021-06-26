@@ -21,6 +21,7 @@ using hajk.Fragments;
 using Serilog;
 using Google.Android.Material.Navigation;
 using SharpGPX;
+using hajk.Models;
 
 namespace hajk.Adapter
 {
@@ -130,9 +131,23 @@ namespace hajk.Adapter
                             break;
                         case Resource.Id.gpx_menu_reverseroute:
                             Log.Information($"Reverse route '{vh.Name.Text}'");
-                            Toast.MakeText(parent.Context, "reverse " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
+
+                            //Get the route
+                            var route_to_reverse = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                            GpxClass gpx_to_reverse = GpxClass.FromXml(route_to_reverse.GPX);
+
+                            //Reverse and save as new entry
+                            gpx_to_reverse.Routes[0].rtept.Reverse();
+                            route_to_reverse.Name = route_to_reverse.Name + " - reversed";
+                            route_to_reverse.Id = 0;
+                            RouteDatabase.SaveRouteAsync(route_to_reverse).Wait();
+
+                            //Update RecycleView with new entry
+                            int i = Fragment_gpx.mAdapter.mGpxData.Add(route_to_reverse);
+                            Fragment_gpx.mAdapter.NotifyItemInserted(i);
+
                             break;
-                        case Resource.Id.gpx_menu_exporttogpx:
+                        case Resource.Id.gpx_menu_exportgpx:
                             Log.Information($"Export route '{vh.Name.Text}'");
                             Toast.MakeText(parent.Context, "export to gpx " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
                             break;

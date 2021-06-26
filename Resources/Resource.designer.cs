@@ -5961,7 +5961,7 @@ namespace hajk
 			public const int gpx_menu_deleteroute = 2131230904;
 			
 			// aapt resource value: 0x7F0800B9
-			public const int gpx_menu_exporttogpx = 2131230905;
+			public const int gpx_menu_exportgpx = 2131230905;
 			
 			// aapt resource value: 0x7F0800BA
 			public const int gpx_menu_followroute = 2131230906;

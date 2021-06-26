@@ -18,8 +18,8 @@
       android:title="Reverse route" />
 
   <item
-      android:id="@+id/gpx_menu_exporttogpx"
-      android:title="Export to GPX" />
+      android:id="@+id/gpx_menu_exportgpx"
+      android:title="Export GPX" />
 
   <item
       android:id="@+id/gpx_menu_saveofflinemap"
