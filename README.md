@@ -13,7 +13,7 @@ This is a work in progress. Please fork and submit PR's to improve and add (much
 # Screenshots
 |  Main menu | Current Location | Import GPX | Route Imported | Imported Routes |
 |  --- | --- | --- | --- | --- |
-|  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210626-173353_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212411_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212437_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212507_hajk.jpg" alt="screenshot" width="100px"/> |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210626-173518_hajk.jpg" alt="screenshot" width="100px"/> |
+|  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210626-173353_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210626-173345_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212437_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212507_hajk.jpg" alt="screenshot" width="100px"/> |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210626-173518_hajk.jpg" alt="screenshot" width="100px"/> |
 
 
 # History
