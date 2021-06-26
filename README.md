@@ -11,9 +11,9 @@ This is a work in progress. Please fork and submit PR's to improve and add (much
 ![Deployment Status](https://vsrm.dev.azure.com/johnjore/_apis/public/Release/badge/ed10b094-cc40-4607-a7e3-ad89daab836b/1/1)
 
 # Screenshots
-|  Main menu | Current Location | Import GPX | Route Imported |
-|  --- | --- | --- | --- |
-|  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210626-173353_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212411_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212437_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212507_hajk.jpg" alt="screenshot" width="100px"/> |
+|  Main menu | Current Location | Import GPX | Route Imported | Imported Routes |
+|  --- | --- | --- | --- | --- |
+|  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210626-173353_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212411_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212437_hajk.jpg" alt="screenshot" width="100px"/>  |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210523-212507_hajk.jpg" alt="screenshot" width="100px"/> |  <img src="https://github.com/johnjore/hajk/blob/master/Misc/Screenshots/Screenshot_20210626-173518_hajk.jpg" alt="screenshot" width="100px"/> |
 
 
 # History
