@@ -88,8 +88,8 @@ namespace hajk.Adapter
                             //Start recording
                             RecordTrack.StartTrackTimer();
                             NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
-                            var item = nav.Menu.FindItem(Resource.Id.nav_recordtrack);
-                            item.SetTitle("Stop Recording");
+                            var item_nav = nav.Menu.FindItem(Resource.Id.nav_recordtrack);
+                            item_nav.SetTitle("Stop Recording");
 
                             break;
                         case Resource.Id.gpx_menu_showonmap:

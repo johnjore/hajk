@@ -92,7 +92,6 @@ namespace hajk
             Log.Debug($"Create toolbar");
             SetContentView(Resource.Layout.activity_main);
             AndroidX.AppCompat.Widget.Toolbar toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
-            //toolbar.
             SetSupportActionBar(toolbar);
 
             Log.Debug($"Create floating action button");
@@ -161,6 +160,11 @@ namespace hajk
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
             MenuInflater.Inflate(Resource.Menu.menu_main, menu);
+
+            //Disable menu item until a GPX file has been overlayed map
+            var item = menu.FindItem(Resource.Id.action_clearmap);
+            item.SetEnabled(false);
+
             return true;
         }
         
@@ -343,7 +347,7 @@ namespace hajk
             sfm.BeginTransaction().Show(sfm.FindFragmentByTag(Fragment_Tag));
             sfm.BeginTransaction().Commit();
 
-            NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
+            NavigationView nav = mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
             var item = nav.Menu.FindItem(Resource.Id.nav_manage);
 
             switch (Fragment_Tag)

@@ -121,12 +121,16 @@ namespace hajk
 
         public static void AddRouteToMap(string mapRoute)
         {
+            //Add layer
             ILayer lineStringLayer = CreateRouteLayer(mapRoute, CreateRouteStyle());
             lineStringLayer.IsMapInfoLayer = true;
             lineStringLayer.Enabled = true;
             lineStringLayer.Tag = "route";
-            /**///MainActivity.map.Layers.Remove(RouteLayer);
             Fragment_map.map.Layers.Add(lineStringLayer);
+
+            //Enable menu
+            AndroidX.AppCompat.Widget.Toolbar toolbar = MainActivity.mContext.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
+            toolbar.Menu.FindItem(Resource.Id.action_clearmap).SetEnabled(true);
         }
 
         //https://www.geodatasource.com/developers/c-sharp

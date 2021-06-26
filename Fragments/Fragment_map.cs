@@ -70,6 +70,9 @@ namespace hajk.Fragments
                 MarginY = 20,
             });
 
+            Log.Debug($"Set Zoom");
+            mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
+
             return view;
         }
     }
