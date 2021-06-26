@@ -135,11 +135,13 @@ namespace hajk.Adapter
                             //Get the route
                             var route_to_reverse = RouteDatabase.GetRouteAsync(vh.Id).Result;
                             GpxClass gpx_to_reverse = GpxClass.FromXml(route_to_reverse.GPX);
+                            gpx_to_reverse.Routes[0].rtept.Reverse();
 
                             //Reverse and save as new entry
-                            gpx_to_reverse.Routes[0].rtept.Reverse();
                             route_to_reverse.Name += " - reversed";
+                            route_to_reverse.Description += " - reversed";
                             route_to_reverse.Id = 0;
+                            route_to_reverse.GPX = gpx_to_reverse.ToXml();
                             RouteDatabase.SaveRouteAsync(route_to_reverse).Wait();
 
                             //Update RecycleView with new entry
