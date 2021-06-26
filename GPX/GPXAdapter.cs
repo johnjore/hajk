@@ -20,6 +20,7 @@ using hajk.Data;
 using hajk.Fragments;
 using Serilog;
 using Google.Android.Material.Navigation;
+using SharpGPX;
 
 namespace hajk.Adapter
 {
@@ -66,12 +67,23 @@ namespace hajk.Adapter
 
                             //Get the route
                             var route  = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                            GpxClass gpx = GpxClass.FromXml(route.GPX);                            
+                            string mapRoute = Import.GPXtoRoute(gpx.Routes[0]).Item1;
 
                             //Add GPX to Map
-                            ILayer lineStringLayer = Import.CreateRouteLayer(route.WayPoints, Import.CreateRouteStyle());
-                            lineStringLayer.IsMapInfoLayer = true;
-                            lineStringLayer.Enabled = true;
-                            Fragment_map.map.Layers.Add(lineStringLayer);
+                            Import.AddRouteToMap(mapRoute);
+
+                            //Center on imported route
+                            var bounds = gpx.GetBounds();
+                            Point p = Utils.Misc.CalculateCenter((double)bounds.maxlat, (double)bounds.minlon, (double)bounds.minlat, (double)bounds.maxlon);
+                            var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(p.X, p.Y);
+                            Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
+
+                            //Zoom
+                            Fragment_map.mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
+
+                            //Switch to map
+                            MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
 
                             //Start recording
                             RecordTrack.StartTrackTimer();
@@ -79,27 +91,26 @@ namespace hajk.Adapter
                             var item = nav.Menu.FindItem(Resource.Id.nav_recordtrack);
                             item.SetTitle("Stop Recording");
 
-                            /**/
-                            //var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
-                            //Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
-
-                            //Fragment_map.mapControl.
-
-                            //Switch to map
-                            MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
-
                             break;
                         case Resource.Id.gpx_menu_showonmap:
                             Log.Information($"Show route on map '{vh.Name.Text}'");
 
                             //Get the route
                             var route_1 = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                            GpxClass gpx_1 = GpxClass.FromXml(route_1.GPX);
+                            string mapRoute_1 = Import.GPXtoRoute(gpx_1.Routes[0]).Item1;
 
                             //Add GPX to Map
-                            ILayer lineStringLayer_1 = Import.CreateRouteLayer(route_1.WayPoints, Import.CreateRouteStyle());
-                            lineStringLayer_1.IsMapInfoLayer = true;
-                            lineStringLayer_1.Enabled = true;
-                            Fragment_map.map.Layers.Add(lineStringLayer_1);
+                            Import.AddRouteToMap(mapRoute_1);
+
+                            //Center on imported route
+                            var bounds_1 = gpx_1.GetBounds();
+                            Point p_1 = Utils.Misc.CalculateCenter((double)bounds_1.maxlat, (double)bounds_1.minlon, (double)bounds_1.minlat, (double)bounds_1.maxlon);
+                            var sphericalMercatorCoordinate_1 = SphericalMercator.FromLonLat(p_1.X, p_1.Y);
+                            Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate_1);
+
+                            //Zoom
+                            Fragment_map.mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
 
                             //Switch to map
                             MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);

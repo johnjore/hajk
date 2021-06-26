@@ -32,8 +32,8 @@ namespace hajk.Fragments
     {
         RecyclerView mRecycleView;
         RecyclerView.LayoutManager mLayoutManager;
-        GpxData mGpxData;
-        GpxAdapter mAdapter;
+        static GpxData mGpxData;
+        public static GpxAdapter mAdapter;
 
         public override void OnCreate(Bundle savedInstanceState)
         {

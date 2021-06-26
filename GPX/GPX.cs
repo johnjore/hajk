@@ -23,7 +23,7 @@ namespace hajk
         {
             get { return gpx.Count; }
         }
-                
+
         public Route this[int i]
         {
             get { return gpx[i]; }
@@ -32,6 +32,12 @@ namespace hajk
         internal void RemoveAt(int adapterPosition)
         {
             gpx.RemoveAt(adapterPosition);
+        }
+
+        internal int Add(Route route)
+        {
+            gpx.Add(route);
+            return gpx.Count;
         }
     }
 

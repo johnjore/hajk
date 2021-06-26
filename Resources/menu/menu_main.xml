@@ -6,4 +6,11 @@
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_clearmap"
+        android:orderInCategory="100"
+        android:title="Clear map of routes and tracks"
+        app:showAsAction="never" />
+
 </menu>

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Projection;
@@ -13,8 +14,12 @@ using Mapsui.Utilities;
 using Xamarin.Essentials;
 using SharpGPX;
 using hajk.Data;
-using System.Text.RegularExpressions;
+using hajk.Models;
+using hajk.Fragments;
+using hajk.Adapter;
 using Serilog;
+using SharpGPX.GPX1_1;
+using AndroidX.Fragment.App;
 
 namespace hajk
 {
@@ -39,47 +44,38 @@ namespace hajk
                     DownloadOfflineMap = true;
                 }
 
-                foreach (var route in gpxData.Routes)
+                foreach (rteType route in gpxData.Routes)
                 {
-                    if (route.GetGarminExt() != null)
+                    //Get Route and distance from GPX
+                    var t = GPXtoRoute(route);
+                    string mapRoute = t.Item1;
+                    float mapDistanceKm = t.Item2;
+
+                    //Create a standalone GPX
+                    var newGPX = new GpxClass()
                     {
-                        Console.WriteLine("Route '{0}' has Garmin extension", route.name);
-
-                        /**/ //Read Garmin's extended routing attributes
-                        var a = route.GetGarminExt();
-                    }
-
-                    string mapRoute = "LINESTRING(";
-                    float mapDistanceKm = 0;
-                    for (int i = 0; i < route.rtept.Count; i++)
-                    {
-                        //WayPoint
-                        if (!(mapRoute.Equals("LINESTRING(")))
+                        Metadata = new metadataType()
                         {
-                            mapRoute += ",";
-                        }
-                        mapRoute += route.rtept[i].lat.ToString() + " " + route.rtept[i].lon.ToString();
-
-                        //Calculate Distance
-                        if (i >= 1)
-                        {
-                            mapDistanceKm += (float)Distance((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, (float)route.rtept[i].lat, (float)route.rtept[i].lon, 'K');
-                        }
-
-                        /**///Calculate ascent / descent data
-                    }
-                    mapRoute += ")";
+                            name = route.name,
+                            desc = route.desc,
+                        },
+                    };
+                    newGPX.Routes.Add(route);
 
                     //Add to route DB
-                    var r = new Models.Route
+                    var r = new Route
                     {
                         Name = route.name,
                         Distance = mapDistanceKm,
                         Ascent = 0, /**///Fix this
                         Description = route.desc,
-                        WayPoints = mapRoute
+                        GPX = newGPX.ToXml(),
                     };
                     RouteDatabase.SaveRouteAsync(r).Wait();
+
+                    //Update RecycleView with new entry
+                    int i = Fragment_gpx.mAdapter.mGpxData.Add(r);
+                    Fragment_gpx.mAdapter.NotifyItemInserted(i);
 
                     //Does the user want the maps downloaded?
                     if (DownloadOfflineMap)
@@ -91,8 +87,8 @@ namespace hajk
                         Models.Map map = new Models.Map
                         {
                             Name = Regex.Replace(route.name, @"[^\u0000-\u007F]+", ""), //Removes non-ascii characters from filename
-                            ZoomMin = 13,
-                            ZoomMax = 17,
+                            ZoomMin = PrefsActivity.MinZoom,
+                            ZoomMax = PrefsActivity.MaxZoom,
                             BoundsLeft = (double)bounds.minlat,
                             BoundsBottom = (double)bounds.maxlon,
                             BoundsRight = (double)bounds.maxlat,
@@ -105,15 +101,11 @@ namespace hajk
                         //Load map
                         string dbPath = MainActivity.rootPath + "/MBTiles/" + map.Name + ".mbtiles";
                         Log.Information($"Loading '{dbPath}' as layer name '{map.Name}'");
-                        Fragments.Fragment_map.map.Layers.Add(OfflineMaps.CreateMbTilesLayer(dbPath, map.Name));
+                        Fragment_map.map.Layers.Add(OfflineMaps.CreateMbTilesLayer(dbPath, map.Name));
                     }
 
                     //Add to map
-                    ILayer lineStringLayer = CreateRouteLayer(mapRoute, CreateRouteStyle());
-                    lineStringLayer.IsMapInfoLayer = true;
-                    lineStringLayer.Enabled = true;
-                    /**///MainActivity.map.Layers.Remove(RouteLayer);
-                    Fragments.Fragment_map.map.Layers.Add(lineStringLayer);
+                    AddRouteToMap(mapRoute);
 
                     /*var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true), null, MbTilesType.Overlay, true, true);
                     var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = file };
@@ -125,6 +117,16 @@ namespace hajk
             });
 
             return null;
+        }
+
+        public static void AddRouteToMap(string mapRoute)
+        {
+            ILayer lineStringLayer = CreateRouteLayer(mapRoute, CreateRouteStyle());
+            lineStringLayer.IsMapInfoLayer = true;
+            lineStringLayer.Enabled = true;
+            lineStringLayer.Tag = "route";
+            /**///MainActivity.map.Layers.Remove(RouteLayer);
+            Fragment_map.map.Layers.Add(lineStringLayer);
         }
 
         //https://www.geodatasource.com/developers/c-sharp
@@ -161,6 +163,40 @@ namespace hajk
         private static double Rad2Deg(double rad)
         {
             return (rad / Math.PI * 180.0);
+        }
+
+        public static (string, float) GPXtoRoute(rteType route)
+        {
+            if (route.GetGarminExt() != null)
+            {
+                Console.WriteLine("Route '{0}' has Garmin extension", route.name);
+
+                /**/ //Read Garmin's extended routing attributes
+                var a = route.GetGarminExt();
+            }
+
+            string mapRoute = "LINESTRING(";
+            float mapDistanceKm = 0;
+            for (int i = 0; i < route.rtept.Count; i++)
+            {
+                //WayPoint
+                if (!(mapRoute.Equals("LINESTRING(")))
+                {
+                    mapRoute += ",";
+                }
+                mapRoute += route.rtept[i].lat.ToString() + " " + route.rtept[i].lon.ToString();
+
+                //Calculate Distance
+                if (i >= 1)
+                {
+                    mapDistanceKm += (float)Distance((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, (float)route.rtept[i].lat, (float)route.rtept[i].lon, 'K');
+                }
+
+                /**///Calculate ascent / descent data
+            }
+            mapRoute += ")";
+
+            return (mapRoute, mapDistanceKm);
         }
 
         private static async Task<GpxClass> PickAndParse()

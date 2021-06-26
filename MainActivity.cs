@@ -172,7 +172,21 @@ namespace hajk
                 StartActivity(new Intent(this, typeof(PrefsActivity)));
                 return true;
             }
+            else if (id == Resource.Id.action_clearmap)
+            {
+                Log.Information($"Clear gpx entries from map");
 
+                IEnumerable<ILayer> layers = Fragment_map.map.Layers.Where(x => (string)x.Tag == "route" || (string)x.Tag == "track");
+                foreach (ILayer rt in layers)
+                {
+                    Fragment_map.map.Layers.Remove(rt);
+                }
+
+                //Disable the menu item, nothing to clear
+                item.SetEnabled(false);
+                
+                return true;
+            }
             return base.OnOptionsItemSelected(item);
         }
 

@@ -18,7 +18,9 @@ namespace hajk
         public readonly static string RouteDB = "Routes.db3";   //Database to store all routes
         public readonly static string logFile = "hajk_.txt";    //Log file
         public readonly static bool RecordingTrack = false;     //True when recording a Track
-        public readonly static bool TrackLocation = false;       //True when map is continiously moved to center on our location
+        public readonly static bool TrackLocation = false;      //True when map is continiously moved to center on our location
+        public readonly static int MinZoom = 13;                //MinZoom level to use
+        public readonly static int MaxZoom = 17;                //MaxZoom level to use
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
