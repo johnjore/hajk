@@ -176,7 +176,7 @@ namespace hajk
                 Console.WriteLine("Route '{0}' has Garmin extension", route.name);
 
                 /**/ //Read Garmin's extended routing attributes
-                var a = route.GetGarminExt();
+                //var a = route.GetGarminExt();
             }
 
             string mapRoute = "LINESTRING(";

@@ -138,7 +138,7 @@ namespace hajk.Adapter
 
                             //Reverse and save as new entry
                             gpx_to_reverse.Routes[0].rtept.Reverse();
-                            route_to_reverse.Name = route_to_reverse.Name + " - reversed";
+                            route_to_reverse.Name += " - reversed";
                             route_to_reverse.Id = 0;
                             RouteDatabase.SaveRouteAsync(route_to_reverse).Wait();
 
@@ -149,7 +149,15 @@ namespace hajk.Adapter
                             break;
                         case Resource.Id.gpx_menu_exportgpx:
                             Log.Information($"Export route '{vh.Name.Text}'");
-                            Toast.MakeText(parent.Context, "export to gpx " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
+
+                            //Get the route
+                            var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                            GpxClass gpx_to_export = GpxClass.FromXml(route_to_export.GPX);
+
+                            /**///Ask user for name and folder
+                            string gpxPath = Path.Combine(MainActivity.rootPath, "Exported -" + DateTime.Now.ToString("yyyy-MM-dd HH-mm") + ".gpx");
+                            gpx_to_export.ToFile(gpxPath);
+
                             break;
                         case Resource.Id.gpx_menu_saveofflinemap:
                             Log.Information($"Download and save offline map '{vh.Name.Text}'");
