@@ -7,6 +7,8 @@ using Mapsui.Projection;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace hajk
 {
@@ -41,6 +43,31 @@ namespace hajk
                     Fragments.Fragment_map.map.Layers.Remove(layer);
                 }
                 Fragments.Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
+
+                //Fragments.Fragment_map.map.Layers.Remove(Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).First());
+                //Fragments.Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
+
+
+                /*var b = new MemoryLayer
+                {
+                    Name = LocationLayerName,
+                    DataSource = CreateMemoryProviderWithDiverseSymbols(sphericalMercatorCoordinate),
+                    Style = null,
+                    IsMapInfoLayer = true
+                };
+
+                ILayer locationlayer = Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
+                locationlayer = b;
+                locationlayer.DataHasChanged();*/
+
+
+                /*IEnumerable<ILayer> layers = Fragments.Fragment_map.map.Layers.Where(x => (string)x.Tag == "route");
+                layers[0];
+                foreach (ILayer rt in layers)
+                {
+                    Fragments.Fragment_map.map.Layers.Remove(rt);
+                }*/
+
             }
             catch (Exception ex)
             {

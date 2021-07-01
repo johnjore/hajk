@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Mapsui.Geometries;
@@ -10,16 +11,14 @@ using Mapsui.Layers;
 using Mapsui.Projection;
 using Mapsui.Providers;
 using Mapsui.Styles;
-using Mapsui.Utilities;
 using Xamarin.Essentials;
 using SharpGPX;
 using hajk.Data;
 using hajk.Models;
 using hajk.Fragments;
-using hajk.Adapter;
 using Serilog;
 using SharpGPX.GPX1_1;
-using AndroidX.Fragment.App;
+using GPXUtils;
 
 namespace hajk
 {
@@ -92,7 +91,7 @@ namespace hajk
                             BoundsLeft = (double)bounds.minlat,
                             BoundsBottom = (double)bounds.maxlon,
                             BoundsRight = (double)bounds.maxlat,
-                            BoundsTop = (double)bounds.minlon                            
+                            BoundsTop = (double)bounds.minlon
                         };
 
                         //Download map
@@ -270,27 +269,82 @@ namespace hajk
         public static ILayer CreateRouteLayer(string strRoute, IStyle style = null)
         {
             var features = new Features();
+            var GPSlineString = (LineString)Geometry.GeomFromText(strRoute);
 
-            //Convert from string and line strings
-            var lineString = (LineString)Geometry.GeomFromText(strRoute);
-            lineString = new LineString(lineString.Vertices.Select(v => SphericalMercator.FromLonLat(v.Y, v.X)));
+            //Lines between each waypoint
+            var lineString = new LineString(GPSlineString.Vertices.Select(v => SphericalMercator.FromLonLat(v.Y, v.X)));
             features.Add(new Feature { Geometry = lineString });
 
-            //Waypoint markers
-            foreach (var waypoint in lineString.Vertices)
+            //End of route
+            var FeatureEnd = new Feature { Geometry = lineString.EndPoint };
+            FeatureEnd.Styles.Add(new SymbolStyle
             {
-                var feature = new Feature { Geometry = waypoint };
-                feature.Styles.Add(new SymbolStyle
+                SymbolScale = 1.5f,
+                MaxVisible = 2.0f,
+                MinVisible = 0.0f,
+                RotateWithMap = true,
+                SymbolType = SymbolType.Ellipse,
+                Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Red, Background = Color.Transparent },
+                Outline = new Pen { Color = Color.Red, Width = 1.5f }
+            });
+            features.Add(FeatureEnd);
+
+            //Start of route
+            var FeatureStart = new Feature { Geometry = lineString.StartPoint };
+            FeatureStart.Styles.Add(new SymbolStyle
+            {
+                SymbolScale = 1.5f,
+                MaxVisible = 2.0f,
+                MinVisible = 0.0f,
+                RotateWithMap = true,
+                SymbolType = SymbolType.Ellipse,
+                Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Green, Background = Color.Transparent },
+                Outline = new Pen { Color = Color.Green, Width = 1.5f }
+            });
+            features.Add(FeatureStart);
+
+            //Add arrow halfway between waypoints
+            var bitmapId = GetBitmapIdForEmbeddedResource("hajk.Images.Arrow-up.svg");
+            for (int i = 0; i < GPSlineString.NumPoints - 1; i++)
+            {
+                //End points for line
+                Position p1 = new Position(GPSlineString.Vertices[i].X, GPSlineString.Vertices[i].Y);
+                Position p2 = new Position(GPSlineString.Vertices[i + 1].X, GPSlineString.Vertices[i + 1].Y);
+
+                //Center point on line for arrow
+                Point p_center = Utils.Misc.CalculateCenter(lineString.Vertices[i].Y, lineString.Vertices[i].X, lineString.Vertices[i + 1].Y, lineString.Vertices[i + 1].X);
+
+                //Bearing of arrow
+                var p = new PositionHandler();
+                var angle = p.CalculateBearing(p1, p2);
+
+                var FeatureArrow = new Feature { Geometry = p_center };
+                FeatureArrow.Styles.Add(new SymbolStyle
                 {
-                    SymbolScale = 1.0f,
+                    BitmapId = bitmapId,
+                    SymbolScale = 0.5f,
                     MaxVisible = 2.0f,
                     MinVisible = 0.0f,
-                    RotateWithMap = true, /**/// For future when adding arrows?
+                    RotateWithMap = true,
+                    SymbolRotation = angle,
+                    SymbolOffset = new Offset(0, 0),
+                });
+                features.Add(FeatureArrow);
+
+                //Waypoins
+                var FeatureWaypoint = new Feature { Geometry = lineString.Vertices[i] };
+                FeatureWaypoint.Styles.Add(new SymbolStyle
+                {
+                    SymbolScale = 0.7f,
+                    MaxVisible = 2.0f,
+                    MinVisible = 0.0f,
+                    RotateWithMap = true,
+                    SymbolRotation = 45,
                     SymbolType = SymbolType.Ellipse,
-                    Fill = null, /**/// new Brush { FillStyle = FillStyle.Cross, Color = Color.Red, Background = Color.Transparent},
+                    Fill = null, // new Brush { FillStyle = FillStyle.Cross, Color = Color.Red, Background = Color.Transparent},
                     Outline = new Pen { Color = Color.Blue, Width = 1.5f }
                 });
-                features.Add(feature);
+                features.Add(FeatureWaypoint);
             }
 
             return new MemoryLayer
@@ -322,7 +376,8 @@ namespace hajk
                     RotateWithMap = true,
                     SymbolType = SymbolType.Ellipse,
                     Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Red, Background = Color.Transparent },
-                    Outline = new Pen { Color = Color.Red, Width = 0.2f }
+                    Outline = new Pen { Color = Color.Red, Width = 0.2f },
+
                 });
                 features.Add(feature);
             }
@@ -351,8 +406,16 @@ namespace hajk
             {
                 Fill = null,
                 Outline = null,
-                Line = { Color = Color.FromString("Red"), Width = 4, PenStyle = PenStyle.Dot }
+                Line = { Color = Color.FromString("Red"), Width = 4, PenStyle = PenStyle.Dot },
             };
+        }
+
+        private static int GetBitmapIdForEmbeddedResource(string imagePath)
+        {
+            var assembly = typeof(MainActivity).GetTypeInfo().Assembly;
+            var image = assembly.GetManifestResourceStream(imagePath);
+            var bitmapId = BitmapRegistry.Instance.Register(image);
+            return bitmapId;
         }
     }
 }
