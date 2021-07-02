@@ -18,10 +18,10 @@ using Mapsui.Styles;
 using Mapsui.Utilities;
 using hajk.Data;
 using hajk.Fragments;
+using hajk.Models;
 using Serilog;
 using Google.Android.Material.Navigation;
 using SharpGPX;
-using hajk.Models;
 
 namespace hajk.Adapter
 {
@@ -64,15 +64,20 @@ namespace hajk.Adapter
                     switch (args.Item.ItemId)
                     {
                         case Resource.Id.gpx_menu_followroute:
-                            Log.Information($"Follow route '{vh.Name.Text}'");
+                            Log.Information($"Follow route or track '{vh.Name.Text}'");
 
-                            //Get the route
-                            var route  = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                            GpxClass gpx = GpxClass.FromXml(route.GPX);                            
+                            //Get the route or track
+                            var routetrack  = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                            GpxClass gpx = GpxClass.FromXml(routetrack.GPX);
+
+                            if (routetrack.GPXType == GPXType.Track)
+                            {
+                                gpx.Routes.Add(gpx.Tracks[0].ToRoutes()[0]);
+                            }
                             string mapRoute = Import.GPXtoRoute(gpx.Routes[0]).Item1;
 
                             //Add GPX to Map
-                            Import.AddRouteToMap(mapRoute);
+                            Import.AddRouteToMap(mapRoute, GPXType.Route);
 
                             //Center on imported route
                             var bounds = gpx.GetBounds();
@@ -97,12 +102,17 @@ namespace hajk.Adapter
                             Log.Information($"Show route on map '{vh.Name.Text}'");
 
                             //Get the route
-                            var route_1 = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                            GpxClass gpx_1 = GpxClass.FromXml(route_1.GPX);
-                            string mapRoute_1 = Import.GPXtoRoute(gpx_1.Routes[0]).Item1;
+                            var routetrack_1 = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                            GpxClass gpx_1 = GpxClass.FromXml(routetrack_1.GPX);
+
+                            if (routetrack_1.GPXType == GPXType.Track)
+                            {
+                                gpx_1.Routes.Add(gpx_1.Tracks[0].ToRoutes()[0]);
+                            }
+                            string mapRouteTrack_1 = Import.GPXtoRoute(gpx_1.Routes[0]).Item1;
 
                             //Add GPX to Map
-                            Import.AddRouteToMap(mapRoute_1);
+                            Import.AddRouteToMap(mapRouteTrack_1, routetrack_1.GPXType);
 
                             //Center on imported route
                             var bounds_1 = gpx_1.GetBounds();
@@ -123,7 +133,7 @@ namespace hajk.Adapter
                             Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
                             if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}' ?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                             {
-                                _ = Data.RouteDatabase.DeleteRouteAsync(vh.Id);
+                                _ = RouteDatabase.DeleteRouteAsync(vh.Id);
                                 mGpxData.RemoveAt(vh.AdapterPosition);
                                 NotifyDataSetChanged();
                             }
@@ -135,7 +145,15 @@ namespace hajk.Adapter
                             //Get the route
                             var route_to_reverse = RouteDatabase.GetRouteAsync(vh.Id).Result;
                             GpxClass gpx_to_reverse = GpxClass.FromXml(route_to_reverse.GPX);
-                            gpx_to_reverse.Routes[0].rtept.Reverse();
+
+                            if (route_to_reverse.GPXType == GPXType.Track)
+                            {
+                                gpx_to_reverse.Tracks[0].trkseg.Reverse();
+                            }
+                            else
+                            {
+                                gpx_to_reverse.Routes[0].rtept.Reverse();
+                            }
 
                             //Reverse and save as new entry
                             route_to_reverse.Name += " - reversed";
@@ -152,18 +170,34 @@ namespace hajk.Adapter
                         case Resource.Id.gpx_menu_exportgpx:
                             Log.Information($"Export route '{vh.Name.Text}'");
 
-                            //Get the route
-                            var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                            GpxClass gpx_to_export = GpxClass.FromXml(route_to_export.GPX);
+                            View view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
+                            Android.Support.V7.App.AlertDialog.Builder alertbuilder = new Android.Support.V7.App.AlertDialog.Builder(parent.Context);
+                            alertbuilder.SetView(view);
+                            var userdata = view.FindViewById<EditText>(Resource.Id.editText);
+                            userdata.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".gpx";
 
-                            /**///Ask user for name and folder
-                            string gpxPath = Path.Combine(MainActivity.rootPath, "Exported -" + DateTime.Now.ToString("yyyy-MM-dd HH-mm") + ".gpx");
-                            gpx_to_export.ToFile(gpxPath);
+                            alertbuilder.SetCancelable(false)
+                            .SetPositiveButton("Submit", delegate
+                            {
+                                //Get the route
+                                var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                                GpxClass gpx_to_export = GpxClass.FromXml(route_to_export.GPX);
+
+                                string gpxPath = Path.Combine(MainActivity.rootPath, userdata.Text);
+                                gpx_to_export.ToFile(gpxPath);
+                            })
+                            .SetNegativeButton("Cancel", delegate
+                            {
+                                alertbuilder.Dispose();
+                            });
+                            Android.Support.V7.App.AlertDialog dialog = alertbuilder.Create();
+                            dialog.Show();
 
                             break;
                         case Resource.Id.gpx_menu_saveofflinemap:
                             Log.Information($"Download and save offline map '{vh.Name.Text}'");
                             Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
+
                             break;
                     }
                 };

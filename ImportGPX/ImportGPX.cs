@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Reflection;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Mapsui.Geometries;
@@ -45,70 +44,12 @@ namespace hajk
 
                 foreach (rteType route in gpxData.Routes)
                 {
-                    //Get Route and distance from GPX
-                    var t = GPXtoRoute(route);
-                    string mapRoute = t.Item1;
-                    float mapDistanceKm = t.Item2;
+                    AddGPXRoute(route, DownloadOfflineMap);
+                }
 
-                    //Create a standalone GPX
-                    var newGPX = new GpxClass()
-                    {
-                        Metadata = new metadataType()
-                        {
-                            name = route.name,
-                            desc = route.desc,
-                        },
-                    };
-                    newGPX.Routes.Add(route);
-
-                    //Add to route DB
-                    var r = new Route
-                    {
-                        Name = route.name,
-                        Distance = mapDistanceKm,
-                        Ascent = 0, /**///Fix this
-                        Description = route.desc,
-                        GPX = newGPX.ToXml(),
-                    };
-                    RouteDatabase.SaveRouteAsync(r).Wait();
-
-                    //Update RecycleView with new entry
-                    int i = Fragment_gpx.mAdapter.mGpxData.Add(r);
-                    Fragment_gpx.mAdapter.NotifyItemInserted(i);
-
-                    //Does the user want the maps downloaded?
-                    if (DownloadOfflineMap)
-                    {
-                        var bounds = route.GetBounds();
-                        //map.BoundsLeft = -37.5718; map.BoundsRight = -37.5076; map.BoundsBottom = 145.5424; map.BoundsTop = 145.5189;
-                        //Left: -10.2455, Top:  110.5426 Right: -43.2748, Bottom:  154.3179
-
-                        Models.Map map = new Models.Map
-                        {
-                            Name = Regex.Replace(route.name, @"[^\u0000-\u007F]+", ""), //Removes non-ascii characters from filename
-                            ZoomMin = PrefsActivity.MinZoom,
-                            ZoomMax = PrefsActivity.MaxZoom,
-                            BoundsLeft = (double)bounds.minlat,
-                            BoundsBottom = (double)bounds.maxlon,
-                            BoundsRight = (double)bounds.maxlat,
-                            BoundsTop = (double)bounds.minlon
-                        };
-
-                        //Download map
-                        await DownloadRasterImageMap.DownloadMap(map);
-
-                        //Load map
-                        string dbPath = MainActivity.rootPath + "/MBTiles/" + map.Name + ".mbtiles";
-                        Log.Information($"Loading '{dbPath}' as layer name '{map.Name}'");
-                        Fragment_map.map.Layers.Add(OfflineMaps.CreateMbTilesLayer(dbPath, map.Name));
-                    }
-
-                    //Add to map
-                    AddRouteToMap(mapRoute);
-
-                    /*var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true), null, MbTilesType.Overlay, true, true);
-                    var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = file };
-                    MainActivity.map.Layers.Add(mbTilesLayer);*/
+                foreach (trkType track in gpxData.Tracks)
+                {
+                    AddGPXTrack(track, DownloadOfflineMap);
                 }
 
                 Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
@@ -118,56 +59,142 @@ namespace hajk
             return null;
         }
 
-        public static void AddRouteToMap(string mapRoute)
+        public static void AddGPXTrack(trkType track, bool DownloadOfflineMap)
+        {
+            //Get Track and distance from GPX
+            var t = GPXtoRoute(track.ToRoutes()[0]);
+            string mapTrack = t.Item1;
+            float mapDistanceKm = t.Item2;
+
+            //Create a standalone GPX
+            var newGPX = new GpxClass()
+            {
+                Metadata = new metadataType()
+                {
+                    name = track.name,
+                    desc = track.desc,
+                },
+            };
+            newGPX.Tracks.Add(track);
+
+            //Add to routetrack DB
+            GPXDataRouteTrack r = new GPXDataRouteTrack
+            {
+                GPXType = GPXType.Track,
+                Name = track.name,
+                Distance = mapDistanceKm,
+                Ascent = 0, /**///Fix this
+                Descent = 0, /**///Fix this
+                Description = track.desc,
+                GPX = newGPX.ToXml(),
+            };
+            RouteDatabase.SaveRouteAsync(r).Wait();
+
+            //Update RecycleView with new entry
+            int i = Fragment_gpx.mAdapter.mGpxData.Add(r);
+            Fragment_gpx.mAdapter.NotifyItemInserted(i);
+
+            //Does the user want the maps downloaded?
+            if (DownloadOfflineMap)
+            {
+                GetloadOfflineMap(track.GetBounds(), track.name);
+            }
+
+            //Add to map
+            AddRouteToMap(mapTrack, GPXType.Track);
+        }
+
+        public static void AddGPXRoute(rteType route, bool DownloadOfflineMap)
+        {
+            //Get Route and distance from GPX
+            var t = GPXtoRoute(route);
+            string mapRoute = t.Item1;
+            float mapDistanceKm = t.Item2;
+
+            //Create a standalone GPX
+            var newGPX = new GpxClass()
+            {
+                Metadata = new metadataType()
+                {
+                    name = route.name,
+                    desc = route.desc,
+                },
+            };
+            newGPX.Routes.Add(route);
+
+            //Add to routetrack DB
+            GPXDataRouteTrack r = new GPXDataRouteTrack
+            {
+                GPXType = GPXType.Route,
+                Name = route.name,
+                Distance = mapDistanceKm,
+                Ascent = 0, /**///Fix this
+                Descent = 0, /**///Fix this
+                Description = route.desc,
+                GPX = newGPX.ToXml(),
+            };
+            RouteDatabase.SaveRouteAsync(r).Wait();
+
+            //Update RecycleView with new entry
+            int i = Fragment_gpx.mAdapter.mGpxData.Add(r);
+            Fragment_gpx.mAdapter.NotifyItemInserted(i);
+
+            //Does the user want the maps downloaded?
+            if (DownloadOfflineMap)
+            {
+                GetloadOfflineMap(route.GetBounds(), route.name);
+            }
+
+            //Add to map
+            AddRouteToMap(mapRoute, GPXType.Route);
+        }
+
+        private static async void GetloadOfflineMap(boundsType bounds, string name)
+        {
+            Models.Map map = new Models.Map
+            {
+                Name = Regex.Replace(name, @"[^\u0000-\u007F]+", ""), //Removes non-ascii characters from filename
+                ZoomMin = PrefsActivity.MinZoom,
+                ZoomMax = PrefsActivity.MaxZoom,
+                BoundsLeft = (double)bounds.minlat,
+                BoundsBottom = (double)bounds.maxlon,
+                BoundsRight = (double)bounds.maxlat,
+                BoundsTop = (double)bounds.minlon
+            };
+
+            //Download map
+            await DownloadRasterImageMap.DownloadMap(map);
+
+            //Load map
+            string dbPath = MainActivity.rootPath + "/MBTiles/" + map.Name + ".mbtiles";
+            Log.Information($"Loading '{dbPath}' as layer name '{map.Name}'");
+            Fragment_map.map.Layers.Add(OfflineMaps.CreateMbTilesLayer(dbPath, map.Name));
+        }
+
+        public static void AddRouteToMap(string mapRoute, GPXType gpxtype)
         {
             //Add layer
-            ILayer lineStringLayer = CreateRouteLayer(mapRoute, CreateRouteStyle());
+            ILayer lineStringLayer;
+            if (gpxtype == GPXType.Route)
+            {
+                lineStringLayer = CreateRouteLayer(mapRoute, CreateRouteStyle());
+                lineStringLayer.Tag = "route";
+            }
+            else
+            {
+                lineStringLayer = CreateRouteLayer(mapRoute, CreateTrackStyle());
+                lineStringLayer.Tag = "track";
+
+            }
             lineStringLayer.IsMapInfoLayer = true;
             lineStringLayer.Enabled = true;
-            lineStringLayer.Tag = "route";
             Fragment_map.map.Layers.Add(lineStringLayer);
 
             //Enable menu
             AndroidX.AppCompat.Widget.Toolbar toolbar = MainActivity.mContext.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
             toolbar.Menu.FindItem(Resource.Id.action_clearmap).SetEnabled(true);
         }
-
-        //https://www.geodatasource.com/developers/c-sharp
-        private static double Distance(double lat1, double lon1, double lat2, double lon2, char unit)
-        {
-            if ((lat1 == lat2) && (lon1 == lon2))
-            {
-                return 0;
-            }
-            else
-            {
-                double theta = lon1 - lon2;
-                double dist = Math.Sin(Deg2Rad(lat1)) * Math.Sin(Deg2Rad(lat2)) + Math.Cos(Deg2Rad(lat1)) * Math.Cos(Deg2Rad(lat2)) * Math.Cos(Deg2Rad(theta));
-                dist = Math.Acos(dist);
-                dist = Rad2Deg(dist);
-                dist = dist * 60 * 1.1515;
-                if (unit == 'K')
-                {
-                    dist *= 1.609344;
-                }
-                else if (unit == 'N')
-                {
-                    dist *= 0.8684;
-                }
-                return (dist);
-            }
-        }
-
-        private static double Deg2Rad(double deg)
-        {
-            return (deg * Math.PI / 180.0);
-        }
-
-        private static double Rad2Deg(double rad)
-        {
-            return (rad / Math.PI * 180.0);
-        }
-
+      
         public static (string, float) GPXtoRoute(rteType route)
         {
             if (route.GetGarminExt() != null)
@@ -179,7 +206,8 @@ namespace hajk
             }
 
             string mapRoute = "LINESTRING(";
-            float mapDistanceKm = 0;
+            float mapDistanceKm = 0.0f;
+            var p = new PositionHandler();
             for (int i = 0; i < route.rtept.Count; i++)
             {
                 //WayPoint
@@ -192,7 +220,9 @@ namespace hajk
                 //Calculate Distance
                 if (i >= 1)
                 {
-                    mapDistanceKm += (float)Distance((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, (float)route.rtept[i].lat, (float)route.rtept[i].lon, 'K');
+                    var p1 = new Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon);
+                    var p2 = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon);
+                    mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
                 }
 
                 /**///Calculate ascent / descent data
@@ -304,7 +334,7 @@ namespace hajk
             features.Add(FeatureStart);
 
             //Add arrow halfway between waypoints
-            var bitmapId = GetBitmapIdForEmbeddedResource("hajk.Images.Arrow-up.svg");
+            var bitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource("hajk.Images.Arrow-up.svg");
             for (int i = 0; i < GPSlineString.NumPoints - 1; i++)
             {
                 //End points for line
@@ -408,14 +438,6 @@ namespace hajk
                 Outline = null,
                 Line = { Color = Color.FromString("Red"), Width = 4, PenStyle = PenStyle.Dot },
             };
-        }
-
-        private static int GetBitmapIdForEmbeddedResource(string imagePath)
-        {
-            var assembly = typeof(MainActivity).GetTypeInfo().Assembly;
-            var image = assembly.GetManifestResourceStream(imagePath);
-            var bitmapId = BitmapRegistry.Instance.Register(image);
-            return bitmapId;
         }
     }
 }

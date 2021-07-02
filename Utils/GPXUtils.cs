@@ -17,14 +17,14 @@ namespace GPXUtils
         }
     }
 
-    public class DistanceConverter
+    public static class DistanceConverter
     {
-        public double ConvertMilesToKilometers(double miles)
+        public static double ConvertMilesToKilometers(double miles)
         {
             return miles * 1.609344;
         }
 
-        public double ConvertKilometersToMiles(double kilometers)
+        public static double ConvertKilometersToMiles(double kilometers)
         {
             return kilometers * 0.621371192;
         }

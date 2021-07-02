@@ -18,22 +18,22 @@ namespace hajk.Data
         {
             string dbPath = Path.Combine(MainActivity.rootPath, Preferences.Get("RouteDB", PrefsActivity.RouteDB));
             database = new SQLiteAsyncConnection(dbPath);
-            database.CreateTableAsync<Route>().Wait();
+            database.CreateTableAsync<GPXDataRouteTrack>().Wait();
         }
 
-        public static Task<List<Route>> GetRouteAsync()
+        public static Task<List<GPXDataRouteTrack>> GetRouteAsync()
         {
             //Get all routes
-            return database.Table<Route>().ToListAsync();
+            return database.Table<GPXDataRouteTrack>().ToListAsync();
         }
 
-        public static Task<Route> GetRouteAsync(int id)
+        public static Task<GPXDataRouteTrack> GetRouteAsync(int id)
         {
             // Get a specific route
-            return database.Table<Route>().Where(i => i.Id == id).FirstOrDefaultAsync();
+            return database.Table<GPXDataRouteTrack>().Where(i => i.Id == id).FirstOrDefaultAsync();
         }
 
-        public static Task<int> SaveRouteAsync(Route route)
+        public static Task<int> SaveRouteAsync(GPXDataRouteTrack route)
         {
             if (route.Id != 0)
             {
@@ -47,7 +47,7 @@ namespace hajk.Data
             }
         }
 
-        public static Task<int> DeleteRouteAsync(Route route)
+        public static Task<int> DeleteRouteAsync(GPXDataRouteTrack route)
         {
             // Delete a route
             return database.DeleteAsync(route);
@@ -56,7 +56,7 @@ namespace hajk.Data
         public static Task<int> DeleteRouteAsync(int id)
         {
             // Delete a route
-            return database.DeleteAsync(database.Table<Route>().Where(i => i.Id == id).FirstAsync().Result);
+            return database.DeleteAsync(database.Table<GPXDataRouteTrack>().Where(i => i.Id == id).FirstAsync().Result);
         }
 
     }

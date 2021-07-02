@@ -2,6 +2,7 @@
 using Android.Util;
 using System;
 using System.IO;
+using System.Reflection;
 
 namespace Utils
 {
@@ -28,6 +29,14 @@ namespace Utils
             Bitmap decodedByte = BitmapFactory.DecodeByteArray(decodedString, 0, decodedString.Length);
 
             return decodedByte;
+        }
+
+        public static int GetBitmapIdForEmbeddedResource(string imagePath)
+        {
+            var assembly = typeof(hajk.MainActivity).GetTypeInfo().Assembly;
+            var image = assembly.GetManifestResourceStream(imagePath);
+            var bitmapId = Mapsui.Styles.BitmapRegistry.Instance.Register(image);
+            return bitmapId;
         }
 
         public static Mapsui.Geometries.Point CalculateCenter(double BoundsRight, double BoundsTop, double BoundsLeft, double BoundsBottom)

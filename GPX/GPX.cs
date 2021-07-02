@@ -11,11 +11,11 @@ namespace hajk
 {
     public class GpxData
     {
-        private readonly List<Route> gpx;
+        private readonly List<GPXDataRouteTrack> gpx;
 
         public GpxData()
         {
-            List<Route> result = RouteDatabase.GetRouteAsync().Result;
+            List<GPXDataRouteTrack> result = RouteDatabase.GetRouteAsync().Result;
             gpx = result;
         }
 
@@ -24,7 +24,7 @@ namespace hajk
             get { return gpx.Count; }
         }
 
-        public Route this[int i]
+        public GPXDataRouteTrack this[int i]
         {
             get { return gpx[i]; }
         }
@@ -34,7 +34,7 @@ namespace hajk
             gpx.RemoveAt(adapterPosition);
         }
 
-        internal int Add(Route route)
+        internal int Add(GPXDataRouteTrack route)
         {
             gpx.Add(route);
             return gpx.Count;
