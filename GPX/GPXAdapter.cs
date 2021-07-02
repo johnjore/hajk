@@ -148,7 +148,7 @@ namespace hajk.Adapter
 
                             if (route_to_reverse.GPXType == GPXType.Track)
                             {
-                                gpx_to_reverse.Tracks[0].trkseg.Reverse();
+                                gpx_to_reverse.Tracks[0].trkseg[0].trkpt.Reverse();
                             }
                             else
                             {
