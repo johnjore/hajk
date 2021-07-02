@@ -27,47 +27,39 @@ namespace hajk
         {
             try
             {
-                //var location = Geolocation.GetLastKnownLocationAsync().Result;
-                _ = GetCurrentLocation();
+                Point sphericalMercatorCoordinate = null;
 
-                var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
+                _ = GetCurrentLocation();
+                if (location == null)
+                    return;
+
+                sphericalMercatorCoordinate = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
+                if (sphericalMercatorCoordinate == null)
+                    return;
 
                 if (navigate)
                 {
                     Fragments.Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
                 }
 
-                /**///This is bad. Is there not a better way to update the current location than removing and adding layers?
-                foreach (ILayer layer in Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName))
+                ILayer layer = Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
+                if (layer == null)
                 {
-                    Fragments.Fragment_map.map.Layers.Remove(layer);
+                    Fragments.Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
+                    layer = Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
+                } 
+
+                var feature = layer.GetFeaturesInView(layer.Envelope, 99).FirstOrDefault();
+                if (feature == null)
+                {
+                    Serilog.Log.Information($"No features?");
+                    return;
                 }
-                Fragments.Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
 
-                //Fragments.Fragment_map.map.Layers.Remove(Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).First());
-                //Fragments.Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
+                feature.Geometry = sphericalMercatorCoordinate;
+                layer.DataHasChanged();
 
-
-                /*var b = new MemoryLayer
-                {
-                    Name = LocationLayerName,
-                    DataSource = CreateMemoryProviderWithDiverseSymbols(sphericalMercatorCoordinate),
-                    Style = null,
-                    IsMapInfoLayer = true
-                };
-
-                ILayer locationlayer = Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
-                locationlayer = b;
-                locationlayer.DataHasChanged();*/
-
-
-                /*IEnumerable<ILayer> layers = Fragments.Fragment_map.map.Layers.Where(x => (string)x.Tag == "route");
-                layers[0];
-                foreach (ILayer rt in layers)
-                {
-                    Fragments.Fragment_map.map.Layers.Remove(rt);
-                }*/
-
+                //Fragments.Fragment_map.map.Home = n => n.CenterOn(sphericalMercatorCoordinate);
             }
             catch (Exception ex)
             {
