@@ -44,6 +44,7 @@ namespace hajk.Adapter
         {
             GPXViewHolder vh = holder as GPXViewHolder;
             vh.Id = mGpxData[position].Id;
+            vh.GPXType = mGpxData[position].GPXType;
             vh.Name.Text = mGpxData[position].Name;
             vh.Distance.Text = (mGpxData[position].Distance) .ToString("N2") + " km";
             //vh.Image.SetImageResource(mPhotoAlbum[position].mPhotoID);
@@ -58,6 +59,14 @@ namespace hajk.Adapter
             {
                 Android.Support.V7.Widget.PopupMenu popup = new Android.Support.V7.Widget.PopupMenu(parent.Context, vh.img_more);
                 popup.Inflate(Resource.Menu.menu_gpx);
+
+                //Fix menu text
+                if (vh.GPXType == GPXType.Track)
+                {
+                    popup.Menu.FindItem(Resource.Id.gpx_menu_followroute).SetTitle("Follow track");
+                    popup.Menu.FindItem(Resource.Id.gpx_menu_deleteroute).SetTitle("Delete track");
+                    popup.Menu.FindItem(Resource.Id.gpx_menu_reverseroute).SetTitle("Reverse track");
+                }
 
                 popup.MenuItemClick += async (s, args) =>
                 {

@@ -48,6 +48,7 @@ namespace hajk
         public TextView Distance { get; set; }
         public TextView img_more;
         public int Id;
+        public GPXType GPXType;
         public GPXViewHolder(View itemview, Action<int> listener) : base(itemview)
         {
             Image = itemview.FindViewById<ImageView>(Resource.Id.imageView);
