@@ -22,7 +22,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="#333333"
-                android:text="Name"
+                android:text="@string/Name"
                 android:id="@+id/Name"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginLeft="4dp"/>
@@ -33,7 +33,7 @@
                 android:layout_below="@id/Name"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textColor="#333333"
-                android:text="Distance"
+                android:text="@string/Distance"
                 android:id="@+id/Distance"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginLeft="4dp"/>

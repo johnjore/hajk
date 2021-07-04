@@ -42,6 +42,10 @@ namespace hajk
 
             //Update location marker with correct colour
             Location.UpdateLocationMarker(false);
+
+            //Enable the menu item
+            AndroidX.AppCompat.Widget.Toolbar toolbar = MainActivity.mContext.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
+            toolbar.Menu.FindItem(Resource.Id.action_clearmap).SetEnabled(true);
         }
 
         public static async void SaveTrack()
@@ -134,6 +138,7 @@ namespace hajk
                 ILayer layer = Fragment_map.map.Layers.FindLayer("TrackLayer").FirstOrDefault();
                 if (layer == null && Location.location != null) {
                     ILayer lineStringLayer = Import.CreateTrackLayer($"LINESTRING({location.Latitude} {location.Longitude})", Import.CreateTrackStyle());
+                    lineStringLayer.Tag = "tracklayer";
                     Fragment_map.map.Layers.Add(lineStringLayer);
                     layer = Fragment_map.map.Layers.FindLayer("TrackLayer").FirstOrDefault();
                 }

@@ -63,9 +63,9 @@ namespace hajk.Adapter
                 //Fix menu text
                 if (vh.GPXType == GPXType.Track)
                 {
-                    popup.Menu.FindItem(Resource.Id.gpx_menu_followroute).SetTitle("Follow track");
-                    popup.Menu.FindItem(Resource.Id.gpx_menu_deleteroute).SetTitle("Delete track");
-                    popup.Menu.FindItem(Resource.Id.gpx_menu_reverseroute).SetTitle("Reverse track");
+                    popup.Menu.FindItem(Resource.Id.gpx_menu_followroute).SetTitle(Resource.String.follow_track);
+                    popup.Menu.FindItem(Resource.Id.gpx_menu_deleteroute).SetTitle(Resource.String.delete_track);
+                    popup.Menu.FindItem(Resource.Id.gpx_menu_reverseroute).SetTitle(Resource.String.Reverse_track);
                 }
 
                 popup.MenuItemClick += async (s, args) =>
@@ -104,7 +104,7 @@ namespace hajk.Adapter
                             RecordTrack.StartTrackTimer();
                             NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
                             var item_nav = nav.Menu.FindItem(Resource.Id.nav_recordtrack);
-                            item_nav.SetTitle("Stop Recording");
+                            item_nav.SetTitle(Resource.String.Stop_Recording);
 
                             break;
                         case Resource.Id.gpx_menu_showonmap:
@@ -192,7 +192,7 @@ namespace hajk.Adapter
                             userdata.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".gpx";
 
                             alertbuilder.SetCancelable(false)
-                            .SetPositiveButton("Submit", delegate
+                            .SetPositiveButton(Resource.String.Submit, delegate
                             {
                                 //Get the route
                                 var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
@@ -201,7 +201,7 @@ namespace hajk.Adapter
                                 string gpxPath = Path.Combine(MainActivity.rootPath, userdata.Text);
                                 gpx_to_export.ToFile(gpxPath);
                             })
-                            .SetNegativeButton("Cancel", delegate
+                            .SetNegativeButton(Resource.String.Cancel, delegate
                             {
                                 alertbuilder.Dispose();
                             });
@@ -210,7 +210,7 @@ namespace hajk.Adapter
 
                             break;
                         case Resource.Id.gpx_menu_saveofflinemap:
-                            Log.Information($"Download and save offline map '{vh.Name.Text}'");
+                            Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text}'");
                             Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
 
                             break;

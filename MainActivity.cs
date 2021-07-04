@@ -181,7 +181,7 @@ namespace hajk
             {
                 Log.Information($"Clear gpx entries from map");
 
-                IEnumerable<ILayer> layers = Fragment_map.map.Layers.Where(x => (string)x.Tag == "route" || (string)x.Tag == "track");
+                IEnumerable<ILayer> layers = Fragment_map.map.Layers.Where(x => (string)x.Tag == "route" || (string)x.Tag == "track" || (string)x.Tag == "tracklayer");
                 foreach (ILayer rt in layers)
                 {
                     Fragment_map.map.Layers.Remove(rt);
@@ -287,12 +287,12 @@ namespace hajk
                 if (Preferences.Get("RecordingTrack", PrefsActivity.RecordingTrack))
                 {
                     RecordTrack.SaveTrack();
-                    item.SetTitle("Record Track");
+                    item.SetTitle(Resource.String.Record_Track);
                 }
                 else
                 {
                     RecordTrack.StartTrackTimer();
-                    item.SetTitle("Stop Recording");
+                    item.SetTitle(Resource.String.Stop_Recording);
                 }
             }
             else if (id == Resource.Id.nav_manage)
@@ -329,14 +329,14 @@ namespace hajk
                 case "Fragment_gpx":
                     Fragment_map.mapControl.Visibility = ViewStates.Invisible;
                     FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
-                    
-                    item.SetTitle("Map");
+
+                    item.SetTitle(Resource.String.Map);
                     break;
                 case "Fragment_map":
                     Fragment_map.mapControl.Visibility = ViewStates.Visible;
                     FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
 
-                    item.SetTitle("Routes / Tracks");
+                    item.SetTitle(Resource.String.Routes_Tracks);
                     break;
             }
         }
@@ -356,13 +356,13 @@ namespace hajk
                     Fragment_map.mapControl.Visibility = ViewStates.Invisible;
                     mContext.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
 
-                    item.SetTitle("Map");
+                    item.SetTitle(Resource.String.Map);
                     break;
                 case "Fragment_map":
                     Fragment_map.mapControl.Visibility = ViewStates.Visible;
                     mContext.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
 
-                    item.SetTitle("Routes / Tracks");
+                    item.SetTitle(Resource.String.Routes_Tracks);
                     break;
             }
         }

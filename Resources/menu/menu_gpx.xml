@@ -3,26 +3,26 @@
 
   <item
       android:id="@+id/gpx_menu_followroute"
-      android:title="Follow route" />
+      android:title="@string/follow_route" />
 
   <item
       android:id="@+id/gpx_menu_showonmap"
-      android:title="Show on map" />
+      android:title="@string/show_on_map" />
 
   <item
       android:id="@+id/gpx_menu_deleteroute"
-      android:title="Delete route" />
+      android:title="@string/delete_route" />
 
   <item
       android:id="@+id/gpx_menu_reverseroute"
-      android:title="Reverse route" />
+      android:title="@string/delete_route" />
 
   <item
       android:id="@+id/gpx_menu_exportgpx"
-      android:title="Export GPX" />
+      android:title="@string/export_gpx" />
 
   <item
       android:id="@+id/gpx_menu_saveofflinemap"
-      android:title="Save offline map" />
+      android:title="@string/save_offline_map" />
 
 </menu>

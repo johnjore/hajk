@@ -199,7 +199,7 @@ namespace hajk
         {
             if (route.GetGarminExt() != null)
             {
-                Console.WriteLine("Route '{0}' has Garmin extension", route.name);
+                //Console.WriteLine("Route '{0}' has Garmin extension", route.name);
 
                 /**/ //Read Garmin's extended routing attributes
                 //var a = route.GetGarminExt();
@@ -252,7 +252,7 @@ namespace hajk
                 if (result == null)
                     return null;
 
-                Console.WriteLine("FileName: " + result.FileName + ", FilePath: " + result.FullPath);
+                //Console.WriteLine("FileName: " + result.FileName + ", FilePath: " + result.FullPath);
                 if (result.FileName.EndsWith("gpx", StringComparison.OrdinalIgnoreCase) == false)
                     return null;
 
@@ -266,11 +266,11 @@ namespace hajk
                 GpxClass gpx = GpxClass.FromXml(contents);
                 var bounds = gpx.GetBounds();
 
-                Console.WriteLine("Waypoints.Count: " + gpx.Waypoints.Count.ToString());
-                Console.WriteLine("Routes.Count: " + gpx.Routes.Count.ToString());
-                Console.WriteLine("Track.Count: " + gpx.Tracks.Count.ToString());
-                Console.WriteLine("Lower Left - MinLat: " + bounds.minlat.ToString() + ", MaxLon: " + bounds.maxlon.ToString());
-                Console.WriteLine("Top Right  - MaxLat: " + bounds.maxlat.ToString() + ", MinLon: " + bounds.minlon.ToString());
+                //Console.WriteLine("Waypoints.Count: " + gpx.Waypoints.Count.ToString());
+                //Console.WriteLine("Routes.Count: " + gpx.Routes.Count.ToString());
+                //Console.WriteLine("Track.Count: " + gpx.Tracks.Count.ToString());
+                //Console.WriteLine("Lower Left - MinLat: " + bounds.minlat.ToString() + ", MaxLon: " + bounds.maxlon.ToString());
+                //Console.WriteLine("Top Right  - MaxLat: " + bounds.maxlat.ToString() + ", MinLon: " + bounds.minlon.ToString());
 
                 string r = "routes";
                 if (gpx.Routes.Count == 1)
