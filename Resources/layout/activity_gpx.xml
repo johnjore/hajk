@@ -16,10 +16,22 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="8dp">
-          
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:scaleType="fitXY"
+                android:id="@+id/GPXTypeLogo"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:layout_gravity="left"
+                android:contentDescription="type" 
+                android:layout_marginLeft="4dp" />
+                      
             <TextView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_toRightOf="@+id/GPXTypeLogo"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="#333333"
                 android:text="@string/Name"
@@ -29,7 +41,8 @@
 
             <TextView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_toRightOf="@+id/GPXTypeLogo"
                 android:layout_below="@id/Name"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textColor="#333333"

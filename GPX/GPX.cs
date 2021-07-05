@@ -43,18 +43,23 @@ namespace hajk
 
     public class GPXViewHolder : RecyclerView.ViewHolder
     {
-        public ImageView Image { get; set; }
+        public int Id;
+        public GPXType GPXType;
+        public ImageView GPXTypeLogo;
         public TextView Name { get; set; }
         public TextView Distance { get; set; }
         public TextView img_more;
-        public int Id;
-        public GPXType GPXType;
+        public ImageView Image { get; set; }
+        
         public GPXViewHolder(View itemview, Action<int> listener) : base(itemview)
         {
-            Image = itemview.FindViewById<ImageView>(Resource.Id.imageView);
+            GPXTypeLogo = itemview.FindViewById<ImageView>(Resource.Id.GPXTypeLogo);
             Name = itemview.FindViewById<TextView>(Resource.Id.Name);
             Distance = itemview.FindViewById<TextView>(Resource.Id.Distance);
             img_more = itemview.FindViewById<TextView>(Resource.Id.textViewOptions);
+
+            /**///Not yet implemented
+            Image = itemview.FindViewById<ImageView>(Resource.Id.imageView);
             //itemview.Click += (sender, e) => listener(Position);
         }
     }

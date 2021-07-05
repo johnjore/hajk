@@ -47,6 +47,17 @@ namespace hajk.Adapter
             vh.GPXType = mGpxData[position].GPXType;
             vh.Name.Text = mGpxData[position].Name;
             vh.Distance.Text = (mGpxData[position].Distance) .ToString("N2") + " km";
+                        
+            if (vh.GPXType == GPXType.Route)
+            {
+                vh.GPXTypeLogo.SetImageResource(Resource.Drawable.route);
+            }
+
+            if (vh.GPXType == GPXType.Track)
+            {
+                vh.GPXTypeLogo.SetImageResource(Resource.Drawable.track);
+            }
+
             //vh.Image.SetImageResource(mPhotoAlbum[position].mPhotoID);
         }
 
