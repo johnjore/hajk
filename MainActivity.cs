@@ -51,6 +51,7 @@ namespace hajk
     {
         public static Activity mContext;
         public static RouteDatabase routedatabase;
+        private Intent BatteryOptimizationsIntent;
 #if DEBUG
         public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
 #else
@@ -65,6 +66,7 @@ namespace hajk
             Android.Manifest.Permission.WriteExternalStorage,
             Android.Manifest.Permission.Internet,
             Android.Manifest.Permission.AccessNetworkState,
+            Android.Manifest.Permission.RequestIgnoreBatteryOptimizations,
         };
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -199,6 +201,9 @@ namespace hajk
         {            
             base.OnStart();
             Log.Information($"OnStart()");
+
+            //Disable battery optimization
+            SetDozeOptimization();
         }
 
         protected override void OnStop()
@@ -229,6 +234,9 @@ namespace hajk
             //Terminate Location Task
             if (Location.cts != null && !Location.cts.IsCancellationRequested)
                 Location.cts.Cancel();
+
+            //Re-enable battery optimization
+            //ClearDozeOptimization();
 
             base.OnDestroy();
         }
@@ -372,6 +380,34 @@ namespace hajk
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+        
+        public void SetDozeOptimization()
+        {
+            if (Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.M)
+            {
+                var packageName = mContext.PackageName;
+                var pm = (PowerManager)mContext.GetSystemService(Context.PowerService);
+                if (!pm.IsIgnoringBatteryOptimizations(packageName))
+                {
+                    BatteryOptimizationsIntent = new Intent();
+                    BatteryOptimizationsIntent.AddFlags(ActivityFlags.NewTask);
+                    BatteryOptimizationsIntent.SetAction(Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations);
+                    BatteryOptimizationsIntent.SetData(Android.Net.Uri.Parse("package:" + packageName));
+                    mContext.StartActivity(BatteryOptimizationsIntent);
+                }
+            }
+        }
+
+        public void ClearDozeOptimization()
+        {
+            if (null != BatteryOptimizationsIntent && Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.M)
+            {
+                BatteryOptimizationsIntent.ReplaceExtras(new Bundle());
+                BatteryOptimizationsIntent.SetAction("");
+                BatteryOptimizationsIntent.SetData(null);
+                BatteryOptimizationsIntent.SetFlags(0);
+            }
         }
     }
 }
