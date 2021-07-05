@@ -384,6 +384,7 @@ namespace hajk
         
         public void SetDozeOptimization()
         {
+            //https://social.msdn.microsoft.com/Forums/en-US/895f0759-e05d-4747-b72b-e16a2e8dbcf9/developing-a-location-background-service?forum=xamarinforms
             if (Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.M)
             {
                 var packageName = mContext.PackageName;
@@ -401,6 +402,7 @@ namespace hajk
 
         public void ClearDozeOptimization()
         {
+            //https://social.msdn.microsoft.com/Forums/en-US/895f0759-e05d-4747-b72b-e16a2e8dbcf9/developing-a-location-background-service?forum=xamarinforms
             if (null != BatteryOptimizationsIntent && Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.M)
             {
                 BatteryOptimizationsIntent.ReplaceExtras(new Bundle());

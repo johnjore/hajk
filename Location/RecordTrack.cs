@@ -41,7 +41,7 @@ namespace hajk
             Order_Timer = new Timer(new TimerCallback(GetGPSLocationEvent), null, 0, freq_s * 1000);
 
             //Update location marker with correct colour
-            Location.UpdateLocationMarker(false);
+            Location.UpdateLocationFeature();
 
             //Enable the menu item
             AndroidX.AppCompat.Widget.Toolbar toolbar = MainActivity.mContext.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
@@ -57,7 +57,7 @@ namespace hajk
             Preferences.Set("RecordingTrack", false);
 
             //Update location marker with correct colour
-            Location.UpdateLocationMarker(false);
+            Location.UpdateLocationFeature();
 
             Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
             if (await msg1.ShowDialog($"Track", $"Save Track ?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.NO)
@@ -90,7 +90,7 @@ namespace hajk
             //Calculate Distance
             float mapDistanceKm = 0.0f;
             var p = new PositionHandler();
-            for (int j = 1; j < track.Tracks[0].trkseg.Count; j++)
+            for (int j = 1; j < track.Tracks[0].trkseg[0].trkpt.Count; j++)
             {
                 var p1 = new Position((float)track.Tracks[0].trkseg[0].trkpt[j - 1].lat, (float)track.Tracks[0].trkseg[0].trkpt[j - 1].lon);
                 var p2 = new Position((float)track.Tracks[0].trkseg[0].trkpt[j].lat, (float)track.Tracks[0].trkseg[0].trkpt[j].lon);

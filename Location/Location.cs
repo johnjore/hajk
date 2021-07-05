@@ -126,21 +126,47 @@ namespace hajk
         private static IFeature CreateLocationFeature(Point GPSLocation)
         {
             var feature = new Feature { Geometry = GPSLocation };
+            
+            feature.Styles.Add(new SymbolStyle
+            {
+                SymbolScale = 1.5f,
+                Fill = null,
+                Outline = new Pen { Color = Color.Blue, Width = 2.0 }
+            });
+
+            return feature;
+        }
+
+        public static void UpdateLocationFeature()
+        {
             Color marker = Color.Blue;
+
+            ILayer layer = Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
+            if (layer == null)
+            {
+                Serilog.Log.Information($"No layer?");
+                return;
+            }
+
+            var feature = layer.GetFeaturesInView(layer.Envelope, 99).FirstOrDefault();
+            if (feature == null)
+            {
+                Serilog.Log.Information($"No features?");
+                return;
+            }
 
             if (Preferences.Get("RecordingTrack", PrefsActivity.RecordingTrack))
             {
                 marker = Color.Red;
             }
 
+            feature.Styles.Clear();
             feature.Styles.Add(new SymbolStyle
             {
                 SymbolScale = 1.5f,
                 Fill = null,
                 Outline = new Pen { Color = marker, Width = 2.0 }
             });
-
-            return feature;
         }
     }
 }
