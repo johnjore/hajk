@@ -183,6 +183,9 @@ namespace hajk
             {
                 Log.Information($"Clear gpx entries from map");
 
+                //Remove recorded waypoints
+                RecordTrack.trackGpx.Waypoints.Clear();
+
                 IEnumerable<ILayer> layers = Fragment_map.map.Layers.Where(x => (string)x.Tag == "route" || (string)x.Tag == "track" || (string)x.Tag == "tracklayer");
                 foreach (ILayer rt in layers)
                 {
