@@ -101,12 +101,17 @@ namespace hajk.Adapter
 
                             //Center on imported route
                             var bounds = gpx.GetBounds();
-                            Point p = Utils.Misc.CalculateCenter((double)bounds.maxlat, (double)bounds.minlon, (double)bounds.minlat, (double)bounds.maxlon);
-                            var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(p.X, p.Y);
-                            Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
+                            //Point p = Utils.Misc.CalculateCenter((double)bounds.maxlat, (double)bounds.minlon, (double)bounds.minlat, (double)bounds.maxlon);
+                            //var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(p.X, p.Y);
+                            //Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
 
                             //Zoom
-                            Fragment_map.mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
+                            //Fragment_map.mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
+
+                            //Show the full route
+                            var min = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
+                            var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+                            Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
 
                             //Switch to map
                             MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
@@ -136,12 +141,17 @@ namespace hajk.Adapter
 
                             //Center on imported route
                             var bounds_1 = gpx_1.GetBounds();
-                            Point p_1 = Utils.Misc.CalculateCenter((double)bounds_1.maxlat, (double)bounds_1.minlon, (double)bounds_1.minlat, (double)bounds_1.maxlon);
-                            var sphericalMercatorCoordinate_1 = SphericalMercator.FromLonLat(p_1.X, p_1.Y);
-                            Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate_1);
+                            //Point p_1 = Utils.Misc.CalculateCenter((double)bounds_1.maxlat, (double)bounds_1.minlon, (double)bounds_1.minlat, (double)bounds_1.maxlon);
+                            //var sphericalMercatorCoordinate_1 = SphericalMercator.FromLonLat(p_1.X, p_1.Y);
+                            //Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate_1);
 
                             //Zoom
-                            Fragment_map.mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
+                            //Fragment_map.mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
+
+                            //Show the full route
+                            var min_1 = SphericalMercator.FromLonLat((double)bounds_1.maxlon, (double)bounds_1.minlat);
+                            var max_1 = SphericalMercator.FromLonLat((double)bounds_1.minlon, (double)bounds_1.maxlat);
+                            Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min_1, max_1), ScaleMethod.Fit);
 
                             //Switch to map
                             MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
