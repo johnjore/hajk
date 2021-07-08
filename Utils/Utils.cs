@@ -25,10 +25,26 @@ namespace Utils
 
         public static Bitmap ConvertStringToBitmap(string mystr)
         {
-            byte[] decodedString = Base64.Decode(mystr, Base64Flags.Default);
-            Bitmap decodedByte = BitmapFactory.DecodeByteArray(decodedString, 0, decodedString.Length);
+            if (mystr == null)
+            {
+                return null;
+            }
 
-            return decodedByte;
+            if (mystr == string.Empty)
+            {
+                return null;
+            }
+
+            try
+            {
+                byte[] decodedString = Base64.Decode(mystr, Base64Flags.Default);
+                Bitmap decodedByte = BitmapFactory.DecodeByteArray(decodedString, 0, decodedString.Length);
+                return decodedByte;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public static int GetBitmapIdForEmbeddedResource(string imagePath)

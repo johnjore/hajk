@@ -63,10 +63,13 @@
 
             <ImageView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/imageView"
+                android:layout_height="match_parent"
+                android:layout_below="@id/textViewOptions"
+                android:id="@+id/TrackRouteMap"
                 android:scaleType="fitCenter"
-                android:contentDescription="routemap" />
+                android:contentDescription="type1"
+                android:layout_marginLeft="4dp"
+                android:layout_marginTop="10dp" />
 
         </RelativeLayout>
     </android.support.v7.widget.CardView>

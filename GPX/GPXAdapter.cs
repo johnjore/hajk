@@ -46,7 +46,7 @@ namespace hajk.Adapter
             vh.Id = mGpxData[position].Id;
             vh.GPXType = mGpxData[position].GPXType;
             vh.Name.Text = mGpxData[position].Name;
-            vh.Distance.Text = (mGpxData[position].Distance) .ToString("N2") + " km";
+            vh.Distance.Text = (mGpxData[position].Distance).ToString("N2") + " km";
                         
             if (vh.GPXType == GPXType.Route)
             {
@@ -58,7 +58,17 @@ namespace hajk.Adapter
                 vh.GPXTypeLogo.SetImageResource(Resource.Drawable.track);
             }
 
-            //vh.Image.SetImageResource(mPhotoAlbum[position].mPhotoID);
+            //Clear it, as its reused
+            vh.TrackRouteMap.SetImageResource(0);            
+            string ImageBase64String = mGpxData[position].ImageBase64String;
+            if (ImageBase64String != null)
+            {                
+                var bitmap = Utils.Misc.ConvertStringToBitmap(ImageBase64String);
+                if (bitmap != null)
+                {
+                    vh.TrackRouteMap.SetImageBitmap(bitmap);
+                }
+            }
         }
 
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
@@ -66,9 +76,9 @@ namespace hajk.Adapter
             View itemView = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.activity_gpx, parent, false);
             GPXViewHolder vh = new GPXViewHolder(itemView, OnClick);
 
-            vh.img_more.Click += (o, e) =>
+            vh.Img_more.Click += (o, e) =>
             {
-                Android.Support.V7.Widget.PopupMenu popup = new Android.Support.V7.Widget.PopupMenu(parent.Context, vh.img_more);
+                Android.Support.V7.Widget.PopupMenu popup = new Android.Support.V7.Widget.PopupMenu(parent.Context, vh.Img_more);
                 popup.Inflate(Resource.Menu.menu_gpx);
 
                 //Fix menu text

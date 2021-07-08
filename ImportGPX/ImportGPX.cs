@@ -18,6 +18,8 @@ using hajk.Fragments;
 using Serilog;
 using SharpGPX.GPX1_1;
 using GPXUtils;
+using Mapsui.Rendering.Skia;
+using Mapsui.Utilities;
 
 namespace hajk
 {
@@ -66,6 +68,9 @@ namespace hajk
             string mapTrack = t.Item1;
             float mapDistanceKm = t.Item2;
 
+            //Add to map
+            AddRouteToMap(mapTrack, GPXType.Track);
+
             //Create a standalone GPX
             var newGPX = new GpxClass()
             {
@@ -77,6 +82,9 @@ namespace hajk
             };
             newGPX.Tracks.Add(track);
 
+            //Create thumbsize map
+            string ImageBase64String = CreateThumbprintMap(newGPX);
+
             //Add to routetrack DB
             GPXDataRouteTrack r = new GPXDataRouteTrack
             {
@@ -87,6 +95,7 @@ namespace hajk
                 Descent = 0, /**///Fix this
                 Description = track.desc,
                 GPX = newGPX.ToXml(),
+                ImageBase64String = ImageBase64String,
             };
             RouteDatabase.SaveRouteAsync(r).Wait();
 
@@ -99,9 +108,6 @@ namespace hajk
             {
                 GetloadOfflineMap(track.GetBounds(), track.name);
             }
-
-            //Add to map
-            AddRouteToMap(mapTrack, GPXType.Track);
         }
 
         public static void AddGPXRoute(rteType route, bool DownloadOfflineMap)
@@ -110,6 +116,9 @@ namespace hajk
             var t = GPXtoRoute(route);
             string mapRoute = t.Item1;
             float mapDistanceKm = t.Item2;
+
+            //Add to map
+            AddRouteToMap(mapRoute, GPXType.Route);
 
             //Create a standalone GPX
             var newGPX = new GpxClass()
@@ -122,6 +131,9 @@ namespace hajk
             };
             newGPX.Routes.Add(route);
 
+            //Create thumbsize map
+            string ImageBase64String = CreateThumbprintMap(newGPX);
+
             //Add to routetrack DB
             GPXDataRouteTrack r = new GPXDataRouteTrack
             {
@@ -132,6 +144,7 @@ namespace hajk
                 Descent = 0, /**///Fix this
                 Description = route.desc,
                 GPX = newGPX.ToXml(),
+                ImageBase64String = ImageBase64String,
             };
             RouteDatabase.SaveRouteAsync(r).Wait();
 
@@ -144,9 +157,21 @@ namespace hajk
             {
                 GetloadOfflineMap(route.GetBounds(), route.name);
             }
+        }
 
-            //Add to map
-            AddRouteToMap(mapRoute, GPXType.Route);
+        private static string CreateThumbprintMap(GpxClass newGPX)
+        {
+            var bounds = newGPX.GetBounds();
+            var min = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
+            var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+            Fragment_map.mapControl.Navigator.RotateTo(0.0);
+            Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
+            System.Threading.Thread.Sleep(2000);
+            MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(Fragment_map.mapControl.Viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
+            bitmap.Position = 0;
+            string ImageBase64String = Convert.ToBase64String(bitmap.ToArray());
+
+            return ImageBase64String;
         }
 
         private static async void GetloadOfflineMap(boundsType bounds, string name)
