@@ -178,8 +178,10 @@ namespace hajk
             Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
 
             //Create viewport to match GPX list
-            var viewport = new Viewport(Fragment_map.mapControl.Viewport);
-            viewport.Width = MainActivity.wTrackRouteMap;
+            var viewport = new Viewport(Fragment_map.mapControl.Viewport)
+            {
+                Width = MainActivity.wTrackRouteMap
+            };
 
             //Set loction to match route/ track (again). Why?
             var navigator = new Navigator(Fragment_map.map, viewport);
@@ -490,7 +492,7 @@ namespace hajk
             {
                 Fill = null,
                 Outline = null,
-                Line = { Color = Color.FromString("Red"), Width = 4, PenStyle = PenStyle.Dot },
+                Line = { Color = Color.FromString("Red"), Width = 4, PenStyle = PenStyle.Solid },
             };
         }
     }
