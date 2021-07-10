@@ -1,8 +1,11 @@
 ﻿using Android.Graphics;
 using Android.Util;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using Mapsui.Layers;
 
 namespace Utils
 {
@@ -67,6 +70,22 @@ namespace Utils
             };
 
             return p;
+        }
+
+        public static bool ClearTrackRoutesFromMap()
+        {
+            Serilog.Log.Information($"Clear gpx entries from map");
+
+            //Remove recorded waypoints
+            hajk.RecordTrack.trackGpx.Waypoints.Clear();
+
+            IEnumerable<ILayer> layers = hajk.Fragments.Fragment_map.map.Layers.Where(x => (string)x.Tag == "route" || (string)x.Tag == "track" || (string)x.Tag == "tracklayer");
+            foreach (ILayer rt in layers)
+            {
+                hajk.Fragments.Fragment_map.map.Layers.Remove(rt);
+            }
+
+            return true;
         }
     }
 }

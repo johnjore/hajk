@@ -20,6 +20,7 @@ using SharpGPX.GPX1_1;
 using GPXUtils;
 using Mapsui.Rendering.Skia;
 using Mapsui.Utilities;
+using Mapsui;
 
 namespace hajk
 {
@@ -67,6 +68,9 @@ namespace hajk
             var t = GPXtoRoute(track.ToRoutes()[0]);
             string mapTrack = t.Item1;
             float mapDistanceKm = t.Item2;
+
+            //Clear existing GPX routes from map, else they will be included
+            Utils.Misc.ClearTrackRoutesFromMap();
 
             //Add to map
             AddRouteToMap(mapTrack, GPXType.Track);
@@ -117,6 +121,9 @@ namespace hajk
             string mapRoute = t.Item1;
             float mapDistanceKm = t.Item2;
 
+            //Clear existing GPX routes from map, else they will be included
+            Utils.Misc.ClearTrackRoutesFromMap();
+
             //Add to map
             AddRouteToMap(mapRoute, GPXType.Route);
 
@@ -161,15 +168,35 @@ namespace hajk
 
         private static string CreateThumbprintMap(GpxClass newGPX)
         {
+            //Overlay GPX on map and zoom
             var bounds = newGPX.GetBounds();
             var min = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
             var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+
+            //Set location to match route/track
             Fragment_map.mapControl.Navigator.RotateTo(0.0);
             Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
-            //var viewport = Fragment_map.mapControl.Viewport;
 
-            //System.Threading.Thread.Sleep(2000);
-            MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(Fragment_map.mapControl.Viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
+            //Create viewport to match GPX list
+            var viewport = new Viewport(Fragment_map.mapControl.Viewport);
+            viewport.Width = MainActivity.wTrackRouteMap;
+
+            //Set loction to match route/ track (again). Why?
+            var navigator = new Navigator(Fragment_map.map, viewport);
+            navigator.RotateTo(0, 0);
+            navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
+
+            //Wait for each layer to complete
+            foreach (ILayer layer in Fragment_map.map.Layers)
+            {
+                while (layer.Busy)
+                {
+                    System.Threading.Thread.Sleep(10);
+                }
+            }
+
+            //Create the thumbprint
+            MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
             bitmap.Position = 0;
             string ImageBase64String = Convert.ToBase64String(bitmap.ToArray());
 

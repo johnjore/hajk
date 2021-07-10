@@ -52,6 +52,7 @@ namespace hajk
         public static Activity mContext;
         public static RouteDatabase routedatabase;
         private Intent BatteryOptimizationsIntent;
+        public static int wTrackRouteMap = 0;
 #if DEBUG
         public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
 #else
@@ -142,6 +143,11 @@ namespace hajk
             Log.Debug($"Save context");
             mContext = this;
 
+
+            /**///Save width... There must be a better way...
+            Log.Debug($"Save width for TrackRouteMap (Needs fixing...)");
+            wTrackRouteMap = Resources.DisplayMetrics.WidthPixels;
+
             Log.Debug($"Done with OnCreate()");
         }
 
@@ -187,25 +193,11 @@ namespace hajk
             }
             else if (id == Resource.Id.action_clearmap)
             {
-                Log.Information($"Clear gpx entries from map");
-
-                //Remove recorded waypoints
-                RecordTrack.trackGpx.Waypoints.Clear();
-
-                IEnumerable<ILayer> layers = Fragment_map.map.Layers.Where(x => (string)x.Tag == "route" || (string)x.Tag == "track" || (string)x.Tag == "tracklayer");
-                foreach (ILayer rt in layers)
-                {
-                    Fragment_map.map.Layers.Remove(rt);
-                }
-
-                //Disable the menu item, nothing to clear
-                item.SetEnabled(false);
-                
-                return true;
+                return Utils.Misc.ClearTrackRoutesFromMap();
             }
             return base.OnOptionsItemSelected(item);
         }
-
+        
         protected override void OnStart()
         {            
             base.OnStart();
