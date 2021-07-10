@@ -166,7 +166,9 @@ namespace hajk
             var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
             Fragment_map.mapControl.Navigator.RotateTo(0.0);
             Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
-            System.Threading.Thread.Sleep(2000);
+            //var viewport = Fragment_map.mapControl.Viewport;
+
+            //System.Threading.Thread.Sleep(2000);
             MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(Fragment_map.mapControl.Viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
             bitmap.Position = 0;
             string ImageBase64String = Convert.ToBase64String(bitmap.ToArray());

@@ -73,9 +73,15 @@ namespace hajk
         {
             base.OnCreate(savedInstanceState);
 
-            //Init and permissions
+            //Init
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
-            RequestPermissions(permission, 0);
+
+            //Permissions
+            while (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.AccessFineLocation) != (int)Android.Content.PM.Permission.Granted ||
+                   AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.WriteExternalStorage) != (int)Android.Content.PM.Permission.Granted)
+            {
+                RequestPermissions(permission, 0);
+            }
 
             ServicePointManager.ServerCertificateValidationCallback = (message, certificate, chain, sslPolicyErrors) => true;
 
