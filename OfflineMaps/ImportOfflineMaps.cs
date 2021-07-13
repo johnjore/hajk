@@ -64,58 +64,34 @@ namespace hajk
         public static TileLayer CreateMbTilesLayer(string path, string name)
         {
             var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(path, true));
-            var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = name };
+            var mbTilesLayer = new TileLayer(mbTilesTileSource)
+            {
+                Name = name
+            };
             return mbTilesLayer;
         }
 
 
-        public static void LoadAllOfflineMaps()
+        public static void LoadOfflineMaps()
         {
-            string MBTilesPath = MainActivity.rootPath + "/MBTiles";
+            string OfflineDB = MainActivity.rootPath + "/" + PrefsActivity.OfflineDB;
+
+            if (File.Exists(OfflineDB) == false)
+            {
+                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.OfflineDB);
+            }
             
-            var filesList = Directory.GetFiles(MBTilesPath);
+            //Map not clear. GPX visible
+            var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(OfflineDB, true));
 
-            //Load Australia First
-            foreach (var file in filesList)
+            //GPX not visible
+            //var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(OfflineDB, true), null, MbTilesType.Overlay, true, true);
+
+            var mbTilesLayer = new TileLayer(mbTilesTileSource)
             {
-                if (file.EndsWith(".mbtiles"))
-                {
-                    if (file.EndsWith("Country.mbtiles"))
-                    {
-                        Log.Information($"File {file}");
-
-                        //Map not clear. GPX visible
-                        var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true));
-
-                        //GPX not visible
-                        //var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true), null, MbTilesType.Overlay, true, true);
-
-                        var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = file };
-                        Fragments.Fragment_map.map.Layers.Add(mbTilesLayer);
-                    }
-                }
-            }
-
-            //Load the rest 
-            foreach (var file in filesList)
-            {
-                if (file.EndsWith(".mbtiles"))
-                {
-                    if (!file.EndsWith("Country.mbtiles"))
-                    {
-                        Log.Information($"File {file}");
-
-                        //Map not clear. GPX visible
-                        var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true));
-
-                        //GPX not visible
-                        //var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(file, true), null, MbTilesType.Overlay, true, true);
-
-                        var mbTilesLayer = new TileLayer(mbTilesTileSource) { Name = file };
-                        Fragments.Fragment_map.map.Layers.Add(mbTilesLayer);
-                    }
-                }
-            }
+                Name = OfflineDB,
+            };
+            Fragments.Fragment_map.map.Layers.Add(mbTilesLayer);
         }
     }
 }

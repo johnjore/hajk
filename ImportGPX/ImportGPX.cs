@@ -55,8 +55,7 @@ namespace hajk
                     AddGPXTrack(track, DownloadOfflineMap);
                 }
 
-                Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
-                await msg3.ShowDialog($"Done", $"GPX Import Completed", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                Log.Information($"Done importing gpx file");
             });
 
             return null;
@@ -101,7 +100,7 @@ namespace hajk
                 GPX = newGPX.ToXml(),
                 ImageBase64String = ImageBase64String,
             };
-            RouteDatabase.SaveRouteAsync(r).Wait();
+            RouteDatabase.SaveRoute(r);
 
             //Update RecycleView with new entry
             int i = Fragment_gpx.mAdapter.mGpxData.Add(r);
@@ -110,7 +109,7 @@ namespace hajk
             //Does the user want the maps downloaded?
             if (DownloadOfflineMap)
             {
-                GetloadOfflineMap(track.GetBounds(), track.name);
+                GetloadOfflineMap(track.GetBounds(), r.Id);
             }
         }
 
@@ -153,7 +152,7 @@ namespace hajk
                 GPX = newGPX.ToXml(),
                 ImageBase64String = ImageBase64String,
             };
-            RouteDatabase.SaveRouteAsync(r).Wait();
+            RouteDatabase.SaveRoute(r);
 
             //Update RecycleView with new entry
             int i = Fragment_gpx.mAdapter.mGpxData.Add(r);
@@ -162,7 +161,7 @@ namespace hajk
             //Does the user want the maps downloaded?
             if (DownloadOfflineMap)
             {
-                GetloadOfflineMap(route.GetBounds(), route.name);
+                GetloadOfflineMap(route.GetBounds(), r.Id);
             }
         }
 
@@ -205,11 +204,11 @@ namespace hajk
             return ImageBase64String;
         }
 
-        private static async void GetloadOfflineMap(boundsType bounds, string name)
+        private static async void GetloadOfflineMap(boundsType bounds, int id)
         {
             Models.Map map = new Models.Map
             {
-                Name = Regex.Replace(name, @"[^\u0000-\u007F]+", ""), //Removes non-ascii characters from filename
+                Id = id,
                 ZoomMin = PrefsActivity.MinZoom,
                 ZoomMax = PrefsActivity.MaxZoom,
                 BoundsLeft = (double)bounds.minlat,
@@ -221,10 +220,7 @@ namespace hajk
             //Download map
             await DownloadRasterImageMap.DownloadMap(map);
 
-            //Load map
-            string dbPath = MainActivity.rootPath + "/MBTiles/" + map.Name + ".mbtiles";
-            Log.Information($"Loading '{dbPath}' as layer name '{map.Name}'");
-            Fragment_map.map.Layers.Add(OfflineMaps.CreateMbTilesLayer(dbPath, map.Name));
+            Log.Information($"Done downloading map for {map.Id}");
         }
 
         public static void AddRouteToMap(string mapRoute, GPXType gpxtype)
@@ -250,7 +246,7 @@ namespace hajk
             AndroidX.AppCompat.Widget.Toolbar toolbar = MainActivity.mContext.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
             toolbar.Menu.FindItem(Resource.Id.action_clearmap).SetEnabled(true);
         }
-      
+
         public static (string, float) GPXtoRoute(rteType route)
         {
             if (route.GetGarminExt() != null)
@@ -308,7 +304,6 @@ namespace hajk
                 if (result == null)
                     return null;
 
-                //Console.WriteLine("FileName: " + result.FileName + ", FilePath: " + result.FullPath);
                 if (result.FileName.EndsWith("gpx", StringComparison.OrdinalIgnoreCase) == false)
                     return null;
 
@@ -321,12 +316,6 @@ namespace hajk
 
                 GpxClass gpx = GpxClass.FromXml(contents);
                 var bounds = gpx.GetBounds();
-
-                //Console.WriteLine("Waypoints.Count: " + gpx.Waypoints.Count.ToString());
-                //Console.WriteLine("Routes.Count: " + gpx.Routes.Count.ToString());
-                //Console.WriteLine("Track.Count: " + gpx.Tracks.Count.ToString());
-                //Console.WriteLine("Lower Left - MinLat: " + bounds.minlat.ToString() + ", MaxLon: " + bounds.maxlon.ToString());
-                //Console.WriteLine("Top Right  - MaxLat: " + bounds.maxlat.ToString() + ", MinLon: " + bounds.minlon.ToString());
 
                 string r = "routes";
                 if (gpx.Routes.Count == 1)

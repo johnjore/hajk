@@ -1,22 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
+using System.Net;
+using System.Threading;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Serilog;
 using AwesomeTiles;
-using Mapsui.Geometries;
 using Dasync.Collections;
 using SQLite;
 using hajk.Models;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Threading;
 using Xamarin.Essentials;
-using Android.Widget;
-using Android.OS;
 
 namespace hajk
 {
@@ -27,27 +19,15 @@ namespace hajk
 
         public static async Task DownloadMap(Models.Map map)
         {
-            //Make sure the folder for the offline maps exists
-            InitMBTilesFolder();            
-
-            //Calculate the the sqlite / mbtiles metadata
-            Point p = Utils.Misc.CalculateCenter(map.BoundsRight, map.BoundsTop, map.BoundsLeft, map.BoundsBottom);
-            metadataValues metadata = new metadataValues
+            if (MainActivity.OfflineDBConn == null)
             {
-                name = map.Name,
-                description = "Created by hajk",
-                version = "1",
-                minzoom = map.ZoomMin.ToString(),
-                maxzoom = map.ZoomMax.ToString(),
-                center = p.X.ToString().Replace(",", ".") + "," + p.Y.ToString().Replace(",", "."),
-                bounds = map.BoundsTop.ToString().Replace(",", ".") + "," + map.BoundsLeft.ToString().Replace(",", ".") + "," + map.BoundsBottom.ToString().Replace(",", ".") + "," + map.BoundsRight.ToString().Replace(",", "."),
-                format = "png",
-                type = "png",
-            };
+                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.OfflineDB);
+            }
 
-            SQLiteConnection conn = MBTilesWriter.CreateDatabase(MainActivity.rootPath + "/MBTiles/" + map.Name + ".mbtiles", metadata);
-            if (conn == null)
+            if (MainActivity.OfflineDBConn == null)
+            {
                 return;
+            }
 
             for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
             {
@@ -65,36 +45,22 @@ namespace hajk
                 totalTilesCount += tilesCount;
                 Log.Information($"Need to download {tilesCount} tiles for zoom level {zoom}");
 
-                await DownloadTiles(tiles, zoom, conn);
+                await DownloadTiles(tiles, zoom, MainActivity.OfflineDBConn, map.Id);
             }
-            conn.Close();
-            Log.Information($"Done downloading map for {metadata.name}");
 
+            Log.Information($"Done downloading map for {map.Id}");
+
+            Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
+            await msg3.ShowDialog($"Done", $"GPX Import Completed", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
         }
 
-        private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn)
+        private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id)
         {
             string OSMServer = Preferences.Get("OSMServer", PrefsActivity.OSMServer_s);
 
-            //Same, but without parallell processing. 
-            /*            foreach (var tile in range)
-                        {
-                            byte[] data = null;
-                            for (int i = 0; i < 10; i++)
-                            {
-                                var url = OSMServer + $"{zoom}/{tile.X}/{tile.Y}.png";
-                                data = await DownloadImageAsync(url);
-                                if (data != null)
-                                    break;
-
-                                Thread.Sleep(10000);
-                            }
-
-                            Log.Information($"Zoomindex: {zoom}, x/y: {tile.X}/{tile.Y}, ID: {tile.Id}. Done:{++done}/{totalTilesCount}");
-                            WriteOsmSQlite(data, zoom, tile.X, tile.Y);
-                        };*/
-
-            await range.ParallelForEachAsync(async tile =>
+            //Same, but without parallell processing
+            /*            
+            foreach (var tile in range)
             {
                 byte[] data = null;
                 for (int i = 0; i < 10; i++)
@@ -103,11 +69,77 @@ namespace hajk
                     data = await DownloadImageAsync(url);
                     if (data != null)
                         break;
+
                     Thread.Sleep(10000);
                 }
-              
+
                 Log.Information($"Zoomindex: {zoom}, x/y: {tile.X}/{tile.Y}, ID: {tile.Id}. Done:{++done}/{totalTilesCount}");
-                WriteOsmSQlite(data, zoom, tile.X, tile.Y, conn);
+                WriteOsmSQlite(data, zoom, tile.X, tile.Y);
+            };
+            */
+
+            await range.ParallelForEachAsync(async tile =>
+            {
+                int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
+                tiles oldTile = new tiles();
+
+                for (int i = 0; i < 10; i++)
+                {
+                    try
+                    {
+                        oldTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
+                        if (oldTile != null && (DateTime.UtcNow - oldTile.createDate).TotalDays < PrefsActivity.OfflineMaxAge)
+                        {
+                            break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"Crashed: {ex}");
+                    }
+
+                    try
+                    {
+                        var url = OSMServer + $"{zoom}/{tile.X}/{tile.Y}.png";
+                        var data = await DownloadImageAsync(url);
+                        oldTile = new tiles()
+                        {
+                            tile_data = data,
+                            tile_row = tmsY,
+                            tile_column = tile.X,
+                            zoom_level = zoom,
+                            createDate = DateTime.UtcNow,
+                        };
+
+                        if (oldTile.tile_data != null)
+                        {
+                            break;
+                        }
+
+                        Thread.Sleep(10000);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"Crashed: {ex}");
+                    }
+                }
+
+                if (oldTile.tile_data == null)
+                {
+                    return;
+                }
+
+                if (oldTile.reference == null)
+                {
+                    oldTile.reference = id.ToString();
+                }
+                else
+                {
+                    oldTile.reference += "," + id.ToString();
+                }
+
+                Log.Information($"Zoomindex: {zoom}, x/y: {tile.X}/{tmsY}, ID: {tile.Id}. Done:{++done}/{totalTilesCount}");
+                MBTilesWriter.WriteTile(conn, oldTile);
             });
         }
 
@@ -124,47 +156,23 @@ namespace hajk
 
             try
             {
-                using (var httpResponse = await _httpClient.GetAsync(imageUrl))
+                using var httpResponse = await _httpClient.GetAsync(imageUrl);
+                if (httpResponse.StatusCode == HttpStatusCode.OK)
                 {
-                    if (httpResponse.StatusCode == HttpStatusCode.OK)
-                    {
-                        return await httpResponse.Content.ReadAsByteArrayAsync();
-                    }
-                    else
-                    {
-                        //Url is Invalid
-                        return null;
-                    }
+                    return await httpResponse.Content.ReadAsByteArrayAsync();
+                }
+                else
+                {
+                    //Url is Invalid
+                    return null;
                 }
             }
             catch (Exception ex)
             {
-                //Handle Exception
                 Log.Error($"DownloadImageAsync(...) crashed: {ex}");
             }
 
             return null;
-        }
-
-        private static void WriteOsmSQlite(byte[] osmData, int zoomIndex, int x, int y, SQLiteConnection conn)
-        {
-            Tiles.Tools.Tile tile = new Tiles.Tools.Tile()
-            {
-                Z = zoomIndex,
-                Y = y,
-                X = x
-            };
-
-            MBTilesWriter.WriteTile(conn, tile, osmData);
-        }
-
-        private static void InitMBTilesFolder()
-        {
-            string MBTilesPath = MainActivity.rootPath + "/MBTiles";
-            if (!File.Exists(MBTilesPath))
-            {
-                Directory.CreateDirectory(MBTilesPath);
-            }
         }
     }
 }

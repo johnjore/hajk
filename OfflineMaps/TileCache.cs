@@ -43,13 +43,14 @@ namespace hajk
                 sqlConn.CreateTable<metadata>();
                 sqlConn.CreateTable<tiles>();
 
-                var metaList = new List<metadata>();
-
-                metaList.Add(new metadata { name = "name", value = "Offline" });
-                metaList.Add(new metadata { name = "type", value = "baselayer" });
-                metaList.Add(new metadata { name = "version", value = "1" });
-                metaList.Add(new metadata { name = "description", value = "Offline" });
-                metaList.Add(new metadata { name = "format", value = format });
+                var metaList = new List<metadata>
+                {
+                    new metadata { name = "name", value = "Offline" },
+                    new metadata { name = "type", value = "baselayer" },
+                    new metadata { name = "version", value = "1" },
+                    new metadata { name = "description", value = "Offline" },
+                    new metadata { name = "format", value = format }
+                };
 
                 foreach (var meta in metaList)
                     sqlConn.InsertOrReplace(meta);
@@ -86,14 +87,21 @@ namespace hajk
                 {
                     tiles oldTile = sqlConn.Table<tiles>().Where(x => x.zoom_level == mbtile.zoom_level && x.tile_column == mbtile.tile_column && x.tile_row == mbtile.tile_row).FirstOrDefault();
 
-                    if (oldTile != null)
+                    if (oldTile == null)
+                    {
+                        sqlConn.Insert(mbtile);
+                        return;
+                    }
+
+                    if ((DateTime.UtcNow - oldTile.createDate).TotalDays >= 30)
                     {
                         mbtile.id = oldTile.id;
                         sqlConn.Update(mbtile);
+                        return;
                     }
-                    else
-                        sqlConn.Insert(mbtile);
                 }
+
+                return;
             }
 
             public void Dispose()

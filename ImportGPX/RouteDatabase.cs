@@ -29,7 +29,7 @@ namespace hajk.Data
 
         public static Task<GPXDataRouteTrack> GetRouteAsync(int id)
         {
-            // Get a specific route
+            // Get a specific route or track
             return database.Table<GPXDataRouteTrack>().Where(i => i.Id == id).FirstOrDefaultAsync();
         }
 
@@ -47,6 +47,20 @@ namespace hajk.Data
             }
         }
 
+        public static void SaveRoute(GPXDataRouteTrack route)
+        {
+            if (route.Id != 0)
+            {
+                // Update an existing route
+                database.UpdateAsync(route).Wait();
+            }
+            else
+            {
+                // Save a new route
+                database.InsertAsync(route).Wait();
+            }
+        }
+
         public static Task<int> DeleteRouteAsync(GPXDataRouteTrack route)
         {
             // Delete a route
@@ -58,6 +72,5 @@ namespace hajk.Data
             // Delete a route
             return database.DeleteAsync(database.Table<GPXDataRouteTrack>().Where(i => i.Id == id).FirstAsync().Result);
         }
-
     }
 }

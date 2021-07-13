@@ -41,6 +41,7 @@ using Xamarin.Essentials;
 using hajk.Data;
 using hajk.Adapter;
 using hajk.Fragments;
+using SQLite;
 
 //Location service: https://github.com/shernandezp/XamarinForms.LocationService
 
@@ -53,6 +54,7 @@ namespace hajk
         public static RouteDatabase routedatabase;
         private Intent BatteryOptimizationsIntent;
         public static int wTrackRouteMap = 0;
+        public static SQLiteConnection OfflineDBConn = null;
 #if DEBUG
         public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
 #else
@@ -181,7 +183,7 @@ namespace hajk
 
             return true;
         }
-        
+
         public override bool OnOptionsItemSelected(IMenuItem item)
         {
             int id = item.ItemId;
@@ -197,9 +199,9 @@ namespace hajk
             }
             return base.OnOptionsItemSelected(item);
         }
-        
+
         protected override void OnStart()
-        {            
+        {
             base.OnStart();
             Log.Information($"OnStart()");
 
@@ -235,6 +237,10 @@ namespace hajk
             //Terminate Location Task
             if (Location.cts != null && !Location.cts.IsCancellationRequested)
                 Location.cts.Cancel();
+
+
+            if (OfflineDBConn != null)
+                OfflineDBConn.Close();
 
             //Re-enable battery optimization
             //ClearDozeOptimization();
@@ -334,7 +340,8 @@ namespace hajk
             SupportFragmentManager.BeginTransaction().Show(SupportFragmentManager.FindFragmentByTag(Fragment_Tag));
             SupportFragmentManager.BeginTransaction().Commit();
 
-            switch (Fragment_Tag) {
+            switch (Fragment_Tag)
+            {
                 case "Fragment_gpx":
                     Fragment_map.mapControl.Visibility = ViewStates.Invisible;
                     FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
@@ -382,7 +389,7 @@ namespace hajk
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
-        
+
         public void SetDozeOptimization()
         {
             //https://social.msdn.microsoft.com/Forums/en-US/895f0759-e05d-4747-b72b-e16a2e8dbcf9/developing-a-location-background-service?forum=xamarinforms

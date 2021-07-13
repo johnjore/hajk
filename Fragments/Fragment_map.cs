@@ -3,14 +3,10 @@ using Android.OS;
 using Android.Views;
 using AndroidX.Fragment.App;
 using Mapsui;
-using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Projection;
-using Mapsui.UI;
 using Mapsui.UI.Android;
-using Mapsui.Providers;
 using Mapsui.Styles;
-using Mapsui.Utilities;
 using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using Log = Serilog.Log;
@@ -48,8 +44,8 @@ namespace hajk.Fragments
             };
             map.Layers.Add(tileLayer);
 
-            Log.Debug($"Import all offline maps");
-            OfflineMaps.LoadAllOfflineMaps();
+            Log.Debug($"Import offline maps");
+            OfflineMaps.LoadOfflineMaps();
 
             Log.Debug($"Add scalebar");
             map.Widgets.Add(new ScaleBarWidget(map)

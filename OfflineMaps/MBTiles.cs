@@ -11,13 +11,21 @@ namespace hajk
 {
     public class MBTilesWriter
     {
-        public static SQLiteConnection CreateDatabase(string db, metadataValues metadata)
+        public static SQLiteConnection CreateDatabaseConnection(string db)
         {
             if (!File.Exists(db))
             {
                 //Create
                 try
                 {
+                    metadataValues metadata = new metadataValues
+                    {
+                        name = "OfflineDB",
+                        description = "Created by hajk",
+                        version = "1",
+                        format = "png",
+                    };
+
                     var sqliteConnection = CreateDatabase(db);
                     InsertMetadata(sqliteConnection, metadata);
                     return sqliteConnection;
@@ -26,55 +34,38 @@ namespace hajk
                 {
                     Log.Error($"CreateDatabase(...) crashed: {ex}");
                 }
-            } 
+            }
             else
             {
                 //Open database
-                var sqliteConnection = new SQLiteConnection(db);
+                var sqliteConnection = new SQLiteConnection(db, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex, true);
                 return sqliteConnection;
             }
 
             return null;
         }
 
-        public static int WriteTile(SQLiteConnection sqliteConnection, Tile t, byte[] data)
+        public static int WriteTile(SQLiteConnection sqliteConnection, tiles mbtile)
         {
+            if (mbtile.tile_data == null)
+            {
+                return 0;
+            }
+
             try
             {
-                // mbtiles uses tms format so reverse y-axis...
-                int tmsY = (int)Math.Pow(2, t.Z) - 1 - t.Y;
-                int rowsAffected = 0;
-
-                //Create tile for DB
-                tiles mbtile = new tiles
+                if (mbtile.id == 0)
                 {
-                    zoom_level = t.Z,
-                    tile_column = t.X,
-                    tile_row = tmsY,
-                    tile_data = data,
-                    createDate = DateTime.UtcNow
-            };
-
-                tiles oldTile = sqliteConnection.Table<tiles>().Where(x => x.zoom_level == t.Z && x.tile_column == t.X && x.tile_row == tmsY).FirstOrDefault();
-                if (oldTile == null)
-                {
-                    //rowsAffected = sqliteConnection.Execute($"INSERT INTO tiles (zoom_level, tile_column, tile_row, tile_data) VALUES ({t.Z}, {t.X}, {tmsY}, @bytes)", data);
-                    rowsAffected = sqliteConnection.Insert(mbtile);
+                    return sqliteConnection.Insert(mbtile);
                 }
-                else
-                {
-                    mbtile.id = oldTile.id;
-                    rowsAffected = sqliteConnection.Update(mbtile);
-                }
-                
-                return rowsAffected;
+
+                return sqliteConnection.Update(mbtile);
             }
             catch (Exception ex)
             {
                 Log.Error($"WriteTile(...) crashed: {ex}");
+                return 0;
             }
-
-            return 0;
         }
 
         private static SQLiteConnection CreateDatabase(string name)
@@ -82,14 +73,14 @@ namespace hajk
             try
             {
                 //Open database
-                var sqliteConnection = new SQLiteConnection(name);
+                var sqliteConnection = new SQLiteConnection(name, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex, true);
 
                 //Create tables
                 sqliteConnection.CreateTable<metadata>();
                 sqliteConnection.CreateTable<tiles>();
 
                 //Create indexes
-                string[] a = {"zoom_level", "tile_column", "tile_row"};
+                string[] a = { "zoom_level", "tile_column", "tile_row" };
                 sqliteConnection.CreateIndex("tile_index", "tiles", a, true);
                 sqliteConnection.CreateIndex("name", "metadata", "name", true);
 
@@ -105,15 +96,11 @@ namespace hajk
 
         private static void InsertMetadata(SQLiteConnection conn, metadataValues metadata)
         {
-            try {
+            try
+            {
                 conn.Execute($"INSERT INTO metadata (name, value) VALUES ('name', '{metadata.name}');");
                 conn.Execute($"INSERT INTO metadata (name, value) VALUES ('description', '{metadata.description}');");
-                conn.Execute($"INSERT INTO metadata (name, value) VALUES ('bounds', '{metadata.bounds}');");
-                conn.Execute($"INSERT INTO metadata (name, value) VALUES ('center', '{metadata.center}');");
-                conn.Execute($"INSERT INTO metadata (name, value) VALUES ('minzoom', '{metadata.minzoom}');");
-                conn.Execute($"INSERT INTO metadata (name, value) VALUES ('maxzoom', '{metadata.maxzoom}');");
                 conn.Execute($"INSERT INTO metadata (name, value) VALUES ('version', '{metadata.version}');");
-                conn.Execute($"INSERT INTO metadata (name, value) VALUES ('type', '{metadata.type}');");
                 conn.Execute($"INSERT INTO metadata (name, value) VALUES ('format', 'pbf');");
             }
             catch (Exception ex)

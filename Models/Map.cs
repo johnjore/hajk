@@ -5,7 +5,7 @@ namespace hajk.Models
 {
     public class Map
     {
-        public string Name { get; set; }
+        public int Id { get; set; }
         public int ZoomMin { get; set; }
         public int ZoomMax { get; set; }
         public double BoundsLeft { get; set; }
