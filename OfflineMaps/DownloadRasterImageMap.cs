@@ -9,6 +9,7 @@ using Dasync.Collections;
 using SQLite;
 using hajk.Models;
 using Xamarin.Essentials;
+using System.Collections.Generic;
 
 namespace hajk
 {
@@ -88,7 +89,7 @@ namespace hajk
                     try
                     {
                         oldTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
-                        if (oldTile != null && (DateTime.UtcNow - oldTile.createDate).TotalDays < PrefsActivity.OfflineMaxAge)
+                        if ((oldTile != null) && ((DateTime.UtcNow - oldTile.createDate).TotalDays < PrefsActivity.OfflineMaxAge))
                         {
                             break;
                         }
@@ -129,17 +130,25 @@ namespace hajk
                     return;
                 }
 
+                ++done;
+
                 if (oldTile.reference == null)
                 {
                     oldTile.reference = id.ToString();
                 }
                 else
                 {
+                    if (oldTile.reference.Contains(id.ToString()))
+                    {
+                        return;
+                    }
+
                     oldTile.reference += "," + id.ToString();
                 }
 
-                Log.Information($"Zoomindex: {zoom}, x/y: {tile.X}/{tmsY}, ID: {tile.Id}. Done:{++done}/{totalTilesCount}");
+                Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{done}/{totalTilesCount}");
                 MBTilesWriter.WriteTile(conn, oldTile);
+
             });
         }
 
@@ -174,5 +183,38 @@ namespace hajk
 
             return null;
         }
+
+        public static void PurgeMapDB(int Id)
+        {
+            if (MainActivity.OfflineDBConn == null)
+            {
+                string OfflineDB = MainActivity.rootPath + "/" + PrefsActivity.OfflineDB;
+                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.OfflineDB);
+            }
+
+            //Remove single reference tiles
+            string id = Id.ToString();
+            var query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference == id);
+            foreach (tiles maptile in query)
+            {
+                Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+                MainActivity.OfflineDBConn.Delete(maptile);
+            }
+
+            //Remove reference
+            query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference.Contains(id));
+            foreach (tiles maptile in query)
+            {
+                Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+
+                maptile.reference = maptile.reference.Replace("," + id, "");
+                maptile.reference = maptile.reference.Replace(id + ",", "");
+
+                MainActivity.OfflineDBConn.Update(maptile);
+            }
+
+            return;
+        }
+
     }
 }

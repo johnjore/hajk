@@ -76,11 +76,11 @@ namespace hajk
         {
             string OfflineDB = MainActivity.rootPath + "/" + PrefsActivity.OfflineDB;
 
-            if (File.Exists(OfflineDB) == false)
+            if (MainActivity.OfflineDBConn == null)
             {
                 MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.OfflineDB);
             }
-            
+
             //Map not clear. GPX visible
             var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(OfflineDB, true));
 

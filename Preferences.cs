@@ -22,7 +22,7 @@ namespace hajk
         public readonly static bool TrackLocation = false;              //True when map is continiously moved to center on our location
         public readonly static int MinZoom = 0;                         //MinZoom level to use
         public readonly static int MaxZoom = 17;                        //MaxZoom level to use
-        public readonly static int OfflineMaxAge = 30;                  //Don't refresh tiles until this threashold in days
+        public readonly static int OfflineMaxAge = 30;                  //Don't refresh tiles until this threashhold in days
 
         protected override void OnCreate(Bundle savedInstanceState)
         {

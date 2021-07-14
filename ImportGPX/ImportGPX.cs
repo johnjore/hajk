@@ -204,7 +204,7 @@ namespace hajk
             return ImageBase64String;
         }
 
-        private static async void GetloadOfflineMap(boundsType bounds, int id)
+        public static async void GetloadOfflineMap(boundsType bounds, int id)
         {
             Models.Map map = new Models.Map
             {

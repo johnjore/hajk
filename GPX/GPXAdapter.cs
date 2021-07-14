@@ -47,7 +47,7 @@ namespace hajk.Adapter
             vh.GPXType = mGpxData[position].GPXType;
             vh.Name.Text = mGpxData[position].Name;
             vh.Distance.Text = (mGpxData[position].Distance).ToString("N2") + " km";
-                        
+
             if (vh.GPXType == GPXType.Route)
             {
                 vh.GPXTypeLogo.SetImageResource(Resource.Drawable.route);
@@ -59,10 +59,10 @@ namespace hajk.Adapter
             }
 
             //Clear it, as its reused
-            vh.TrackRouteMap.SetImageResource(0);            
+            vh.TrackRouteMap.SetImageResource(0);
             string ImageBase64String = mGpxData[position].ImageBase64String;
             if (ImageBase64String != null)
-            {                
+            {
                 var bitmap = Utils.Misc.ConvertStringToBitmap(ImageBase64String);
                 if (bitmap != null)
                 {
@@ -97,7 +97,7 @@ namespace hajk.Adapter
                             Log.Information($"Follow route or track '{vh.Name.Text}'");
 
                             //Get the route or track
-                            var routetrack  = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                            var routetrack = RouteDatabase.GetRouteAsync(vh.Id).Result;
                             GpxClass gpx = GpxClass.FromXml(routetrack.GPX);
 
                             if (routetrack.GPXType == GPXType.Track)
@@ -173,11 +173,17 @@ namespace hajk.Adapter
                             Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
                             if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}' ?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                             {
+                                //Remove map tiles from Offline DB
+                                DownloadRasterImageMap.PurgeMapDB(vh.Id);
+
+                                //Remove from route DB
                                 _ = RouteDatabase.DeleteRouteAsync(vh.Id);
+
+                                //Remove from GUI
                                 mGpxData.RemoveAt(vh.AdapterPosition);
                                 NotifyDataSetChanged();
                             }
-                        
+
                             break;
                         case Resource.Id.gpx_menu_reverseroute:
                             Log.Information($"Reverse route '{vh.Name.Text}'");
@@ -241,8 +247,21 @@ namespace hajk.Adapter
 
                             break;
                         case Resource.Id.gpx_menu_saveofflinemap:
-                            Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text}'");
-                            Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
+                            Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text} / {vh.Id}'");
+                            //Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
+
+                            var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                            GpxClass gpx_to_export = GpxClass.FromXml(route_to_download.GPX);
+
+                            if (vh.GPXType == GPXType.Track)
+                            {
+                                Import.GetloadOfflineMap(gpx_to_export.Tracks[0].GetBounds(), vh.Id);
+                            }
+
+                            if (vh.GPXType == GPXType.Route)
+                            {
+                                Import.GetloadOfflineMap(gpx_to_export.Routes[0].GetBounds(), vh.Id);
+                            }
 
                             break;
                     }
