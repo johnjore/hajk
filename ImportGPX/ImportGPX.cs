@@ -220,6 +220,8 @@ namespace hajk
             //Download map
             await DownloadRasterImageMap.DownloadMap(map);
 
+            //Refresh with new map
+            OfflineMaps.LoadOfflineMaps();
             Log.Information($"Done downloading map for {map.Id}");
         }
 

@@ -87,6 +87,14 @@ namespace hajk
             //GPX not visible
             //var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(OfflineDB, true), null, MbTilesType.Overlay, true, true);
 
+            //Remove old layer
+            var OfflineDBLayer = Fragments.Fragment_map.map.Layers.FindLayer(OfflineDB).FirstOrDefault();
+            if (OfflineDBLayer != null)
+            {
+                Fragments.Fragment_map.map.Layers.Remove(OfflineDBLayer);
+            }
+
+            //Add layer
             var mbTilesLayer = new TileLayer(mbTilesTileSource)
             {
                 Name = OfflineDB,
