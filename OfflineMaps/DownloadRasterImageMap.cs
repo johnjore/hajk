@@ -30,6 +30,10 @@ namespace hajk
                 return;
             }
 
+            //Reset counters for next download
+            done = 0;
+            totalTilesCount = 0;
+
             for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
             {
                 var leftBottom = Tile.CreateAroundLocation(map.BoundsLeft, map.BoundsBottom, zoom);
