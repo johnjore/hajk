@@ -55,6 +55,11 @@ namespace hajk
         private Intent BatteryOptimizationsIntent;
         public static int wTrackRouteMap = 0;
         public static SQLiteConnection OfflineDBConn = null;
+
+        //Location Service
+        Intent startLocationServiceIntent;
+        bool isLocationServiceStarted = false;
+
 #if DEBUG
         public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
 #else
@@ -123,18 +128,28 @@ namespace hajk
             Log.Debug($"Set RecordingTrack to false - sanity check");
             Preferences.Set("RecordingTrack", false);
 
-            /**///This is poor. Create a dedicated background thread for location data
+            Log.Debug($"Create Location Service");
+            OnNewIntent(this.Intent);
+            if (savedInstanceState != null)
+            {
+                isLocationServiceStarted = savedInstanceState.GetBoolean(PrefsActivity.SERVICE_STARTED_KEY, false);
+            }
+
+            startLocationServiceIntent = new Intent(this, typeof(LocationService));
+            startLocationServiceIntent.SetAction(PrefsActivity.ACTION_START_SERVICE);
+            StartService(startLocationServiceIntent);
+            isLocationServiceStarted = true;
+
             Log.Debug($"Add location marker");
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                await Location.GetCurrentLocation();
+                if (Location.location == null)
+                {
+                    var request = new GeolocationRequest(GeolocationAccuracy.Best, TimeSpan.FromSeconds(5));
+                    Location.location = await Geolocation.GetLocationAsync(request, new CancellationTokenSource().Token);
+                }
                 Location.UpdateLocationMarker(true);
             });
-
-            //Update location every UpdateGPSLocation_s seconds
-            //This is plain stupid. Why not Int type in preferences
-            int UpdateGPSLocation_s = Int32.Parse(Preferences.Get("UpdateGPSLocation", PrefsActivity.UpdateGPSLocation_s.ToString()));
-            Timer Order_Timer = new Timer(new TimerCallback(Location.UpdateLocationMarker), null, 0, UpdateGPSLocation_s * 1000);
 
             Log.Debug($"Create Fragments");
             var FragmentsTransaction = SupportFragmentManager.BeginTransaction();
@@ -144,10 +159,9 @@ namespace hajk
 
             Log.Debug($"Save context");
             mContext = this;
-
-
-            /**///Save width... There must be a better way...
+            
             Log.Debug($"Save width for TrackRouteMap (Needs fixing...)");
+            /**///Save width... There must be a better way...
             wTrackRouteMap = Resources.DisplayMetrics.WidthPixels;
 
             Log.Debug($"Done with OnCreate()");
@@ -234,16 +248,15 @@ namespace hajk
             //Cleanup Log file
             Log.CloseAndFlush();
 
-            //Terminate Location Task
-            if (Location.cts != null && !Location.cts.IsCancellationRequested)
-                Location.cts.Cancel();
-
-
             if (OfflineDBConn != null)
                 OfflineDBConn.Close();
 
             //Re-enable battery optimization
             //ClearDozeOptimization();
+
+            //Location Service
+            StopService(startLocationServiceIntent);
+            isLocationServiceStarted = false;
 
             base.OnDestroy();
         }
@@ -418,6 +431,29 @@ namespace hajk
                 BatteryOptimizationsIntent.SetData(null);
                 BatteryOptimizationsIntent.SetFlags(0);
             }
+        }
+
+        protected override void OnNewIntent(Intent intent)
+        {
+            if (intent == null)
+            {
+                return;
+            }
+
+            var bundle = intent.Extras;
+            if (bundle != null)
+            {
+                if (bundle.ContainsKey(PrefsActivity.SERVICE_STARTED_KEY))
+                {
+                    isLocationServiceStarted = true;
+                }
+            }
+        }
+
+        protected override void OnSaveInstanceState(Bundle outState)
+        {
+            outState.PutBoolean(PrefsActivity.SERVICE_STARTED_KEY, isLocationServiceStarted);
+            base.OnSaveInstanceState(outState);
         }
     }
 }

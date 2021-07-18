@@ -25,9 +25,9 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
                 android:layout_gravity="left"
-                android:contentDescription="type" 
-                android:layout_marginLeft="4dp" />
-                      
+                android:contentDescription="@string/type" 
+                android:layout_marginLeft="@dimen/layout_marginLeft" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -37,7 +37,7 @@
                 android:text="@string/Name"
                 android:id="@+id/Name"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="4dp"/>
+                android:layout_marginLeft="@dimen/layout_marginLeft"/>
 
             <TextView
                 android:layout_width="match_parent"
@@ -49,7 +49,7 @@
                 android:text="@string/Distance"
                 android:id="@+id/Distance"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="4dp"/>
+                android:layout_marginLeft="@dimen/layout_marginLeft"/>
 
             <TextView
                 android:id="@+id/textViewOptions"
@@ -58,17 +58,17 @@
                 android:layout_alignParentRight="true"
                 android:layout_alignParentTop="true"
                 android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:text="&#8942;"
+                android:text="@string/more"
                 android:textAppearance="?android:textAppearanceLarge" />
 
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@id/textViewOptions"
+                android:layout_below="@+id/Distance"
                 android:id="@+id/TrackRouteMap"
                 android:scaleType="fitCenter"
-                android:contentDescription="type1"
-                android:layout_marginLeft="4dp"
+                android:contentDescription="@string/Name"
+                android:layout_marginLeft="@dimen/layout_marginLeft"
                 android:layout_marginTop="10dp" />
 
         </RelativeLayout>
