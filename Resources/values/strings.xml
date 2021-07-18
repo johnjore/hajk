@@ -39,4 +39,7 @@
     <string name="Record_Track">Record Track</string>
     <string name="Routes_Tracks">Routes / Tracks</string>
     <string name="Clear_map_of_routes_and_tracks">Clear map of routes and tracks</string>
+    <string name="notification_text">The location service is running.</string>
+    <string name="type">type</string>
+    <string name="more">&#8942;</string>
 </resources>
