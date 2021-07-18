@@ -165,7 +165,7 @@ namespace hajk
             }
         }
 
-        private static string CreateThumbprintMap(GpxClass newGPX)
+        public static string CreateThumbprintMap(GpxClass newGPX)
         {
             //Overlay GPX on map and zoom
             var bounds = newGPX.GetBounds();

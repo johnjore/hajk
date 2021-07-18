@@ -251,17 +251,22 @@ namespace hajk.Adapter
                             //Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
 
                             var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                            GpxClass gpx_to_export = GpxClass.FromXml(route_to_download.GPX);
+                            GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
 
                             if (vh.GPXType == GPXType.Track)
                             {
-                                Import.GetloadOfflineMap(gpx_to_export.Tracks[0].GetBounds(), vh.Id);
+                                Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id);
                             }
 
                             if (vh.GPXType == GPXType.Route)
                             {
-                                Import.GetloadOfflineMap(gpx_to_export.Routes[0].GetBounds(), vh.Id);
+                                Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id);
                             }
+
+                            //Create / Update thumbsize map
+                            route_to_download.ImageBase64String = Import.CreateThumbprintMap(gpx_to_download);
+                            NotifyDataSetChanged();
+                            RouteDatabase.SaveRouteAsync(route_to_download).Wait();
 
                             break;
                     }
