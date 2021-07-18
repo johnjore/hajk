@@ -123,7 +123,6 @@ namespace hajk
 			Notification notification = notificationBuilder
 				.SetOngoing(true)
 				.SetSmallIcon(Resource.Drawable.track)
-				.SetContentTitle(Resources.GetString(Resource.String.app_name))
 				.SetContentText(Resources.GetString(Resource.String.notification_text))
 				.SetPriority(1)
 				.SetCategory(Notification.CategoryService)				
