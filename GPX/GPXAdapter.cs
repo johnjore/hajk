@@ -250,23 +250,45 @@ namespace hajk.Adapter
                             Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text} / {vh.Id}'");
                             //Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
 
+                            //Clear existing GPX routes from map, else they will be included
+                            Utils.Misc.ClearTrackRoutesFromMap();
+
                             var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
                             GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
 
+                            string mapRouteGPX = string.Empty;
                             if (vh.GPXType == GPXType.Track)
                             {
                                 Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id);
+
+                                mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0]).Item1;
+                                Import.AddRouteToMap(mapRouteGPX, GPXType.Track);
                             }
 
                             if (vh.GPXType == GPXType.Route)
                             {
                                 Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id);
+
+                                mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Routes[0]).Item1;
+                                Import.AddRouteToMap(mapRouteGPX, GPXType.Route);
                             }
 
                             //Create / Update thumbsize map
-                            route_to_download.ImageBase64String = Import.CreateThumbprintMap(gpx_to_download);
-                            NotifyDataSetChanged();
+                            string ImageBase64String = Import.CreateThumbprintMap(gpx_to_download);
+                            route_to_download.ImageBase64String = ImageBase64String;
                             RouteDatabase.SaveRouteAsync(route_to_download).Wait();
+
+                            //Update RecycleView with new entry
+                            vh.TrackRouteMap.SetImageResource(0);
+                            if (ImageBase64String != null)
+                            {
+                                var bitmap = Utils.Misc.ConvertStringToBitmap(ImageBase64String);
+                                if (bitmap != null)
+                                {
+                                    vh.TrackRouteMap.SetImageBitmap(bitmap);
+                                }
+                            }
+                            Fragment_gpx.mAdapter.NotifyItemChanged(args.Item.ItemId);
 
                             break;
                     }

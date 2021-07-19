@@ -47,6 +47,11 @@ namespace hajk
 
         public static int WriteTile(SQLiteConnection sqliteConnection, tiles mbtile)
         {
+            if (sqliteConnection == null)
+            {
+                return 0;
+            }
+
             if (mbtile.tile_data == null)
             {
                 return 0;
