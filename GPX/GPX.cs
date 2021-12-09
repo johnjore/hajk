@@ -16,6 +16,7 @@ namespace hajk
         public GpxData()
         {
             List<GPXDataRouteTrack> result = RouteDatabase.GetRouteAsync().Result;
+            result.Reverse();
             gpx = result;
         }
 
@@ -36,7 +37,7 @@ namespace hajk
 
         internal int Add(GPXDataRouteTrack route)
         {
-            gpx.Add(route);
+            gpx.Insert(0, route);
             return gpx.Count;
         }
     }
