@@ -10,12 +10,6 @@ using Xamarin.Essentials;
 
 namespace hajk
 {
-
-	/// <summary>
-	/// This is a sample started service. When the service is started, it will log a string that details how long 
-	/// the service has been running (using Android.Util.Log). This service displays a notification in the notification
-	/// tray while the service is active.
-	/// </summary>
 	[Service]
 	public class LocationService : Service
 	{
@@ -46,6 +40,7 @@ namespace hajk
 						Serilog.Log.Information($"Location Service - Latitude: {loc.Latitude}, Longitude: {loc.Longitude}, Altitude: {loc.Altitude}");
 						Location.location = loc;
 					}
+					Serilog.Log.Information($"Location Service running...");
 					Intent i = new Intent(PrefsActivity.NOTIFICATION_BROADCAST_ACTION);
 					i.PutExtra(PrefsActivity.BROADCAST_MESSAGE_KEY, "What is the purpose of this?");
 					LocalBroadcastManager.GetInstance(this).SendBroadcast(i);

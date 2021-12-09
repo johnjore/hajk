@@ -118,6 +118,11 @@ namespace hajk
         private static void GetGPSLocationEvent(object state)
         {
             var location = Geolocation.GetLastKnownLocationAsync().Result;
+            if (location == null)
+            {
+                return;
+            }
+
             Log.Information($"Updated GPS Location - {location.Timestamp} - Altitude: {location.Altitude}, Lat: {location.Latitude}, Lon: {location.Longitude}, Speed: {location.Speed}");
 
             wptType waypoint = new wptType()

@@ -74,7 +74,7 @@ namespace hajk
             Android.Manifest.Permission.WriteExternalStorage,
             Android.Manifest.Permission.Internet,
             Android.Manifest.Permission.AccessNetworkState,
-            Android.Manifest.Permission.RequestIgnoreBatteryOptimizations,
+            Android.Manifest.Permission.RequestIgnoreBatteryOptimizations,            
         };
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -137,7 +137,15 @@ namespace hajk
 
             startLocationServiceIntent = new Intent(this, typeof(LocationService));
             startLocationServiceIntent.SetAction(PrefsActivity.ACTION_START_SERVICE);
-            StartService(startLocationServiceIntent);
+
+            if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
+            {
+                StartForegroundService(startLocationServiceIntent);
+            }
+            else
+            {
+                StartService(startLocationServiceIntent);
+            }
             isLocationServiceStarted = true;
 
             Log.Debug($"Add location marker");
@@ -162,7 +170,7 @@ namespace hajk
             
             Log.Debug($"Save width for TrackRouteMap (Needs fixing...)");
             /**///Save width... There must be a better way...
-            wTrackRouteMap = Resources.DisplayMetrics.WidthPixels;
+            wTrackRouteMap = Resources.DisplayMetrics.WidthPixels;            
 
             Log.Debug($"Done with OnCreate()");
         }
@@ -399,7 +407,6 @@ namespace hajk
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
         {
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
 

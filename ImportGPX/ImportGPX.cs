@@ -295,15 +295,15 @@ namespace hajk
                     PickerTitle = "Please select a GPX file",
                     FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                     {
-                        /**///What is mime type for GPX files?!?
+                        /**///What is mime type for GPX files?!? bin
                         //{ DevicePlatform.Android, new string[] { "gpx/gpx"} },
                         { DevicePlatform.Android, null },
                     })
                 };
 
-                var result = await FilePicker.PickAsync(options);
+                var result = await FilePicker.PickAsync(options);                
 
-                if (result == null)
+            if (result == null)
                     return null;
 
                 if (result.FileName.EndsWith("gpx", StringComparison.OrdinalIgnoreCase) == false)
@@ -335,9 +335,10 @@ namespace hajk
 
                 return gpx;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // The user canceled or something went wrong
+                Log.Error($"Import GPX Crashed: " + ex.ToString());                
             }
 
             return null;

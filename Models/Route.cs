@@ -14,7 +14,6 @@ namespace hajk.Models
 
         public string Description { get; set; }
         public string GPX { get; set; }
-        /**///Create map image with route layer. Auto zoom to level n to see the full route
         public string ImageBase64String { get; set; }
     }
 
