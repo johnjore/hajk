@@ -283,7 +283,6 @@ namespace hajk
             {
                 fab.Background.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.Red));
                 Fragment_map.mapControl.Map.PanLock = true;
-
             }
             else
             {

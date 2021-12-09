@@ -284,8 +284,7 @@ namespace AwesomeTiles
         /// </summary>
         public static Tile CreateAroundLocation(double lat, double lon, int zoom)
         {
-            int x, y;
-            if (!Tile.CreateAroundLocation(lat, lon, zoom, out x, out y))
+            if (!Tile.CreateAroundLocation(lat, lon, zoom, out int x, out int y))
             {
                 return null;
             }
@@ -297,8 +296,7 @@ namespace AwesomeTiles
         /// </summary>
         public static ulong CreateAroundLocationId(double lat, double lon, int zoom)
         {
-            int x, y;
-            if (!Tile.CreateAroundLocation(lat, lon, zoom, out x, out y))
+            if (!Tile.CreateAroundLocation(lat, lon, zoom, out int x, out int y))
             {
                 return ulong.MaxValue;
             }
@@ -312,8 +310,9 @@ namespace AwesomeTiles
         {
             if (lon == 180)
             {
-                lon = lon - 0.000001;
+                lon -= 0.000001;
             }
+
             if (lat > 85.0511 || lat < -85.0511)
             {
                 x = 0;
@@ -321,7 +320,7 @@ namespace AwesomeTiles
                 return false;
             }
 
-            var n = (int)System.Math.Floor(System.Math.Pow(2, zoom));
+            //var n = (int)System.Math.Floor(System.Math.Pow(2, zoom));
 
             x = (int)((lon + 180.0) / 360.0 * (1 << zoom));
             var latRad = lat * Math.PI / 180.0;
