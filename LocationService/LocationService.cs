@@ -46,6 +46,12 @@ namespace hajk
 					LocalBroadcastManager.GetInstance(this).SendBroadcast(i);
 
 					int UpdateGPSLocation_s = Int32.Parse(Preferences.Get("UpdateGPSLocation", PrefsActivity.UpdateGPSLocation_s.ToString()));
+
+					
+					//Update the location beacon on map
+					Location.UpdateLocationMarker(Preferences.Get("TrackLocation", false) == false);
+
+
 					handler.PostDelayed(runnable, UpdateGPSLocation_s * 1000);
 				}
 			});

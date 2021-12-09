@@ -170,7 +170,7 @@ namespace hajk
             
             Log.Debug($"Save width for TrackRouteMap (Needs fixing...)");
             /**///Save width... There must be a better way...
-            wTrackRouteMap = Resources.DisplayMetrics.WidthPixels;            
+            wTrackRouteMap = Resources.DisplayMetrics.WidthPixels;
 
             Log.Debug($"Done with OnCreate()");
         }
@@ -282,21 +282,13 @@ namespace hajk
             if (Preferences.Get("TrackLocation", true) == false)
             {
                 fab.Background.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.Red));
+                Fragment_map.mapControl.Map.PanLock = true;
 
-                var task = Task.Run(async () =>
-                {
-                    while (Preferences.Get("TrackLocation", PrefsActivity.TrackLocation) == false)
-                    {
-                        Log.Information($"Re-center Map on our location");
-                        Location.UpdateLocationMarker(true);
-
-                        await Task.Delay(500);
-                    }
-                });
             }
             else
             {
                 fab.Background.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.LightBlue));
+                Fragment_map.mapControl.Map.PanLock = false;
             }
 
             /*View view = (View)sender;

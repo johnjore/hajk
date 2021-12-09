@@ -104,6 +104,7 @@ namespace hajk
             return feature;
         }
 
+        //Set loction beacon color, red if recording, blue if not
         public static void UpdateLocationFeature()
         {
             Color marker = Color.Blue;
