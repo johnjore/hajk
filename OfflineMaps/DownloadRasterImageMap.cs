@@ -196,9 +196,13 @@ namespace hajk
                 MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.OfflineDB);
             }
 
-            //Remove single reference tiles
+                        
             string id = Id.ToString();
+            Log.Debug($"Remove Id: {id}");
+
+            //Remove single reference tiles
             var query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference == id);
+            Log.Debug($"Query Count: " + query.Count().ToString());
             foreach (tiles maptile in query)
             {
                 Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
@@ -207,13 +211,15 @@ namespace hajk
 
             //Remove reference
             query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference.Contains(id));
+            Log.Debug($"Query Count: " + query.Count().ToString());
             foreach (tiles maptile in query)
             {
-                Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+                Log.Debug($"Tile Id: {maptile.id}, Before: {maptile.reference}");
 
                 maptile.reference = maptile.reference.Replace("," + id, "");
                 maptile.reference = maptile.reference.Replace(id + ",", "");
 
+                Log.Debug($"Tile Id: {maptile.id}, After: {maptile.reference}");
                 MainActivity.OfflineDBConn.Update(maptile);
             }
 
