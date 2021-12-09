@@ -220,7 +220,7 @@ namespace AwesomeTiles
             /// <summary>
             /// Holds the enumerated tiles.
             /// </summary>
-            private HashSet<Tile> _enumeratedTiles = new HashSet<Tile>();
+            private readonly HashSet<Tile> _enumeratedTiles = new HashSet<Tile>();
 
             /// <summary>
             /// Creates the enumerator.
@@ -389,7 +389,7 @@ namespace AwesomeTiles
             /// <summary>
             /// Holds the tile range to be enumerated.
             /// </summary>
-            private TileRange _tileRange;
+            private readonly TileRange _tileRange;
 
             /// <summary>
             /// Creates a new range center first enumerable.
