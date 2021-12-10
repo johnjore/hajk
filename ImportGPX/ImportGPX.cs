@@ -103,8 +103,8 @@ namespace hajk
             RouteDatabase.SaveRoute(r);
 
             //Update RecycleView with new entry
-            int i = Fragment_gpx.mAdapter.mGpxData.Add(r);
-            Fragment_gpx.mAdapter.NotifyItemInserted(i);
+            _ = Fragment_gpx.mAdapter.mGpxData.Insert(r);
+            Fragment_gpx.mAdapter.NotifyDataSetChanged();
 
             //Does the user want the maps downloaded?
             if (DownloadOfflineMap)
@@ -155,7 +155,7 @@ namespace hajk
             RouteDatabase.SaveRoute(r);
 
             //Update RecycleView with new entry
-            _ = Fragment_gpx.mAdapter.mGpxData.Add(r);
+            _ = Fragment_gpx.mAdapter.mGpxData.Insert(r);
             Fragment_gpx.mAdapter.NotifyDataSetChanged();
 
             //Does the user want the maps downloaded?

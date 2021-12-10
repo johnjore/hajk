@@ -111,8 +111,8 @@ namespace hajk
             RouteDatabase.SaveRouteAsync(r).Wait();
 
             //Update RecycleView with new entry
-            int i = Fragment_gpx.mAdapter.mGpxData.Add(r);
-            Fragment_gpx.mAdapter.NotifyItemInserted(i);
+            _ = Fragment_gpx.mAdapter.mGpxData.Insert(r);
+            Fragment_gpx.mAdapter.NotifyDataSetChanged();
         }
 
         private static void GetGPSLocationEvent(object state)

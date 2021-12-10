@@ -215,8 +215,8 @@ namespace hajk.Adapter
                             RouteDatabase.SaveRouteAsync(route_to_reverse).Wait();
 
                             //Update RecycleView with new entry
-                            int i = Fragment_gpx.mAdapter.mGpxData.Add(route_to_reverse);
-                            Fragment_gpx.mAdapter.NotifyItemInserted(i);
+                            _ = Fragment_gpx.mAdapter.mGpxData.Insert(route_to_reverse);
+                            Fragment_gpx.mAdapter.NotifyDataSetChanged();
 
                             break;
                         case Resource.Id.gpx_menu_exportgpx:

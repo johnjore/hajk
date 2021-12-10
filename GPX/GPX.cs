@@ -13,6 +13,7 @@ namespace hajk
     {
         private readonly List<GPXDataRouteTrack> gpx;
 
+        //Returns list of all items in list
         public GpxData()
         {
             List<GPXDataRouteTrack> result = RouteDatabase.GetRouteAsync().Result;
@@ -20,26 +21,38 @@ namespace hajk
             gpx = result;
         }
 
+        //Returns # of items in list
         public int NumGpx
         {
             get { return gpx.Count; }
         }
 
+        // Returns specific item
         public GPXDataRouteTrack this[int i]
         {
             get { return gpx[i]; }
         }
 
+        //Remove route at position adapterPosition
         internal void RemoveAt(int adapterPosition)
         {
             gpx.RemoveAt(adapterPosition);
         }
 
-        internal int Add(GPXDataRouteTrack route)
+        //Add route at the beginning of the list
+        internal int Insert(GPXDataRouteTrack route)
         {
             gpx.Insert(0, route);
             return gpx.Count;
         }
+
+        //Add route at the end of the list
+        internal int Add_(GPXDataRouteTrack route)
+        {
+            gpx.Add(route);
+            return gpx.Count;
+        }
+
     }
 
     public class GPXViewHolder : RecyclerView.ViewHolder
