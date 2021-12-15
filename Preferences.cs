@@ -9,7 +9,7 @@ namespace hajk
     public class PrefsActivity : PreferenceActivity
     {
         //Settings
-        public readonly static int UpdateGPSLocation_s = 5;     //How often do we update the GUI with our current location
+        public readonly static int UpdateGPSLocation_s = 1;     //How often do we update the GUI with our current location
         public readonly static int freq_s = 5;                  //How often do we get/save current position for track recordings
         public readonly static bool DrawTrackOnGui_b = true;    //Draw recorded track on screen, or not
         static public readonly string OSMServer_s = "https://cloudstorage.jore.no/tile/"; /**///Replace with something different...

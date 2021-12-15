@@ -282,6 +282,7 @@ namespace hajk
             if (Preferences.Get("TrackLocation", true) == false)
             {
                 fab.Background.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.Red));
+                Location.UpdateLocationMarker(true);
                 Fragment_map.mapControl.Map.PanLock = true;
             }
             else
