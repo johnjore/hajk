@@ -147,7 +147,7 @@ namespace hajk
 			//notificationIntent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTask);
 			//notificationIntent.PutExtra(PrefsActivity.SERVICE_STARTED_KEY, true);
 
-			var pendingIntent = PendingIntent.GetActivity(this, 0, notificationIntent, PendingIntentFlags.UpdateCurrent);
+			var pendingIntent = PendingIntent.GetActivity(this, 0, notificationIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 			return pendingIntent;
 		}
 	}
