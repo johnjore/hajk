@@ -42,6 +42,7 @@ using hajk.Data;
 using hajk.Adapter;
 using hajk.Fragments;
 using SQLite;
+using SharpGPX;
 
 //Location service: https://github.com/shernandezp/XamarinForms.LocationService
 
@@ -55,6 +56,7 @@ namespace hajk
         private Intent BatteryOptimizationsIntent;
         public static int wTrackRouteMap = 0;
         public static SQLiteConnection OfflineDBConn = null;
+        public static GpxClass ActiveRoute = null;                  // Active Route / Track for calculations, inc Off-Route detection
 
         //Location Service
         Intent startLocationServiceIntent;
@@ -74,7 +76,8 @@ namespace hajk
             Android.Manifest.Permission.WriteExternalStorage,
             Android.Manifest.Permission.Internet,
             Android.Manifest.Permission.AccessNetworkState,
-            Android.Manifest.Permission.RequestIgnoreBatteryOptimizations,            
+            Android.Manifest.Permission.RequestIgnoreBatteryOptimizations,
+            Android.Manifest.Permission.Vibrate,
         };
 
         protected override void OnCreate(Bundle savedInstanceState)

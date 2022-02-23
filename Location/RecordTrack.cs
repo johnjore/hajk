@@ -29,7 +29,8 @@ namespace hajk
     class RecordTrack
     {
         public static GpxClass trackGpx = new GpxClass();
-        private static Timer Order_Timer;
+        private static Timer Timer_Order;
+        private static Timer Timer_WarnIfOffRoute;
 
         public static void StartTrackTimer()
         {
@@ -38,7 +39,15 @@ namespace hajk
             int freq_s = Int32.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
 
             /**///Move to a proper thread?
-            Order_Timer = new Timer(new TimerCallback(GetGPSLocationEvent), null, 0, freq_s * 1000);
+            Timer_Order = new Timer(new TimerCallback(GetGPSLocationEvent), null, 0, freq_s * 1000);
+
+
+            //This is plain stupid. Why not Int type in preferences
+            int freq_OffRoute_s = Int32.Parse(Preferences.Get("freq_s_OffRoute", PrefsActivity.freq_OffRoute_s.ToString()));
+
+            /**///Move to a proper thread?
+            Timer_WarnIfOffRoute = new Timer(new TimerCallback(CheckOffRouteEvent), null, 0, freq_OffRoute_s * 1000);
+
 
             //Update location marker with correct colour
             Location.UpdateLocationFeature();
@@ -50,8 +59,12 @@ namespace hajk
 
         public static async void SaveTrack()
         {
-            //Stop the timer
-            Order_Timer.Dispose();
+            //Stop the timers
+            Timer_Order.Dispose(); // Recording Track
+            Timer_WarnIfOffRoute.Dispose(); //Checking if OffRoute
+
+            //Clear ActiveRoute
+            MainActivity.ActiveRoute = null;
 
             //Update status
             Preferences.Set("RecordingTrack", false);
@@ -113,6 +126,158 @@ namespace hajk
             //Update RecycleView with new entry
             _ = Fragment_gpx.mAdapter.mGpxData.Insert(r);
             Fragment_gpx.mAdapter.NotifyDataSetChanged();
+        }
+
+        private static void CheckOffRouteEvent(object state)
+        {
+            try
+            {
+                //Only if enabled
+                if (Preferences.Get("EnableOffRouteWarning", PrefsActivity.EnableOffRouteWarning) == false)
+                {
+                    return;
+                }
+
+                //If not data, return
+                if (MainActivity.ActiveRoute == null)
+                {
+                    return;
+                }
+
+                //If no location data, return
+                var location = Geolocation.GetLastKnownLocationAsync().Result;
+                if (location == null)
+                {
+                    return;
+                }
+
+                //Our location
+                var pos_c = new Position((float)location.Latitude, (float)location.Longitude);
+
+                //Distance to check
+                int OffTrackDistanceWarning_m = Int32.Parse(Preferences.Get("OffTrackDistanceWarning_m", PrefsActivity.OffTrackDistanceWarning_m.ToString()));
+
+                //Min distance position item
+                int pos_index_a1 = 0;           //Index to position closest to GPS Position
+                double pos_distance = 0.0f;     //Distance to position
+
+                //Check current distance is less than OffTrackDistanceWarning_m against each waypoint in the route we are following
+                var route = MainActivity.ActiveRoute.Routes[0];
+                for (int i = 0; i < route.rtept.Count; i++)
+                {
+                    var lat = route.rtept[i].lat;
+                    var lon = route.rtept[i].lon;
+
+                    //Calculate Distance
+                    var p = new PositionHandler();
+                    var pos_a = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon);
+                    
+                    //float mapDistanceMeters = (float)(p.CalculateDistance(pos_a, pos_c, DistanceType.Kilometers)*1000);
+                    double mapDistanceMeters = CrossTrackCalculations.CalculateDistance(pos_a, pos_c);
+
+                    Log.Debug($"Location is: " + mapDistanceMeters.ToString() + " meters from index:" + i.ToString());
+
+                    if (mapDistanceMeters < (float)OffTrackDistanceWarning_m)
+                    {
+                        Log.Debug($"Location is less than - " + OffTrackDistanceWarning_m.ToString());
+                        return;
+                    }
+
+                    //Get the waypoint we are closest to. We might need this later
+                    if (mapDistanceMeters < pos_distance || pos_distance == 0)
+                    {
+                        Log.Debug($"Shortest Location is index: " + i.ToString());
+                        pos_distance = mapDistanceMeters;
+                        pos_index_a1 = i;
+                    }
+                }
+
+                Log.Debug($"Location is more than - " + OffTrackDistanceWarning_m.ToString() + " from waypoints");
+
+                //If waypoints are more than OffTrackDistanceWarning_m apart, we need to check distance from pos_c and the line between two paypoints
+                Log.Debug($"Shortest Location Distance: " + pos_distance.ToString() + ", index: " + pos_index_a1.ToString() + ", Lat: " + route.rtept[pos_index_a1].lat.ToString() + ", Lon: " + route.rtept[pos_index_a1].lon.ToString());
+
+                //Down Leg
+                if (pos_index_a1 > 0)
+                {
+                    int pos_index_a2 = pos_index_a1 - 1;
+                    bool AllOk = OffTrackXTECalculations(route.rtept[pos_index_a1], route.rtept[pos_index_a2], pos_c);
+                    if (AllOk)
+                    {
+                        return;
+                    }
+                }
+
+                //Up Leg
+                if (pos_index_a1 < route.rtept.Count - 1)
+                {
+                    int pos_index_a2 = pos_index_a1 + 1;
+                    bool AllOk = OffTrackXTECalculations(route.rtept[pos_index_a1], route.rtept[pos_index_a2], pos_c);
+                    if (AllOk)
+                    {
+                        return;
+                    }
+                }
+
+                //If get this far, vibrate the phone
+                try
+                {
+                    var duration = TimeSpan.FromSeconds(3);
+                    Vibration.Vibrate(duration);
+                }
+                catch (FeatureNotSupportedException ex)
+                {
+                    Log.Debug($"CheckOffRouteEvent() - Vibrate feature not supported on device: " + ex.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Crashed - CheckOffRouteEvent() - " + ex.ToString());
+            }
+        }
+
+        private static bool OffTrackXTECalculations(wptType a, wptType b, Position pos_c)
+        {
+            //Find distance from line made up of a and b
+            var l = CrossTrackCalculations.CalculateCrossTrackDistance(a, b, pos_c);
+            var c_E = l.Item1;
+            var s_xt = l.Item2;
+
+            //Distance to route to check
+            int OffTrackDistanceWarning_m = Int32.Parse(Preferences.Get("OffTrackDistanceWarning_m", PrefsActivity.OffTrackDistanceWarning_m.ToString()));
+
+            //If s_xt is greater than OffTrackDistanceWarning_m, we dont need to know if position is between A and B
+            if (s_xt > (double)OffTrackDistanceWarning_m)
+            {
+                return false;
+            }
+
+            //Find the position along the line. Note: This could be outside the a and b boundaries
+            var pos_c_E = CrossTrackCalculations.CalculateCrossTrackPosition(a, b, pos_c, c_E);
+
+            //Distance and location to point on ab
+            Log.Debug($"Cross Track Distance: " + s_xt.ToString() + " m at location: " + pos_c_E.Latitude.ToString() + ", " + pos_c_E.Longitude.ToString());
+
+            //Distance from a to b
+            var s_ab = CrossTrackCalculations.CalculateDistance(a, b);
+            Log.Debug($"Distance from A to B: " + s_ab.ToString() + " m");
+
+            //Distance from a to intersection
+            var s_a = CrossTrackCalculations.CalculateDistance(a, pos_c_E);
+            Log.Debug($"Distance from A to Intersection: " + s_a.ToString() + " m");
+
+            //Distance from b to intersection
+            var s_b = CrossTrackCalculations.CalculateDistance(b, pos_c_E);
+            Log.Debug($"Distance from B to Intersection: " + s_b.ToString() + " m");
+
+            //Outside the boundaries of a and b
+            if (s_b > s_ab || s_a > s_ab)
+            {
+                return false;
+            }
+
+            //All is ok
+            return true;
         }
 
         private static void GetGPSLocationEvent(object state)

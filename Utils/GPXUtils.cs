@@ -1,4 +1,6 @@
 ﻿using System;
+using FFI.NVector;
+using SharpGPX.GPX1_1;
 
 //https://danielsaidi.com/blog/2011/02/04/calculate-distance-and-bearing-between-two-positions
 
@@ -137,5 +139,90 @@ namespace GPXUtils
 
             return dist;
         }
+    }
+
+
+    //This is from https://www.ffi.no/en/research/n-vector
+    public static class CrossTrackCalculations
+    {
+        // Calculate Cross track distance (XTE)
+        public static Tuple<double[], double> CalculateCrossTrackDistance(wptType a1, wptType a2, Position c)
+        {
+            NVMath _NV = new NVMath();
+
+            var r_Earth = 6371e3; // m, mean Earth radius
+
+            // input as lat/long in deg:
+            var n_EA1_E = _NV.lat_long2n_E(_NV.rad((double)a1.lat), _NV.rad((double)a1.lon));
+            var n_EA2_E = _NV.lat_long2n_E(_NV.rad((double)a2.lat), _NV.rad((double)a2.lon));
+            var n_EB_E = _NV.lat_long2n_E(_NV.rad(c.Latitude), _NV.rad(c.Longitude));
+
+            // Find the unit normal to the great circle between n_EA1_E and n_EA2_E:
+            var c_E = _NV.unit(Utilities.Cross(n_EA1_E, n_EA2_E));
+
+            // Find the great circle cross track distance:
+            var s_xt = (Math.Acos(Utilities.Dot(c_E, n_EB_E)) - Math.PI / 2) * r_Earth;
+
+            return Tuple.Create(c_E, Math.Abs(s_xt));
+        }
+
+        // Calculate intersection of a1-a2 and c-c_E
+        public static Position CalculateCrossTrackPosition(wptType a1, wptType a2, Position c, double[] c_E)
+        {
+            NVMath _NV = new NVMath();
+
+            // input as lat/long in deg:
+            var n_EA1_E = _NV.lat_long2n_E(_NV.rad((double)a1.lat), _NV.rad((double)a1.lon));
+            var n_EA2_E = _NV.lat_long2n_E(_NV.rad((double)a2.lat), _NV.rad((double)a2.lon));
+            var n_EB1_E = _NV.lat_long2n_E(_NV.rad(c.Latitude), _NV.rad(c.Longitude));
+            var n_EB2_E = c_E;
+
+            // Find the intersection between the two paths, n_EC_E:
+            var n_EC_E_tmp = _NV.unit(Utilities.Cross(Utilities.Cross(n_EA1_E, n_EA2_E), Utilities.Cross(n_EB1_E, n_EB2_E)));
+
+            // n_EC_E_tmp is one of two solutions, the other is -n_EC_E_tmp. Select the one that is closest to n_EA1_E, by selecting sign from the dot product between n_EC_E_tmp and n_EA1_E:
+            var n_EC_E = Utilities.VecMul(Math.Sign(Utilities.Dot(n_EC_E_tmp, n_EA1_E)), n_EC_E_tmp);
+
+            // Convert to lat, lon in Degrees
+            var pos_EC = new Position(_NV.deg(_NV.n_E2lat(n_EC_E)), _NV.deg(_NV.n_E2long(n_EC_E)));
+
+            return pos_EC;
+        }
+
+        //Calculate distance between two locations
+        public static double CalculateDistance(wptType a1, Position c_E)
+        {
+            NVMath _NV = new NVMath();
+
+            // input as lat/long in deg:
+            var n_EA_E = _NV.lat_long2n_E(_NV.rad((double)a1.lat), _NV.rad((double)a1.lon));
+            var n_EB_E = _NV.lat_long2n_E(_NV.rad(c_E.Latitude), _NV.rad(c_E.Longitude));
+
+            var r_Earth = 6371e3; // m, mean Earth radius
+
+            // The great circle distance is given by equation (16) in Gade (2010):
+            var s_AB = Math.Atan2(Utilities.Norm(Utilities.Cross(n_EA_E, n_EB_E)), Utilities.Dot(n_EA_E, n_EB_E)) * r_Earth;
+
+            return Math.Abs(s_AB);
+        }
+
+        //Calculate distance between two locations
+        public static double CalculateDistance(wptType a1, wptType a2)
+        {
+            var a2_p = new Position((double)a2.lat, (double)a2.lon);
+            var s_AB = CalculateDistance(a1, a2_p);
+
+            return s_AB;
+        }
+
+        //Calculate distance between two locations
+        public static double CalculateDistance(Position a1, Position a2)
+        {
+            var wpt_a1 = new wptType((double)a1.Latitude, (double)a1.Longitude);
+            var s_AB = CalculateDistance(wpt_a1, a2);
+
+            return s_AB;
+        }
+
     }
 }

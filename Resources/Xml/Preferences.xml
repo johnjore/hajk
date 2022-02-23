@@ -8,20 +8,42 @@
       android:defaultValue="true" />
 
     <EditTextPreference
-      android:title="Update GPS Location"
-			android:summary="How frequently does GPS location update"
-			android:key="UpdateGPSLocation"
-			android:inputType="numberDecimal"
-			android:digits="0123456789"
-			android:defaultValue="5" />
+		android:title="Update GPS Location (seconds)"
+		android:summary="How frequently does GPS location update"
+		android:key="UpdateGPSLocation"
+		android:inputType="numberDecimal"
+		android:digits="0123456789"
+		android:defaultValue="5" />
 
     <EditTextPreference
-			android:title="Track Recording"
-			android:summary="How frequently does Track recording save current postion"
-			android:key="freq"
-			android:inputType="numberDecimal"
-			android:digits="0123456789"
-			android:defaultValue="5" />
+		android:title="Track Recording (seconds)"
+		android:summary="How frequently does Track recording save current postion"
+		android:key="freq"
+		android:inputType="numberDecimal"
+		android:digits="0123456789"
+		android:defaultValue="5" />
+
+	<SwitchPreference
+		android:title="Enable Off-Route Warning"
+		android:summary="Vibrate phone when off-route"
+		android:key="EnableOffRouteWarning"
+		android:defaultValue="true" />
+
+	  <EditTextPreference
+		android:title="Off-Route Notification (meters)"
+		android:summary="Vibrate phone when more than n meters from route"
+		android:key="OffTrackDistanceWarning_m"
+		android:inputType="numberDecimal"
+		android:digits="0123456789"
+		android:defaultValue="100" />
+
+	  <EditTextPreference
+		android:title="Off-Route Notification (seconds)"
+		android:summary="How ofte to check if OffRoute"
+		android:key="freq_s_OffRoute"
+		android:inputType="numberDecimal"
+		android:digits="0123456789"
+		android:defaultValue="60" />
 
   </PreferenceCategory>
 </PreferenceScreen>

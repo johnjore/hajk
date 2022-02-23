@@ -9,10 +9,13 @@ namespace hajk
     public class PrefsActivity : PreferenceActivity
     {
         //Settings
-        public readonly static int UpdateGPSLocation_s = 1;     //How often do we update the GUI with our current location
-        public readonly static int freq_s = 5;                  //How often do we get/save current position for track recordings
-        public readonly static bool DrawTrackOnGui_b = true;    //Draw recorded track on screen, or not
-        static public readonly string OSMServer_s = "https://cloudstorage.jore.no/tile/"; /**///Replace with something different...
+        public readonly static int UpdateGPSLocation_s = 1;             //How often do we update the GUI with our current location
+        public readonly static int freq_s = 5;                          //How often do we get/save current position for track recordings
+        public readonly static bool DrawTrackOnGui_b = true;            //Draw recorded track on screen, or not
+        public readonly static string OSMServer_s = "https://cloudstorage.jore.no/tile/"; /**///Replace with something different...
+        public readonly static bool EnableOffRouteWarning = true;       //Enable warning if Off-Route
+        public readonly static int OffTrackDistanceWarning_m = 100;     //Warn if distance from route is greater than n meters
+        public readonly static int freq_OffRoute_s = 60;                //How often to check if OffRoute
 
         //Runtime only
         public const string RouteDB = "Routes.db3";           //Database to store all routes

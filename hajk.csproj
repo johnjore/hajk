@@ -71,12 +71,14 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AwesomeTiles\Tile.cs" />
-    <Compile Include="AwesomeTiles\TileRange.cs" />
+    <Compile Include="Libraries\AwesomeTiles\Tile.cs" />
+    <Compile Include="Libraries\AwesomeTiles\TileRange.cs" />
     <Compile Include="Fragments\Fragment_gpx.cs" />
     <Compile Include="Fragments\Fragment_map.cs" />
     <Compile Include="ImportGPX\ImportGPX.cs" />
     <Compile Include="ImportGPX\RouteDatabase.cs" />
+    <Compile Include="Libraries\FFI.NVector\NVMath.cs" />
+    <Compile Include="Libraries\FFI.NVector\Utilities.cs" />
     <Compile Include="LocationService\LocationService.cs" />
     <Compile Include="LocationService\GPSLocation.cs" />
     <Compile Include="Location\Location.cs" />

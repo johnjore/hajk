@@ -126,6 +126,9 @@ namespace hajk.Adapter
                             //Switch to map
                             MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
 
+                            //Save Route for off-route detection
+                            MainActivity.ActiveRoute = gpx;
+
                             //Start recording
                             RecordTrack.StartTrackTimer();
                             NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
