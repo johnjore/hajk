@@ -24,6 +24,9 @@ steps:
     projectFile: '**/hajk.csproj'
     outputDirectory: '$(outputDirectory)'
     configuration: '$(buildConfiguration)'
+    msbuildVersionOption: 'latest'
+    jdkOption: 'JDKVersion'
+    jdkVersionOption: '1.11'
     
 - task: AndroidSigning@3
   inputs:
