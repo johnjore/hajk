@@ -236,13 +236,13 @@ namespace hajk
 
         protected override void OnStop()
         {
-            base.OnStart();
-            Log.Information($"OnStart()");
+            base.OnStop();
+            Log.Information($"OnStop()");
         }
 
         protected override void OnPause()
         {
-            base.OnResume();
+            base.OnPause();
             Log.Information($"OnPause()");
         }
 

@@ -16,6 +16,7 @@ namespace hajk
         public readonly static bool EnableOffRouteWarning = true;       //Enable warning if Off-Route
         public readonly static int OffTrackDistanceWarning_m = 100;     //Warn if distance from route is greater than n meters
         public readonly static int freq_OffRoute_s = 60;                //How often to check if OffRoute
+        public readonly static int OffRouteSnooze_m = 5;                //Default alarm snooze in minutes
 
         //Runtime only
         public const string RouteDB = "Routes.db3";           //Database to store all routes

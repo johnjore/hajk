@@ -28,6 +28,7 @@ namespace hajk
 {
     class RecordTrack
     {
+        private static bool NotificationDialogActive = false; //Is notification dialog active or not when XTE
         public static GpxClass trackGpx = new GpxClass();
         public static Timer Timer_Order;
         private static Timer Timer_WarnIfOffRoute;
@@ -36,17 +37,16 @@ namespace hajk
         {
             Preferences.Set("RecordingTrack", true);
             //This is plain stupid. Why not Int type in preferences
-            int freq_s = Int32.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
+            int freq_s = int.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
 
             /**///Move to a proper thread?
             Timer_Order = new Timer(new TimerCallback(GetGPSLocationEvent), null, 0, freq_s * 1000);
 
             //This is plain stupid. Why not Int type in preferences
-            int freq_OffRoute_s = Int32.Parse(Preferences.Get("freq_s_OffRoute", PrefsActivity.freq_OffRoute_s.ToString()));
+            int freq_OffRoute_s = int.Parse(Preferences.Get("freq_s_OffRoute", PrefsActivity.freq_OffRoute_s.ToString()));
 
             /**///Move to a proper thread?
             Timer_WarnIfOffRoute = new Timer(new TimerCallback(CheckOffRouteEvent), null, 0, freq_OffRoute_s * 1000);
-
 
             //Update location marker with correct colour
             Location.UpdateLocationFeature();
@@ -154,7 +154,7 @@ namespace hajk
                 var pos_c = new Position((float)location.Latitude, (float)location.Longitude);
 
                 //Distance to check
-                int OffTrackDistanceWarning_m = Int32.Parse(Preferences.Get("OffTrackDistanceWarning_m", PrefsActivity.OffTrackDistanceWarning_m.ToString()));
+                int OffTrackDistanceWarning_m = int.Parse(Preferences.Get("OffTrackDistanceWarning_m", PrefsActivity.OffTrackDistanceWarning_m.ToString()));
 
                 //Min distance position item
                 int pos_index_a1 = 0;           //Index to position closest to GPS Position
@@ -218,6 +218,31 @@ namespace hajk
                     }
                 }
 
+                //Supress notification for n min?
+                if (NotificationDialogActive == false)
+                {
+                    NotificationDialogActive = true;
+
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        int OffTrackRouteSnooze_m = int.Parse(Preferences.Get("OffTrackRouteSnooze_m", PrefsActivity.OffRouteSnooze_m.ToString()));
+
+                        //Get text to use
+                        var a = MainActivity.mContext.Resources.GetString(Resource.String.OffRouteAlarm);
+                        var b = MainActivity.mContext.Resources.GetString(Resource.String.IgnoreAlarmFor);
+                        var c = MainActivity.mContext.Resources.GetString(Resource.String.Minutes);
+
+                        Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                        if (await msg1.ShowDialog(a, b + " " + OffTrackRouteSnooze_m.ToString() + " " + c, Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                        {
+                            int freq_s = int.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
+                            RecordTrack.Timer_WarnIfOffRoute.Change(OffTrackRouteSnooze_m * 60 * 1000, freq_s * 1000);
+                        }
+                        NotificationDialogActive = false;
+                    });
+                }
+
+
                 //If get this far, vibrate the phone
                 try
                 {
@@ -243,7 +268,7 @@ namespace hajk
             var s_xt = l.Item2;
 
             //Distance to route to check
-            int OffTrackDistanceWarning_m = Int32.Parse(Preferences.Get("OffTrackDistanceWarning_m", PrefsActivity.OffTrackDistanceWarning_m.ToString()));
+            int OffTrackDistanceWarning_m = int.Parse(Preferences.Get("OffTrackDistanceWarning_m", PrefsActivity.OffTrackDistanceWarning_m.ToString()));
 
             //If s_xt is greater than OffTrackDistanceWarning_m, we dont need to know if position is between A and B
             if (s_xt > (double)OffTrackDistanceWarning_m)

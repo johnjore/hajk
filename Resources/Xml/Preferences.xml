@@ -45,6 +45,14 @@
 		android:digits="0123456789"
 		android:defaultValue="60" />
 
+	  <EditTextPreference
+		android:title="@string/OffRouteSnooze_m"
+		android:summary="@string/OffRouteSnooze_mDescription"
+		android:key="OffTrackRouteSnooze_m"
+		android:inputType="numberDecimal"
+		android:digits="0123456789"
+		android:defaultValue="5" />
+
   </PreferenceCategory>
 </PreferenceScreen>
 
