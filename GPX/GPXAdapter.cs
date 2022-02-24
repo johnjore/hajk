@@ -131,9 +131,16 @@ namespace hajk.Adapter
 
                             //Start recording
                             RecordTrack.StartTrackTimer();
+
+                            //Update Menu Item Text
                             NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
-                            var item_nav = nav.Menu.FindItem(Resource.Id.nav_recordtrack);
-                            item_nav.SetTitle(Resource.String.Stop_Recording);
+                            var item_nav1 = nav.Menu.FindItem(Resource.Id.nav_recordtrack);
+                            item_nav1.SetTitle(Resource.String.Stop_Recording);
+
+                            //Enable the menu item for pause / resume
+                            var item_nav2 = nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
+                            item_nav2.SetTitle(Resource.String.PauseRecord_Track);
+                            item_nav2.SetEnabled(true);
 
                             break;
                         case Resource.Id.gpx_menu_showonmap:
