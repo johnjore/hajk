@@ -16,7 +16,9 @@
     <string name="Submit">Submit</string>
     <string name="Cancel">Cancel</string>
     <string name="Stop_Recording">Stop Recording</string>
-    <string name="download_and_save_offline_map">Download and save offline map</string>
+	<string name="PauseRecord_Track">Pause Recording</string>
+	<string name="ResumeRecord_Track">Resume Recording</string>
+	<string name="download_and_save_offline_map">Download and save offline map</string>
     <string name="Offline_map">Offline map</string>
     <string name="Download_map_for_offline_usage">Download map for offline usage</string>
     <string name="Done">Done</string>
@@ -42,4 +44,16 @@
     <string name="notification_text">The location service is running.</string>
     <string name="type">type</string>
     <string name="more">&#8942;</string>
+	<string name="TrackRecordings">Track Recordings</string>
+	<string name="TrackRecordingsDescription">Show Recorded Track</string>
+	<string name="UpdateGPSLocation">Update GPS Location (seconds)</string>
+	<string name="HowFrequentlyDoesGPSLocationUpdate">How frequently does GPS location update</string>
+	<string name="TrackRecording">Track Recording (seconds)</string>
+	<string name="HowFrequentlyTrackRecording">How frequently does Track recording save current postion</string>
+	<string name="EnableOffrouteWarning">Enable Off-Route Warning</string>
+	<string name="EnableOffrouteWarningDescription">Vibrate phone when off-route</string>
+	<string name="OffRouteNotification">Off-Route Notification (meters)</string>
+	<string name="OffRouteNotificationDescription">Vibrate phone when more than n meters from route</string>
+	<string name="OffRouteNotification_s">Off-Route Notification (seconds)</string>
+	<string name="OffRouteNotification_sDescription">How ofte to check if OffRoute"</string>
 </resources>

@@ -319,11 +319,44 @@ namespace hajk
                 {
                     RecordTrack.SaveTrack();
                     item.SetTitle(Resource.String.Record_Track);
+
+                    //Disable the menu item for pause / resume
+                    NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
+                    var item_nav = nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
+                    item_nav.SetTitle(Resource.String.PauseRecord_Track);
+                    item_nav.SetEnabled(false);
                 }
                 else
                 {
                     RecordTrack.StartTrackTimer();
                     item.SetTitle(Resource.String.Stop_Recording);
+
+                    //Enable the menu item for pause / resume
+                    NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
+                    var item_nav = nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
+                    item_nav.SetTitle(Resource.String.PauseRecord_Track);
+                    item_nav.SetEnabled(true);
+                }
+            }
+            else if (id == Resource.Id.nav_PauseResumeRecordTrack)
+            {
+                NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
+                var item_nav = nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
+
+                if (item_nav.TitleFormatted.ToString() == Resources.GetString(Resource.String.PauseRecord_Track))
+                { 
+                    //Pause the timer
+                    RecordTrack.Timer_Order.Change(Timeout.Infinite, Timeout.Infinite);
+
+                    item_nav.SetTitle(Resource.String.ResumeRecord_Track);
+                }
+                else
+                {
+                    //Resume the timer
+                    int freq_s = Int32.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
+                    RecordTrack.Timer_Order.Change(0, freq_s * 1000);
+
+                    item_nav.SetTitle(Resource.String.PauseRecord_Track);
                 }
             }
             else if (id == Resource.Id.nav_manage)

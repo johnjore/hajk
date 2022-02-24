@@ -29,7 +29,7 @@ namespace hajk
     class RecordTrack
     {
         public static GpxClass trackGpx = new GpxClass();
-        private static Timer Timer_Order;
+        public static Timer Timer_Order;
         private static Timer Timer_WarnIfOffRoute;
 
         public static void StartTrackTimer()
@@ -40,7 +40,6 @@ namespace hajk
 
             /**///Move to a proper thread?
             Timer_Order = new Timer(new TimerCallback(GetGPSLocationEvent), null, 0, freq_s * 1000);
-
 
             //This is plain stupid. Why not Int type in preferences
             int freq_OffRoute_s = Int32.Parse(Preferences.Get("freq_s_OffRoute", PrefsActivity.freq_OffRoute_s.ToString()));

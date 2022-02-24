@@ -13,12 +13,17 @@
             android:icon="@android:drawable/ic_menu_mapmode"
             android:title="@string/Import_Map" 
             android:visible="false"
-			      android:enabled="false"/>
+			android:enabled="false"/>
         <item
             android:id="@+id/nav_recordtrack"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/Record_Track" />
-        <item
+		<item
+            android:id="@+id/nav_PauseResumeRecordTrack"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="@string/PauseRecord_Track"
+			android:enabled="false"/>
+		<item
             android:id="@+id/nav_manage"
             android:icon="@drawable/ic_menu_manage"
             android:title="@string/Routes_Tracks" />
