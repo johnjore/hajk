@@ -20,7 +20,7 @@ namespace hajk
 
         //Runtime only
         public const string RouteDB = "Routes.db3";           //Database to store all routes
-        public const string OfflineDB = "OfflineDB.mbtiles";  //Database to store offline tiles
+        public const string CacheDB = "CacheDB.mbtiles";  //Database to store offline tiles
         public const string logFile = "hajk_.txt";            //Log file
         public const int MinZoom = 0;                         //MinZoom level to use
         public const int MaxZoom = 17;                        //MaxZoom level to use

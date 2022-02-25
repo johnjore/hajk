@@ -71,35 +71,14 @@ namespace hajk
             return mbTilesLayer;
         }
 
-
-        public static void LoadOfflineMaps()
+        public static void LoadOSMMaps()
         {
-            string OfflineDB = MainActivity.rootPath + "/" + PrefsActivity.OfflineDB;
-
-            if (MainActivity.OfflineDBConn == null)
+            var tileSource = TileCache.GetOSMBasemap(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
+            var tileLayer = new TileLayer(tileSource)
             {
-                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.OfflineDB);
-            }
-
-            //Map not clear. GPX visible
-            var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(OfflineDB, true));
-
-            //GPX not visible
-            //var mbTilesTileSource = new MbTilesTileSource(new SQLiteConnectionString(OfflineDB, true), null, MbTilesType.Overlay, true, true);
-
-            //Remove old layer
-            var OfflineDBLayer = Fragments.Fragment_map.map.Layers.FindLayer(OfflineDB).FirstOrDefault();
-            if (OfflineDBLayer != null)
-            {
-                Fragments.Fragment_map.map.Layers.Remove(OfflineDBLayer);
-            }
-
-            //Add layer
-            var mbTilesLayer = new TileLayer(mbTilesTileSource)
-            {
-                Name = OfflineDB,
+                Name = "OSM",
             };
-            Fragments.Fragment_map.map.Layers.Add(mbTilesLayer);
+            Fragments.Fragment_map.map.Layers.Add(tileLayer);
         }
     }
 }

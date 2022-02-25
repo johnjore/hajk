@@ -1,15 +1,14 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Serilog;
-using AwesomeTiles;
 using Dasync.Collections;
 using SQLite;
 using hajk.Models;
 using Xamarin.Essentials;
-using System.Collections.Generic;
 
 namespace hajk
 {
@@ -22,7 +21,15 @@ namespace hajk
         {
             if (MainActivity.OfflineDBConn == null)
             {
-                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.OfflineDB);
+                //Remove
+                var OSMLayer = Fragments.Fragment_map.map.Layers.FindLayer("OSM").FirstOrDefault();
+                if (OSMLayer != null)
+                {
+                    Fragments.Fragment_map.map.Layers.Remove(OSMLayer);
+                }
+
+                //Open directly
+                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
             }
 
             if (MainActivity.OfflineDBConn == null)
@@ -36,8 +43,8 @@ namespace hajk
 
             for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
             {
-                var leftBottom = Tile.CreateAroundLocation(map.BoundsLeft, map.BoundsBottom, zoom);
-                var topRight = Tile.CreateAroundLocation(map.BoundsRight, map.BoundsTop, zoom);
+                var leftBottom = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsLeft, map.BoundsBottom, zoom);
+                var topRight = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsRight, map.BoundsTop, zoom);
 
                 var minX = Math.Min(leftBottom.X, topRight.X);
                 var maxX = Math.Max(leftBottom.X, topRight.X);
@@ -57,6 +64,10 @@ namespace hajk
 
             Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
             await msg3.ShowDialog($"Done", $"GPX Import Completed", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+            if (MainActivity.OfflineDBConn != null)
+            {
+                MainActivity.OfflineDBConn.Close();
+            }
         }
 
         private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id)
@@ -192,10 +203,16 @@ namespace hajk
         {
             if (MainActivity.OfflineDBConn == null)
             {
-                string OfflineDB = MainActivity.rootPath + "/" + PrefsActivity.OfflineDB;
-                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.OfflineDB);
+                //Unload
+                var OSMLayer = Fragments.Fragment_map.map.Layers.FindLayer("OSM").FirstOrDefault();
+                if (OSMLayer != null)
+                {
+                    Fragments.Fragment_map.map.Layers.Remove(OSMLayer);
+                }
+                
+                //Open directly
+                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
             }
-
                         
             string id = Id.ToString();
             Log.Debug($"Remove Id: {id}");
@@ -225,6 +242,5 @@ namespace hajk
 
             return;
         }
-
     }
 }

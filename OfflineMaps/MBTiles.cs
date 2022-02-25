@@ -1,9 +1,8 @@
 ﻿using System;
+using System.IO;
 using SQLite;
-using Tiles.Tools;
 using hajk.Models;
 using Serilog;
-using System.IO;
 
 //This is a rewrite of https://github.com/bertt/MBTiles
 
@@ -112,6 +111,6 @@ namespace hajk
             {
                 Log.Error($"InsertMetadata(...) crashed: {ex}");
             }
-        }
+        }            
     }
 }

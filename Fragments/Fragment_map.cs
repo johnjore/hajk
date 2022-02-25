@@ -37,15 +37,7 @@ namespace hajk.Fragments
             mapControl.Map = map;
 
             Log.Debug($"Cache downloaded tiles");
-            var tileSource = TileCache.GetOSMBasemap(MainActivity.rootPath + "/CacheDB.mbtiles");
-            var tileLayer = new TileLayer(tileSource)
-            {
-                Name = "OSM",
-            };
-            map.Layers.Add(tileLayer);
-
-            Log.Debug($"Import offline maps");
-            OfflineMaps.LoadOfflineMaps();
+            OfflineMaps.LoadOSMMaps();
 
             Log.Debug($"Add scalebar");
             map.Widgets.Add(new ScaleBarWidget(map)
