@@ -221,7 +221,7 @@ namespace hajk
             await DownloadRasterImageMap.DownloadMap(map);
 
             //Refresh with new map
-            OfflineMaps.LoadOSMMaps();
+            DownloadRasterImageMap.LoadOSMMaps();
             Log.Information($"Done downloading map for {map.Id}");
         }
 

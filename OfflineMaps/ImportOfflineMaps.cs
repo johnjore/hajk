@@ -1,13 +1,13 @@
-﻿using Mapsui.Layers;
-using SQLite;
-using System;
+﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
 using BruTile.MbTiles;
-using System.IO;
+using Mapsui.Layers;
+using SQLite;
 using Serilog;
 
 namespace hajk
@@ -69,16 +69,6 @@ namespace hajk
                 Name = name
             };
             return mbTilesLayer;
-        }
-
-        public static void LoadOSMMaps()
-        {
-            var tileSource = TileCache.GetOSMBasemap(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
-            var tileLayer = new TileLayer(tileSource)
-            {
-                Name = "OSM",
-            };
-            Fragments.Fragment_map.map.Layers.Add(tileLayer);
         }
     }
 }

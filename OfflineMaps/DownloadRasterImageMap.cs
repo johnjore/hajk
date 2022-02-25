@@ -9,6 +9,7 @@ using Dasync.Collections;
 using SQLite;
 using hajk.Models;
 using Xamarin.Essentials;
+using Mapsui.Layers;
 
 namespace hajk
 {
@@ -199,6 +200,16 @@ namespace hajk
             return null;
         }
 
+        public static void LoadOSMMaps()
+        {
+            var tileSource = TileCache.GetOSMBasemap(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
+            var tileLayer = new TileLayer(tileSource)
+            {
+                Name = "OSM",
+            };
+            Fragments.Fragment_map.map.Layers.Insert(0, tileLayer);
+        }
+
         public static void PurgeMapDB(int Id)
         {
             if (MainActivity.OfflineDBConn == null)
@@ -239,6 +250,9 @@ namespace hajk
                 Log.Debug($"Tile Id: {maptile.id}, After: {maptile.reference}");
                 MainActivity.OfflineDBConn.Update(maptile);
             }
+
+            MainActivity.OfflineDBConn.Close();
+            LoadOSMMaps();
 
             return;
         }

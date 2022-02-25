@@ -32,12 +32,12 @@ namespace hajk.Fragments
             map = new Mapsui.Map
             {
                 CRS = "EPSG:3857", //https://epsg.io/3857
-                Transformation = new MinimalTransformation(),
+                Transformation = new MinimalTransformation(),                
             };
             mapControl.Map = map;
 
             Log.Debug($"Cache downloaded tiles");
-            OfflineMaps.LoadOSMMaps();
+            DownloadRasterImageMap.LoadOSMMaps();
 
             Log.Debug($"Add scalebar");
             map.Widgets.Add(new ScaleBarWidget(map)
