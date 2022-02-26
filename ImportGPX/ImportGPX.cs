@@ -109,7 +109,7 @@ namespace hajk
             //Does the user want the maps downloaded?
             if (DownloadOfflineMap)
             {
-                GetloadOfflineMap(track.GetBounds(), r.Id);
+                GetloadOfflineMap(track.GetBounds(), r.Id, null);
             }
         }
 
@@ -161,7 +161,7 @@ namespace hajk
             //Does the user want the maps downloaded?
             if (DownloadOfflineMap)
             {
-                GetloadOfflineMap(route.GetBounds(), r.Id);
+                GetloadOfflineMap(route.GetBounds(), r.Id, null);
             }
         }
 
@@ -204,7 +204,7 @@ namespace hajk
             return ImageBase64String;
         }
 
-        public static async void GetloadOfflineMap(boundsType bounds, int id)
+        public static async void GetloadOfflineMap(boundsType bounds, int id, string strFilePath)
         {
             Models.Map map = new Models.Map
             {
@@ -217,12 +217,18 @@ namespace hajk
                 BoundsTop = (double)bounds.minlon
             };
 
-            //Download map
+            //Get all missing tiles
             await DownloadRasterImageMap.DownloadMap(map);
 
+            //Also exporting?
+            if (strFilePath != null)
+            {
+                DownloadRasterImageMap.ExportMapTiles(id, strFilePath);
+            }
+            
             //Refresh with new map
-            DownloadRasterImageMap.LoadOSMMaps();
-            Log.Information($"Done downloading map for {map.Id}");
+            DownloadRasterImageMap.LoadOSMLayer();
+            Log.Information($"Done downloading map for {map.Id}");            
         }
 
         public static void AddRouteToMap(string mapRoute, GPXType gpxtype)
@@ -301,9 +307,9 @@ namespace hajk
                     })
                 };
 
-                var result = await FilePicker.PickAsync(options);                
+                var result = await FilePicker.PickAsync(options);
 
-            if (result == null)
+                if (result == null)
                     return null;
 
                 if (result.FileName.EndsWith("gpx", StringComparison.OrdinalIgnoreCase) == false)
@@ -338,7 +344,7 @@ namespace hajk
             catch (Exception ex)
             {
                 // The user canceled or something went wrong
-                Log.Error($"Import GPX Crashed: " + ex.ToString());                
+                Log.Error($"Import GPX Crashed: " + ex.ToString());
             }
 
             return null;

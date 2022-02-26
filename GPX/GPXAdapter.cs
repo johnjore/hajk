@@ -256,6 +256,41 @@ namespace hajk.Adapter
                             dialog.Show();
 
                             break;
+                        case Resource.Id.gpx_menu_exportmap:
+                            Log.Information($"Export Map '{vh.Name.Text}'");
+
+                            View view2 = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
+                            Android.Support.V7.App.AlertDialog.Builder alertbuilder2 = new Android.Support.V7.App.AlertDialog.Builder(parent.Context);
+                            alertbuilder2.SetView(view2);
+                            var userdata2 = view2.FindViewById<EditText>(Resource.Id.editText);
+                            userdata2.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".mbtiles";
+
+                            alertbuilder2.SetCancelable(false)
+                            .SetPositiveButton(Resource.String.Submit, delegate
+                            {
+                                string mbtTilesPath = Path.Combine(MainActivity.rootPath, userdata2.Text);
+
+                                var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                                GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
+
+                                if (vh.GPXType == GPXType.Track)
+                                {
+                                    Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, mbtTilesPath);
+                                }
+
+                                if (vh.GPXType == GPXType.Route)
+                                {
+                                    Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, mbtTilesPath);
+                                }
+                            })
+                            .SetNegativeButton(Resource.String.Cancel, delegate
+                            {
+                                alertbuilder2.Dispose();
+                            });
+                            Android.Support.V7.App.AlertDialog dialog2 = alertbuilder2.Create();
+                            dialog2.Show();
+
+                            break;
                         case Resource.Id.gpx_menu_saveofflinemap:
                             Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text} / {vh.Id}'");
                             //Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
@@ -269,7 +304,7 @@ namespace hajk.Adapter
                             string mapRouteGPX = string.Empty;
                             if (vh.GPXType == GPXType.Track)
                             {
-                                Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id);
+                                Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null);
 
                                 mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0]).Item1;
                                 Import.AddRouteToMap(mapRouteGPX, GPXType.Track);
@@ -277,7 +312,7 @@ namespace hajk.Adapter
 
                             if (vh.GPXType == GPXType.Route)
                             {
-                                Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id);
+                                Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null);
 
                                 mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Routes[0]).Item1;
                                 Import.AddRouteToMap(mapRouteGPX, GPXType.Route);

@@ -3,7 +3,6 @@ using Android.OS;
 using Android.Views;
 using AndroidX.Fragment.App;
 using Mapsui;
-using Mapsui.Layers;
 using Mapsui.Projection;
 using Mapsui.UI.Android;
 using Mapsui.Styles;
@@ -37,7 +36,7 @@ namespace hajk.Fragments
             mapControl.Map = map;
 
             Log.Debug($"Cache downloaded tiles");
-            DownloadRasterImageMap.LoadOSMMaps();
+            DownloadRasterImageMap.LoadOSMLayer();
 
             Log.Debug($"Add scalebar");
             map.Widgets.Add(new ScaleBarWidget(map)

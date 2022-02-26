@@ -20,20 +20,7 @@ namespace hajk
 
         public static async Task DownloadMap(Models.Map map)
         {
-            if (MainActivity.OfflineDBConn == null)
-            {
-                //Remove
-                var OSMLayer = Fragments.Fragment_map.map.Layers.FindLayer("OSM").FirstOrDefault();
-                if (OSMLayer != null)
-                {
-                    Fragments.Fragment_map.map.Layers.Remove(OSMLayer);
-                }
-
-                //Open directly
-                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
-            }
-
-            if (MainActivity.OfflineDBConn == null)
+            if (AccessOSMLayerDirect() == false)
             {
                 return;
             }
@@ -65,10 +52,8 @@ namespace hajk
 
             Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
             await msg3.ShowDialog($"Done", $"GPX Import Completed", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
-            if (MainActivity.OfflineDBConn != null)
-            {
-                MainActivity.OfflineDBConn.Close();
-            }
+
+            LoadOSMLayer();
         }
 
         private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id)
@@ -200,8 +185,45 @@ namespace hajk
             return null;
         }
 
-        public static void LoadOSMMaps()
+        private static bool AccessOSMLayerDirect()
         {
+            //Remove
+            var OSMLayer = Fragments.Fragment_map.map.Layers.FindLayer("OSM").FirstOrDefault();
+            if (OSMLayer != null)
+            {
+                Fragments.Fragment_map.map.Layers.Remove(OSMLayer);
+            }
+
+            //First time
+            if (MainActivity.OfflineDBConn == null)
+            {
+                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
+            }
+
+            //Empty?
+            if (MainActivity.OfflineDBConn == null)
+            {
+                return false;
+            }
+
+            //No handle?
+            if (MainActivity.OfflineDBConn.Handle == null)
+            {
+                return false;
+            }
+
+            //Success
+            return true;
+        }
+
+        public static void LoadOSMLayer()
+        {
+            if (MainActivity.OfflineDBConn != null)
+            {
+                MainActivity.OfflineDBConn.Close();
+                MainActivity.OfflineDBConn = null;
+            }
+
             var tileSource = TileCache.GetOSMBasemap(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
             var tileLayer = new TileLayer(tileSource)
             {
@@ -212,19 +234,11 @@ namespace hajk
 
         public static void PurgeMapDB(int Id)
         {
-            if (MainActivity.OfflineDBConn == null)
+            if (AccessOSMLayerDirect() == false)
             {
-                //Unload
-                var OSMLayer = Fragments.Fragment_map.map.Layers.FindLayer("OSM").FirstOrDefault();
-                if (OSMLayer != null)
-                {
-                    Fragments.Fragment_map.map.Layers.Remove(OSMLayer);
-                }
-                
-                //Open directly
-                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
+                return;
             }
-                        
+
             string id = Id.ToString();
             Log.Debug($"Remove Id: {id}");
 
@@ -251,8 +265,43 @@ namespace hajk
                 MainActivity.OfflineDBConn.Update(maptile);
             }
 
-            MainActivity.OfflineDBConn.Close();
-            LoadOSMMaps();
+            LoadOSMLayer();
+
+            return;
+        }
+
+        public static void ExportMapTiles(int Id, string strFileName)
+        {
+            if (AccessOSMLayerDirect() == false)
+            {
+                return;
+            }
+
+            //Save tiles here
+            var ExportDB = MBTilesWriter.CreateDatabaseConnection(strFileName);
+
+            //Get tiles
+            string id = Id.ToString();
+            var query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference.Contains(id));
+            Log.Debug($"Query Count: " + query.Count().ToString());
+            foreach (tiles maptile in query)
+            {
+                Log.Debug($"Tile Id: {maptile.id}");
+
+                //Fix the id, and clear the reference, so insert, not update is used
+                maptile.id = 0;
+                maptile.reference = "";
+
+                MBTilesWriter.WriteTile(ExportDB, maptile);
+            }
+            ExportDB.Close();
+            ExportDB = null;
+            
+            Show_Dialog msg = new Show_Dialog(MainActivity.mContext);
+            var m = MainActivity.mContext.Resources;
+            msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapExportCompleted), Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+
+            LoadOSMLayer();
 
             return;
         }
