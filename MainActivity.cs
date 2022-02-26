@@ -311,7 +311,7 @@ namespace hajk
             else if (id == Resource.Id.nav_offlinemap)
             {
                 //Import .mbtiles file
-                OfflineMaps.LoadMap();
+                DownloadRasterImageMap.ImportMapTiles();
             }
             else if (id == Resource.Id.nav_recordtrack)
             {

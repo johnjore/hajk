@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Serilog;
 using Dasync.Collections;
 using SQLite;
@@ -296,14 +297,90 @@ namespace hajk
             }
             ExportDB.Close();
             ExportDB = null;
-            
-            Show_Dialog msg = new Show_Dialog(MainActivity.mContext);
-            var m = MainActivity.mContext.Resources;
+
+            var m = MainActivity.mContext;
+            Show_Dialog msg = new Show_Dialog(m);
             msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapExportCompleted), Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
 
             LoadOSMLayer();
 
             return;
+        }
+
+        public static void ImportMapTiles()
+        {            
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    var options = new PickOptions
+                    {
+                        PickerTitle = "Please select a map file",
+                        FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                        {
+                            /**///What is mime type for mbtiles ?!?
+                            //{ DevicePlatform.Android, new string[] { "mbtiles"} },
+                            { DevicePlatform.Android, null },
+                        })
+                    };
+
+                    var sourceFile = await FilePicker.PickAsync(options);
+                    if (sourceFile != null)
+                    {
+                        if (AccessOSMLayerDirect() == false)
+                        {
+                            return;
+                        }
+                      
+                        var ImportDB = MBTilesWriter.CreateDatabaseConnection(sourceFile.FullPath);
+                        var tiles = ImportDB.Table<tiles>();
+
+                        Log.Debug($"Tiles to import: " + tiles.Count().ToString());
+                        tiles oldTile = new tiles();
+                        foreach (tiles newTile in tiles)
+                        {
+                            //Do we already have the tile?
+                            try
+                            {
+                                oldTile = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.zoom_level == newTile.zoom_level && x.tile_column == newTile.tile_column && x.tile_row == newTile.tile_row).FirstOrDefault();
+                                if ((oldTile != null) && ((DateTime.UtcNow - oldTile.createDate).TotalDays < PrefsActivity.OfflineMaxAge))
+                                {
+                                    continue;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error($"Crashed: {ex}");
+                            }
+
+                            //For Insert
+                            newTile.id = 0;
+                            newTile.reference = null;
+
+                            //Use reference from oldTile for update
+                            if (oldTile != null)
+                            {
+                                newTile.reference = oldTile.reference;
+                                newTile.id = 0;
+                            }
+                            
+                            MBTilesWriter.WriteTile(MainActivity.OfflineDBConn, newTile);
+                        }
+                        ImportDB.Close();
+                        ImportDB = null;
+
+                        LoadOSMLayer();
+
+                        var m = MainActivity.mContext;
+                        Show_Dialog msg = new Show_Dialog(m);
+                        await msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapTilesImported), Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Failed to import map file: '{ex}'");
+                }
+            });
         }
     }
 }

@@ -63,4 +63,5 @@
 	<string name="OffRouteAlarm">Off-Route Alarm</string>
 	<string name="IgnoreAlarmFor">Ignore alarm for</string>
 	<string name="Minutes">Minutes</string>
+	<string name="MapTilesImported">Map tiles imported</string>
 </resources>

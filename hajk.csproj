@@ -89,7 +89,6 @@
     <Compile Include="Models\MBTiles.cs" />
     <Compile Include="Models\Route.cs" />
     <Compile Include="OfflineMaps\DownloadRasterImageMap.cs" />
-    <Compile Include="OfflineMaps\ImportOfflineMaps.cs" />
     <Compile Include="OfflineMaps\TileCache.cs" />
     <Compile Include="Preferences.cs" />
     <Compile Include="GPX\GPXAdapter.cs" />

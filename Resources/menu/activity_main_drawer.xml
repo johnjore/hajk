@@ -11,9 +11,7 @@
         <item
             android:id="@+id/nav_offlinemap"
             android:icon="@android:drawable/ic_menu_mapmode"
-            android:title="@string/Import_Map" 
-            android:visible="false"
-			android:enabled="false"/>
+            android:title="@string/Import_Map" />		
         <item
             android:id="@+id/nav_recordtrack"
             android:icon="@drawable/ic_menu_slideshow"
