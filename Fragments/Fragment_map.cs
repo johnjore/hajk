@@ -31,7 +31,7 @@ namespace hajk.Fragments
             map = new Mapsui.Map
             {
                 CRS = "EPSG:3857", //https://epsg.io/3857
-                Transformation = new MinimalTransformation(),                
+                Transformation = new MinimalTransformation(),
             };
             mapControl.Map = map;
 
