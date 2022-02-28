@@ -4,6 +4,7 @@ using Android.Views;
 using AndroidX.Fragment.App;
 using Mapsui;
 using Mapsui.Projection;
+using Mapsui.UI;
 using Mapsui.UI.Android;
 using Mapsui.Styles;
 using Mapsui.Widgets;
@@ -60,7 +61,37 @@ namespace hajk.Fragments
             Log.Debug($"Set Zoom");
             mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
 
+            mapControl.Info += MapOnInfo;
+
             return view;
+        }
+
+        private void MapOnInfo(object sender, MapInfoEventArgs args)
+        {
+            if (args.MapInfo?.Feature == null)
+                return;
+
+            if (args.MapInfo.Layer.Name == null)
+                return;
+
+            if (args.MapInfo.Layer.Tag == null)
+                return;
+
+            //Simplify
+            var layer = args.MapInfo.Layer;
+            var style = args.MapInfo.Style;
+
+            if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "track")
+            {
+                Log.Debug($"Track Object");
+            }
+
+            /**///Need to filter out the arrows
+            if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "route" && style.ToString() == "Mapsui.Styles.SymbolStyle")
+            {
+                var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+                Log.Debug($"Route Object. GPS Position: " + b.ToString());
+            }
         }
     }
 }

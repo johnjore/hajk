@@ -244,7 +244,6 @@ namespace hajk
             {
                 lineStringLayer = CreateRouteLayer(mapRoute, CreateTrackStyle());
                 lineStringLayer.Tag = "track";
-
             }
             lineStringLayer.IsMapInfoLayer = true;
             lineStringLayer.Enabled = true;
@@ -387,7 +386,7 @@ namespace hajk
             });
             features.Add(FeatureStart);
 
-            //Add arrow halfway between waypoints
+            //Add arrow halfway between waypoints and highlight routing points
             var bitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource("hajk.Images.Arrow-up.svg");
             for (int i = 0; i < GPSlineString.NumPoints - 1; i++)
             {
@@ -412,10 +411,11 @@ namespace hajk
                     RotateWithMap = true,
                     SymbolRotation = angle,
                     SymbolOffset = new Offset(0, 0),
+                    SymbolType = SymbolType.Triangle,
                 });
                 features.Add(FeatureArrow);
 
-                //Waypoins
+                //Waypoints
                 var FeatureWaypoint = new Feature { Geometry = lineString.Vertices[i] };
                 FeatureWaypoint.Styles.Add(new SymbolStyle
                 {
@@ -423,10 +423,10 @@ namespace hajk
                     MaxVisible = 2.0f,
                     MinVisible = 0.0f,
                     RotateWithMap = true,
-                    SymbolRotation = 45,
+                    SymbolRotation = 0,
                     SymbolType = SymbolType.Ellipse,
-                    Fill = null, // new Brush { FillStyle = FillStyle.Cross, Color = Color.Red, Background = Color.Transparent},
-                    Outline = new Pen { Color = Color.Blue, Width = 1.5f }
+                    Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Blue, Background = Color.Transparent },
+                    Outline = new Pen { Color = Color.Blue, Width = 1.5f },
                 });
                 features.Add(FeatureWaypoint);
             }
