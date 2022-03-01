@@ -141,7 +141,6 @@ namespace GPXUtils
         }
     }
 
-
     //This is from https://www.ffi.no/en/research/n-vector
     public static class CrossTrackCalculations
     {
@@ -225,4 +224,18 @@ namespace GPXUtils
         }
 
     }
+
+    public static class MapInformation
+    {
+        //Find WayPoint we are closest to. Assume, incorrectly, this is where we are
+        public static int FindClosestWayPoint(Position mapPoint)
+        {
+
+
+
+            return 0;
+        }
+
+    }
+
 }

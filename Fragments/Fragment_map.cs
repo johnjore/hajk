@@ -91,6 +91,8 @@ namespace hajk.Fragments
             {
                 var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                 Log.Debug($"Route Object. GPS Position: " + b.ToString());
+
+
             }
         }
     }
