@@ -321,6 +321,7 @@ namespace hajk
                 ele = (decimal)location.Altitude,
                 time = DateTime.Now,
                 timeSpecified = true,
+                eleSpecified = true,
             };
 
             trackGpx.Waypoints.Add(waypoint);
