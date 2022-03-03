@@ -71,6 +71,7 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Fragments\Fragment_posinfo.cs" />
     <Compile Include="Fragments\Fragment_stats.cs" />
     <Compile Include="Libraries\AwesomeTiles\Tile.cs" />
     <Compile Include="Libraries\AwesomeTiles\TileRange.cs" />
@@ -263,6 +264,12 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\fragment_stats.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\fragment_posinfo.xml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
