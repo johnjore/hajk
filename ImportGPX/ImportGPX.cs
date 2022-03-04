@@ -17,6 +17,8 @@ using hajk.Models;
 using hajk.Fragments;
 using Serilog;
 using SharpGPX.GPX1_1;
+using SharpGPX.GPX1_1.Garmin;
+using SharpGPX.GPX1_1.Topografix;
 using GPXUtils;
 using Mapsui.Rendering.Skia;
 using Mapsui.Utilities;
@@ -256,39 +258,70 @@ namespace hajk
 
         public static (string, float) GPXtoRoute(rteType route)
         {
-            if (route.GetGarminExt() != null)
+            try
             {
-                //Console.WriteLine("Route '{0}' has Garmin extension", route.name);
+                string mapRoute = "LINESTRING(";
+                float mapDistanceKm = 0.0f;
+                var p = new PositionHandler();
+                for (int i = 0; i < route.rtept.Count; i++)
+                {
+                    //WayPoint
+                    if (!(mapRoute.Equals("LINESTRING(")))
+                    {
+                        mapRoute += ",";
+                    }
+                    mapRoute += route.rtept[i].lat.ToString() + " " + route.rtept[i].lon.ToString();
 
-                /**/ //Read Garmin's extended routing attributes
-                //var a = route.GetGarminExt();
+                    var rtePteExt = route.rtept[i].GetExt<RoutePointExtension>();
+                    if (rtePteExt != null)
+                    {
+                        Log.Debug("Route '{0}' has Garmin extension", route.name);
+
+                        for (int j = 0; j < rtePteExt.rpt.Count(); j++)
+                        {
+                            mapRoute += "," + rtePteExt.rpt[j].lat.ToString() + " " + rtePteExt.rpt[j].lon.ToString();
+
+                            //First leg
+                            if (j == 0)
+                            {
+                                var p1 = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon);
+                                var p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon);
+                                mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
+                            }
+
+                            //All other legs
+                            if (j >= 1)
+                            {
+                                var p1 = new Position((float)rtePteExt.rpt[j - 1].lat, (float)rtePteExt.rpt[j - 1].lon);
+                                var p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon);
+                                mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
+                            }
+                        }
+                    }
+
+                    if (rtePteExt == null)
+                    {
+                        //Calculate Distance
+                        if (i >= 1)
+                        {
+                            var p1 = new Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon);
+                            var p2 = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon);
+                            mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
+                        }
+                    }
+
+
+                    /**///Calculate ascent / descent data
+                }
+                mapRoute += ")";
+
+                return (mapRoute, mapDistanceKm);
             }
-
-            string mapRoute = "LINESTRING(";
-            float mapDistanceKm = 0.0f;
-            var p = new PositionHandler();
-            for (int i = 0; i < route.rtept.Count; i++)
+            catch (Exception ex)
             {
-                //WayPoint
-                if (!(mapRoute.Equals("LINESTRING(")))
-                {
-                    mapRoute += ",";
-                }
-                mapRoute += route.rtept[i].lat.ToString() + " " + route.rtept[i].lon.ToString();
-
-                //Calculate Distance
-                if (i >= 1)
-                {
-                    var p1 = new Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon);
-                    var p2 = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon);
-                    mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
-                }
-
-                /**///Calculate ascent / descent data
-            }
-            mapRoute += ")";
-
-            return (mapRoute, mapDistanceKm);
+                Log.Error($"Crashed while parsing gpx: {ex}");
+                return (null, 0);
+            }          
         }
 
         private static async Task<GpxClass> PickAndParse()
@@ -322,21 +355,14 @@ namespace hajk
                 }
 
                 GpxClass gpx = GpxClass.FromXml(contents);
-                var bounds = gpx.GetBounds();
+                var bounds = gpx.GetBounds();                
 
-                string r = "routes";
-                if (gpx.Routes.Count == 1)
-                    r = "route";
-
-                string t = "tracks";
-                if (gpx.Tracks.Count == 1)
-                    t = "track";
+                string r = (gpx.Routes.Count == 1) ? "route" : "routes";
+                string t = (gpx.Tracks.Count == 1) ? "track" : "tracks";
 
                 Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
                 if (await msg1.ShowDialog($"{result.FileName}", $"Found {gpx.Routes.Count} {r} and {gpx.Tracks.Count} {t}. Import?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) != Show_Dialog.MessageResult.YES)
-                {
                     return null;
-                }
 
                 return gpx;
             }

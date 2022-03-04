@@ -7,22 +7,22 @@ using Android.Widget;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Text;
 using SharpGPX;
-using SharpGPX.GPX1_0;
 using SharpGPX.GPX1_1;
-using Xamarin.Essentials;
-using hajk.Data;
-using System.Threading;
+using SharpGPX.GPX1_1.Topografix;
 using Serilog;
-using Mapsui.Layers;
+using hajk.Data;
 using hajk.Models;
 using hajk.Fragments;
 using GPXUtils;
+using Mapsui.Layers;
 using Mapsui.Geometries;
 using Mapsui.Projection;
+using Xamarin.Essentials;
 
 namespace hajk
 {

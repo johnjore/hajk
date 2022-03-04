@@ -157,7 +157,7 @@
       <Version>4.0.2</Version>
     </PackageReference>
     <PackageReference Include="BlueToque.SharpGPX">
-      <Version>2.21.801</Version>
+      <Version>2.22.302</Version>
     </PackageReference>
     <PackageReference Include="BruTile">
       <Version>4.0.0</Version>
