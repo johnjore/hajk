@@ -323,7 +323,7 @@ namespace hajk
                 return;
 
             //Don't use if insufficient accuracy
-            if (location.Accuracy > 100)
+            if (location.Accuracy > 50)
                 return;
 
             //Don't use if speed is greater than 10m / s

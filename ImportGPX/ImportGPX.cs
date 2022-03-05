@@ -305,6 +305,10 @@ namespace hajk
                                 mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
                             }
                         }
+
+                        //Any points?
+                        if (rtePteExt.rpt.Count() == 0)
+                            rtePteExt = null;
                     }
 
                     if (rtePteExt == null)
