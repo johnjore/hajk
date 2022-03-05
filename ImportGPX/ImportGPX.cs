@@ -260,18 +260,14 @@ namespace hajk
         {
             try
             {
-                string mapRoute = "LINESTRING(";
                 float mapDistanceKm = 0.0f;
                 var p = new PositionHandler();
                 var p2 = new Position(0, 0);
+                List<Position> ListLatLon = new List<Position>();
+
                 for (int i = 0; i < route.rtept.Count; i++)
                 {
-                    //WayPoint
-                    if (!(mapRoute.Equals("LINESTRING(")))
-                    {
-                        mapRoute += ",";
-                    }
-                    mapRoute += route.rtept[i].lat.ToString() + " " + route.rtept[i].lon.ToString();
+                    ListLatLon.Add(new Position((double)route.rtept[i].lat, (double)route.rtept[i].lon));
 
                     var rtePteExt = route.rtept[i].GetExt<RoutePointExtension>();
                     if (rtePteExt != null)
@@ -280,7 +276,7 @@ namespace hajk
 
                         for (int j = 0; j < rtePteExt.rpt.Count(); j++)
                         {
-                            mapRoute += "," + rtePteExt.rpt[j].lat.ToString() + " " + rtePteExt.rpt[j].lon.ToString();
+                            ListLatLon.Add(new Position((double)rtePteExt.rpt[j].lat, (double)rtePteExt.rpt[j].lon));
 
                             //Previous leg
                             if (j == 0 && p2.Latitude != 0 && p2.Longitude != 0)
@@ -322,10 +318,12 @@ namespace hajk
                         }
                     }
 
-
                     /**///Calculate ascent / descent data
                 }
-                mapRoute += ")";
+
+                //Convert the list to a string
+                string mapRoute = ConvertLatLonListToLineString(ListLatLon);
+
 
                 return (mapRoute, mapDistanceKm);
             }
@@ -335,6 +333,29 @@ namespace hajk
                 return (null, 0);
             }          
         }
+
+        private static string ConvertLatLonListToLineString(List<Position> ListLatLon)
+        {
+            var LineString = "LINESTRING(";
+
+            for (int i = 0; i < ListLatLon.Count(); i++)
+            {
+                if (i == 0)
+                {
+                    LineString += ((float)ListLatLon[i].Latitude).ToString() + " " + ((float)ListLatLon[i].Longitude).ToString();
+                }
+
+                if (i != 0)
+                {
+                    LineString += "," + ((float)ListLatLon[i].Latitude).ToString() + " " + ((float)ListLatLon[i].Longitude).ToString();
+                }
+            }
+
+            LineString += ")";
+
+            return LineString;
+        }
+
 
         private static async Task<GpxClass> PickAndParse()
         {
