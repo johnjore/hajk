@@ -263,6 +263,7 @@ namespace hajk
                 string mapRoute = "LINESTRING(";
                 float mapDistanceKm = 0.0f;
                 var p = new PositionHandler();
+                var p2 = new Position(0, 0);
                 for (int i = 0; i < route.rtept.Count; i++)
                 {
                     //WayPoint
@@ -281,11 +282,18 @@ namespace hajk
                         {
                             mapRoute += "," + rtePteExt.rpt[j].lat.ToString() + " " + rtePteExt.rpt[j].lon.ToString();
 
+                            //Previous leg
+                            if (j == 0 && p2.Latitude != 0 && p2.Longitude != 0)
+                            {
+                                var p1 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon);
+                                mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
+                            }
+
                             //First leg
                             if (j == 0)
                             {
                                 var p1 = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon);
-                                var p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon);
+                                p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon);
                                 mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
                             }
 
@@ -293,7 +301,7 @@ namespace hajk
                             if (j >= 1)
                             {
                                 var p1 = new Position((float)rtePteExt.rpt[j - 1].lat, (float)rtePteExt.rpt[j - 1].lon);
-                                var p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon);
+                                p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon);
                                 mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
                             }
                         }
@@ -301,11 +309,11 @@ namespace hajk
 
                     if (rtePteExt == null)
                     {
-                        //Calculate Distance
+                        //Previous leg
                         if (i >= 1)
                         {
                             var p1 = new Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon);
-                            var p2 = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon);
+                            p2 = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon);
                             mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
                         }
                     }
