@@ -314,6 +314,23 @@ namespace hajk
 
             Log.Information($"Updated GPS Location - {location.Timestamp} - Altitude: {location.Altitude}, Lat: {location.Latitude}, Lon: {location.Longitude}, Speed: {location.Speed}");
 
+            //Don't use data older than 10 seconds
+            if (location.Timestamp < DateTime.UtcNow.AddSeconds(-10))
+                return;
+            
+            //Don't use if insufficient accuracy
+            if (location.Accuracy < 0)
+                return;
+
+            //Don't use if insufficient accuracy
+            if (location.Accuracy > 100)
+                return;
+
+            //Don't use if speed is greater than 10m / s
+            if (location.Speed > 10)
+                return;
+
+
             wptType waypoint = new wptType()
             {
                 lat = (decimal)location.Latitude,
