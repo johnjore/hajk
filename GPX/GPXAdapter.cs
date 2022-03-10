@@ -46,7 +46,9 @@ namespace hajk.Adapter
             vh.Id = mGpxData[position].Id;
             vh.GPXType = mGpxData[position].GPXType;
             vh.Name.Text = mGpxData[position].Name;
-            vh.Distance.Text = (mGpxData[position].Distance).ToString("N2") + " km";
+            vh.Distance.Text = "Length: " +(mGpxData[position].Distance).ToString("N1") + "km";
+            vh.Ascent.Text = "Ascent: " + (mGpxData[position].Ascent).ToString() + "m";
+            vh.Descent.Text = "Descent: " + (mGpxData[position].Descent).ToString() + "m";
 
             if (vh.GPXType == GPXType.Route)
             {
@@ -58,7 +60,7 @@ namespace hajk.Adapter
                 vh.GPXTypeLogo.SetImageResource(Resource.Drawable.track);
             }
 
-            //Clear it, as its reused
+            //Clear it, as it's reused
             vh.TrackRouteMap.SetImageResource(0);
             string ImageBase64String = mGpxData[position].ImageBase64String;
             if (ImageBase64String != null)
@@ -104,7 +106,7 @@ namespace hajk.Adapter
                             {
                                 gpx.Routes.Add(gpx.Tracks[0].ToRoutes()[0]);
                             }
-                            string mapRoute = Import.GPXtoRoute(gpx.Routes[0]).Item1;
+                            string mapRoute = Import.GPXtoRoute(gpx.Routes[0], false).Item1;
 
                             //Add GPX to Map
                             Import.AddRouteToMap(mapRoute, GPXType.Route);
@@ -154,7 +156,7 @@ namespace hajk.Adapter
                             {
                                 gpx_1.Routes.Add(gpx_1.Tracks[0].ToRoutes()[0]);
                             }
-                            string mapRouteTrack_1 = Import.GPXtoRoute(gpx_1.Routes[0]).Item1;
+                            string mapRouteTrack_1 = Import.GPXtoRoute(gpx_1.Routes[0], false).Item1;
 
                             //Add GPX to Map
                             Import.AddRouteToMap(mapRouteTrack_1, routetrack_1.GPXType);
@@ -306,7 +308,7 @@ namespace hajk.Adapter
                             {
                                 Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null);
 
-                                mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0]).Item1;
+                                mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0], false).Item1;
                                 Import.AddRouteToMap(mapRouteGPX, GPXType.Track);
                             }
 
@@ -314,7 +316,7 @@ namespace hajk.Adapter
                             {
                                 Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null);
 
-                                mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Routes[0]).Item1;
+                                mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Routes[0], false).Item1;
                                 Import.AddRouteToMap(mapRouteGPX, GPXType.Route);
                             }
 

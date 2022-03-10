@@ -62,6 +62,8 @@ namespace hajk
         public ImageView GPXTypeLogo { get; set; }
         public TextView Name { get; set; }
         public TextView Distance { get; set; }
+        public TextView Ascent { get; set; }
+        public TextView Descent { get; set; }
         public TextView Img_more { get; set; }
         public ImageView TrackRouteMap { get; set; }
 
@@ -70,6 +72,8 @@ namespace hajk
             GPXTypeLogo = itemview.FindViewById<ImageView>(Resource.Id.GPXTypeLogo);
             Name = itemview.FindViewById<TextView>(Resource.Id.Name);
             Distance = itemview.FindViewById<TextView>(Resource.Id.Distance);
+            Ascent = itemview.FindViewById<TextView>(Resource.Id.Ascent);
+            Descent = itemview.FindViewById<TextView>(Resource.Id.Descent);
             Img_more = itemview.FindViewById<TextView>(Resource.Id.textViewOptions);
             TrackRouteMap = itemview.FindViewById<ImageView>(Resource.Id.TrackRouteMap);
 

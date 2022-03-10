@@ -64,4 +64,6 @@
 	<string name="IgnoreAlarmFor">Ignore alarm for</string>
 	<string name="Minutes">Minutes</string>
 	<string name="MapTilesImported">Map tiles imported</string>
+	<string name="Ascent">Ascent</string>
+	<string name="Descent">Descent</string>
 </resources>

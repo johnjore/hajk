@@ -25,7 +25,7 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
                 android:layout_gravity="left"
-                android:contentDescription="@string/type" 
+                android:contentDescription="@string/type"
                 android:layout_marginLeft="@dimen/layout_marginLeft" />
 
             <TextView
@@ -39,17 +39,47 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginLeft="@dimen/layout_marginLeft"/>
 
-            <TextView
+             <LinearLayout
+                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_toRightOf="@+id/GPXTypeLogo"
-                android:layout_below="@id/Name"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="#333333"
-                android:text="@string/Distance"
-                android:id="@+id/Distance"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="@dimen/layout_marginLeft" />
+                android:layout_below="@id/GPXTypeLogo"                
+                android:id="@+id/GPXStats"
+                android:layout_marginTop="5dp"
+                android:layout_weight="1">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="#333333"
+                    android:text="@string/Distance"
+                    android:id="@+id/Distance"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="#333333"
+                    android:text="@string/Ascent"
+                    android:id="@+id/Ascent"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="#333333"
+                    android:text="@string/Descent"
+                    android:id="@+id/Descent"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginLeft="@dimen/layout_marginLeft" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/textViewOptions"
@@ -64,7 +94,7 @@
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@+id/Distance"
+                android:layout_below="@+id/GPXStats"
                 android:id="@+id/TrackRouteMap"
                 android:scaleType="fitCenter"
                 android:contentDescription="@string/Name"

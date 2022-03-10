@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Mapsui.Geometries;
 using Mapsui.Layers;
@@ -66,9 +69,11 @@ namespace hajk
         public static void AddGPXTrack(trkType track, bool DownloadOfflineMap)
         {
             //Get Track and distance from GPX
-            var t = GPXtoRoute(track.ToRoutes()[0]);
+            var t = GPXtoRoute(track.ToRoutes()[0], true);
             string mapTrack = t.Item1;
             float mapDistanceKm = t.Item2;
+            int ascent = t.Item3;
+            int descent = t.Item4;
 
             //Clear existing GPX routes from map, else they will be included
             Utils.Misc.ClearTrackRoutesFromMap();
@@ -96,8 +101,8 @@ namespace hajk
                 GPXType = GPXType.Track,
                 Name = track.name,
                 Distance = mapDistanceKm,
-                Ascent = 0, /**///Fix this
-                Descent = 0, /**///Fix this
+                Ascent = ascent,
+                Descent = descent,
                 Description = track.desc,
                 GPX = newGPX.ToXml(),
                 ImageBase64String = ImageBase64String,
@@ -118,9 +123,11 @@ namespace hajk
         public static void AddGPXRoute(rteType route, bool DownloadOfflineMap)
         {
             //Get Route and distance from GPX
-            var t = GPXtoRoute(route);
+            var t = GPXtoRoute(route, true);
             string mapRoute = t.Item1;
             float mapDistanceKm = t.Item2;
+            int ascent = t.Item3;
+            int descent = t.Item4;
 
             //Clear existing GPX routes from map, else they will be included
             Utils.Misc.ClearTrackRoutesFromMap();
@@ -148,8 +155,8 @@ namespace hajk
                 GPXType = GPXType.Route,
                 Name = route.name,
                 Distance = mapDistanceKm,
-                Ascent = 0, /**///Fix this
-                Descent = 0, /**///Fix this
+                Ascent = ascent,
+                Descent = descent,
                 Description = route.desc,
                 GPX = newGPX.ToXml(),
                 ImageBase64String = ImageBase64String,
@@ -256,8 +263,11 @@ namespace hajk
             toolbar.Menu.FindItem(Resource.Id.action_clearmap).SetEnabled(true);
         }
 
-        public static (string, float) GPXtoRoute(rteType route)
+        public static (string, float, int, int) GPXtoRoute(rteType route, bool getAscentDescent)
         {
+            int ascent = 0;
+            int descent = 0;
+
             try
             {
                 float mapDistanceKm = 0.0f;
@@ -317,21 +327,162 @@ namespace hajk
                             mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
                         }
                     }
-
-                    /**///Calculate ascent / descent data
                 }
 
                 //Convert the list to a string
                 string mapRoute = ConvertLatLonListToLineString(ListLatLon);
 
+                //Get elevation data
+                if (getAscentDescent)
+                {
+                    var a = GetElevationData(ListLatLon);
+                    ascent = a.Item1;
+                    descent = a.Item2;
+                }
 
-                return (mapRoute, mapDistanceKm);
+                return (mapRoute, mapDistanceKm, ascent, descent);
             }
             catch (Exception ex)
             {
                 Log.Error($"Crashed while parsing gpx: {ex}");
-                return (null, 0);
+                return (null, 0, 0, 0);
             }          
+        }
+
+        private static string DownloadElevationDataAsync(string ElevationUrl)
+        {
+            HttpClientHandler clientHandler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }
+            };
+            var _httpClient = new HttpClient(clientHandler)
+            {
+                Timeout = TimeSpan.FromSeconds(60)
+            };
+
+            try
+            {
+                using var httpResponse = _httpClient.GetAsync(ElevationUrl).Result;
+                if (httpResponse.StatusCode == HttpStatusCode.OK)
+                {
+                    return httpResponse.Content.ReadAsStringAsync().Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"DownloadElevationDataAsync(...) crashed: {ex}");
+            }
+
+            Log.Error($"DownloadElevationDataAsync(...) failed to download elevation data");
+            return null;
+        }
+
+        private static (int, int) GetElevationData(List<Position> ListLatLon)
+        {
+            //Keep track of ascent and descent
+            double ascent = 0;
+            double descent = 0;
+
+            try
+            {
+                var LatLon = String.Empty;
+
+                //Don't bother if only one item
+                if (ListLatLon.Count() <= 1)
+                    return (0, 0);
+
+                //Calculate
+                for (int i = 0; i < ListLatLon.Count() - 1; i++)
+                {
+                    //Max 100 at a time, with last as first in next batch
+                    if ((i != 0) && (i % 99 == 0))
+                    {
+                        //API is rate limited. Unless this is the first API call, add a sleep now
+                        if (i != 99)
+                        {
+                            System.Threading.Thread.Sleep(1000);
+                        }
+
+                        var a = CalculateAscentDescent(LatLon, ascent, descent);
+                        ascent = a.Item1;
+                        descent = a.Item2;
+
+                        //We need last value from previous batch as first item in next batch
+                        LatLon = ListLatLon[i-1].Latitude + "," + ListLatLon[i-1].Longitude + "|";
+                    }
+
+                    if (i % 99 != 0)
+                    {
+                        LatLon += "|";
+                    }
+
+                    LatLon += ListLatLon[i].Latitude + "," + ListLatLon[i].Longitude;
+                }
+
+                //The rest
+                if (LatLon != String.Empty)
+                {
+                    //API rate limited. We can safely assume if we get to this point, we've already called the API
+                    System.Threading.Thread.Sleep(1000);
+
+                    var a = CalculateAscentDescent(LatLon, ascent, descent);
+                    ascent = a.Item1;
+                    descent = a.Item2;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Crashed while calculating ascent / descent: {ex}");
+                return (0, 0); 
+            }
+
+            return ((int)ascent, (int)descent);
+        }
+
+        private static (double, double) CalculateAscentDescent(string LatLon, double ascent, double descent)
+        {
+            try
+            {
+                var Pre = $"https://api.opentopodata.org/v1/aster30m?locations=";
+                var Post = $"&interpolation=bilinear&nodata_value=null";
+
+                //Get the data
+                var eleJSON = DownloadElevationDataAsync(Pre + LatLon + Post);
+
+                //Convert from string to JSON
+                Models.Elevation.ElevationData elevationData = JsonSerializer.Deserialize<Models.Elevation.ElevationData>(eleJSON);
+
+                //Data is ok?
+                if (elevationData.status != "OK")
+                    return (0, 0);
+
+                //Any data?
+                if (elevationData.results.Count() <= 1)
+                    return (0, 0);
+
+                //Calculated the gain and loss of elevation
+                for (int j = 0; j < elevationData.results.Count() - 1; j++)
+                {
+                    var j0 = elevationData.results[j].elevation;
+                    var j1 = elevationData.results[j + 1].elevation;
+
+                    if (j0 > j1)
+                    {
+                        descent += j0 - j1;
+                    }
+                    else
+                    {
+                        ascent += j1 - j0;
+                    }
+                }
+
+                return (ascent, descent);
+            }
+            catch (Exception ex)
+            {
+                Log.Debug($"Crashed while calculating ascent / descent: {ex}");
+                return (0, 0);
+            }
         }
 
         private static string ConvertLatLonListToLineString(List<Position> ListLatLon)
@@ -342,12 +493,12 @@ namespace hajk
             {
                 if (i == 0)
                 {
-                    LineString += ((float)ListLatLon[i].Latitude).ToString() + " " + ((float)ListLatLon[i].Longitude).ToString();
+                    LineString += ListLatLon[i].Latitude + " " + ListLatLon[i].Longitude;
                 }
 
                 if (i != 0)
                 {
-                    LineString += "," + ((float)ListLatLon[i].Latitude).ToString() + " " + ((float)ListLatLon[i].Longitude).ToString();
+                    LineString += "," + ListLatLon[i].Latitude + " " + ListLatLon[i].Longitude;
                 }
             }
 
@@ -355,7 +506,6 @@ namespace hajk
 
             return LineString;
         }
-
 
         private static async Task<GpxClass> PickAndParse()
         {

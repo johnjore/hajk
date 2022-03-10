@@ -86,6 +86,7 @@
     <Compile Include="Location\Location.cs" />
     <Compile Include="Location\RecordTrack.cs" />
     <Compile Include="MainActivity.cs" />
+    <Compile Include="Models\Elevation.cs" />
     <Compile Include="OfflineMaps\MBTiles.cs" />
     <Compile Include="Models\Map.cs" />
     <Compile Include="Models\MBTiles.cs" />
@@ -194,6 +195,9 @@
     </PackageReference>
     <PackageReference Include="sqlite-net-pcl">
       <Version>1.8.116</Version>
+    </PackageReference>
+    <PackageReference Include="System.Text.Json">
+      <Version>6.0.2</Version>
     </PackageReference>
     <PackageReference Include="tilebelt">
       <Version>1.3.4</Version>

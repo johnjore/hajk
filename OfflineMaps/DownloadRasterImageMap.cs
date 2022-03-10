@@ -172,17 +172,13 @@ namespace hajk
                 {
                     return await httpResponse.Content.ReadAsByteArrayAsync();
                 }
-                else
-                {
-                    //Url is Invalid
-                    return null;
-                }
             }
             catch (Exception ex)
             {
                 Log.Error($"DownloadImageAsync(...) crashed: {ex}");
             }
 
+            Log.Error($"DownloadImageAsync(...) failed to download image");
             return null;
         }
 
