@@ -634,7 +634,8 @@ namespace hajk
                     RotateWithMap = true,
                     SymbolRotation = 0,
                     SymbolType = SymbolType.Ellipse,
-                    Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Blue, Background = Color.Transparent },
+                    //Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Blue, Background = Color.Transparent },
+                    Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
                     Outline = new Pen { Color = Color.Blue, Width = 1.5f },
                 });
                 features.Add(FeatureWaypoint);
@@ -668,7 +669,8 @@ namespace hajk
                     MinVisible = 0.0f,
                     RotateWithMap = true,
                     SymbolType = SymbolType.Ellipse,
-                    Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Red, Background = Color.Transparent },
+                    //Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Red, Background = Color.Transparent },
+                    Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
                     Outline = new Pen { Color = Color.Red, Width = 0.2f },
 
                 });
