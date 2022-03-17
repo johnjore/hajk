@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="Fragments\Fragment_posinfo.cs" />
     <Compile Include="Fragments\Fragment_stats.cs" />
+    <Compile Include="ImportGPX\POIDatabase.cs" />
     <Compile Include="Libraries\AwesomeTiles\Tile.cs" />
     <Compile Include="Libraries\AwesomeTiles\TileRange.cs" />
     <Compile Include="Fragments\Fragment_gpx.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="Location\RecordTrack.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="Models\Elevation.cs" />
+    <Compile Include="Models\POI.cs" />
     <Compile Include="OfflineMaps\MBTiles.cs" />
     <Compile Include="Models\Map.cs" />
     <Compile Include="Models\MBTiles.cs" />

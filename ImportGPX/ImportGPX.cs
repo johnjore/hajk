@@ -43,11 +43,15 @@ namespace hajk
                 if (gpxData == null)
                     return;
 
-                //Does the user want maps downloaded for offline usage?
-                Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
-                if (await msg1.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                //Only ask if we have routes and/or tracks and/or Waypoints to import
+                if (gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0)
                 {
-                    DownloadOfflineMap = true;
+                    //Does the user want maps downloaded for offline usage?                
+                    Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                    if (await msg1.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                    {
+                        DownloadOfflineMap = true;
+                    }
                 }
 
                 foreach (rteType route in gpxData.Routes)
@@ -60,10 +64,35 @@ namespace hajk
                     AddGPXTrack(track, DownloadOfflineMap);
                 }
 
+                foreach (wptType wptType in gpxData.Waypoints)
+                {
+                    AddGPXWayPoint(wptType, DownloadOfflineMap);
+                }
+
                 Log.Information($"Done importing gpx file");
             });
 
             return null;
+        }
+
+        public static void AddGPXWayPoint(wptType wptType, bool DownloadOfflineMap) 
+        {
+            //Add to POI DB
+            GPXDataPOI p = new GPXDataPOI
+            {
+                Name = wptType.name,
+                Description = wptType.desc,
+                Symbol = wptType.sym,
+                Lat = wptType.lat,
+                Lon = wptType.lon
+            };
+            POIDatabase.SavePOI(p);
+
+            if (DownloadOfflineMap)
+            {
+                var b = new boundsType(p.Lat, p.Lat, p.Lon, p.Lon);
+                GetloadOfflineMap(b, -1, null);
+            }
         }
 
         public static void AddGPXTrack(trkType track, bool DownloadOfflineMap)
@@ -542,9 +571,10 @@ namespace hajk
 
                 string r = (gpx.Routes.Count == 1) ? "route" : "routes";
                 string t = (gpx.Tracks.Count == 1) ? "track" : "tracks";
+                string p = (gpx.Waypoints.Count == 1) ? "POI" : "POIs";
 
                 Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
-                if (await msg1.ShowDialog($"{result.FileName}", $"Found {gpx.Routes.Count} {r} and {gpx.Tracks.Count} {t}. Import?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) != Show_Dialog.MessageResult.YES)
+                if (await msg1.ShowDialog($"{result.FileName}", $"Found {gpx.Routes.Count} {r}, {gpx.Tracks.Count} {t} and {gpx.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) != Show_Dialog.MessageResult.YES)
                     return null;
 
                 return gpx;

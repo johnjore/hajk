@@ -19,15 +19,15 @@ namespace hajk
         public readonly static int OffRouteSnooze_m = 5;                //Default alarm snooze in minutes
 
         //Runtime only
-        public const string RouteDB = "Routes.db3";           //Database to store all routes
-        public const string CacheDB = "CacheDB.mbtiles";  //Database to store offline tiles
-        public const string logFile = "hajk_.txt";            //Log file
-        public const int MinZoom = 0;                         //MinZoom level to use
-        public const int MaxZoom = 17;                        //MaxZoom level to use
+        public const string POIDB = "POI.db3";                          //Database to store all POI (WayPoints)
+        public const string RouteDB = "Routes.db3";                     //Database to store all routes
+        public const string CacheDB = "CacheDB.mbtiles";                //Database to store offline tiles
+        public const string logFile = "hajk_.txt";                      //Log file
+        public const int MinZoom = 0;                                   //MinZoom level to use
+        public const int MaxZoom = 17;                                  //MaxZoom level to use
         public readonly static bool RecordingTrack = false;             //True when recording a Track
         public readonly static bool TrackLocation = false;              //True when map is continiously moved to center on our location
         public readonly static int OfflineMaxAge = 30;                  //Don't refresh tiles until this threashhold in days
-
 
         //Location Service
         public const int SERVICE_RUNNING_NOTIFICATION_ID = 10000;
@@ -39,7 +39,6 @@ namespace hajk
         public const string ACTION_START_SERVICE = "hajk.action.START_SERVICE";
         public const string ACTION_STOP_SERVICE = "hajk.action.STOP_SERVICE";
         public const string ACTION_MAIN_ACTIVITY = "hajk.action.MAIN_ACTIVITY";
-
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
