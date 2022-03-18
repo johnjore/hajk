@@ -31,7 +31,7 @@ namespace hajk.Data
 
         //Get all waypoints
         public static Task<List<GPXDataPOI>> GetPOIAsync()
-        {            
+        {
             return database.Table<GPXDataPOI>().ToListAsync();
         }
 

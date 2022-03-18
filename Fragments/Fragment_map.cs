@@ -10,6 +10,7 @@ using Mapsui.Styles;
 using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using Log = Serilog.Log;
+using Xamarin.Essentials;
 
 namespace hajk.Fragments
 {
@@ -57,6 +58,12 @@ namespace hajk.Fragments
                 MarginX = 10,
                 MarginY = 20,
             });
+
+            Log.Debug($"Import POIs");
+            if (Preferences.Get("DrawPOIOnGui", PrefsActivity.DrawPOIonGui_b))
+            {
+                Import.AddPOIToMap();
+            }
 
             Log.Debug($"Set Zoom");
             mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);

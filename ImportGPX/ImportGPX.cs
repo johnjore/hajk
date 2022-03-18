@@ -69,6 +69,12 @@ namespace hajk
                     AddGPXWayPoint(wptType, DownloadOfflineMap);
                 }
 
+                //Display Imported POIs, regardless of settings. Importing with nothing visible will confuse users
+                if (gpxData.Waypoints.Count > 0)
+                {
+                    Import.AddPOIToMap();
+                }
+
                 Log.Information($"Done importing gpx file");
             });
 
@@ -267,6 +273,61 @@ namespace hajk
             //Refresh with new map
             DownloadRasterImageMap.LoadOSMLayer();
             Log.Information($"Done downloading map for {map.Id}");            
+        }
+
+        public static void AddPOIToMap()
+        {
+            List<GPXDataPOI> POIs = POIDatabase.GetPOIAsync().Result;
+
+            if (POIs == null)
+                return;
+
+            if (POIs.Count == 0)
+                return;
+
+            //Add layer
+            var POILayer = new MemoryLayer
+            {
+                Name = "Poi",
+                Tag = "poi",
+                Enabled = true,
+                IsMapInfoLayer = true,
+                DataSource = new MemoryProvider(ConvertListToInumerable(POIs)),
+                Style = new SymbolStyle { Enabled = false },
+            };
+
+            Fragment_map.map.Layers.Add(POILayer);
+        }
+
+        public static IEnumerable<IFeature> ConvertListToInumerable(List<GPXDataPOI> POIs)
+        {
+            return POIs.Select(c =>
+            {
+                var feature = new Feature();
+                var point = SphericalMercator.FromLonLat((double)c.Lon, (double)c.Lat);
+                feature.Geometry = point;
+                feature["name"] = c.Name;
+                feature["description"] = c.Description;
+
+                //Icon
+                string svg = "hajk.Images.Black-dot.svg";
+                switch (c.Symbol)
+                {
+                    case "Drinking Water":
+                        svg = "hajk.Images.Drinking-water.svg";
+                        break;
+                }
+
+                //Style
+                feature.Styles.Add(new SymbolStyle
+                {
+                    SymbolScale = 1.0f,
+                    RotateWithMap = true,
+                    BitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource(svg),
+                });
+
+                return feature;
+            });
         }
 
         public static void AddRouteToMap(string mapRoute, GPXType gpxtype)
