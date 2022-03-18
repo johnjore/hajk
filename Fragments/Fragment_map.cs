@@ -88,18 +88,28 @@ namespace hajk.Fragments
             var layer = args.MapInfo.Layer;
             var style = args.MapInfo.Style;
 
+            //POI?
+            if (layer.Name == "Poi" && layer.Tag.ToString() == "poi")
+            {
+                Log.Debug($"POI Object");
+                var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+                Log.Debug($"POI Object. GPS Position: " + b.ToString());
+
+                var c = args.MapInfo.Feature.Fields.GetEnumerator();
+            }
+
+            //Track?
             if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "track")
             {
                 Log.Debug($"Track Object");
             }
 
             /**///Need to filter out the arrows
+            //Route?
             if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "route" && style.ToString() == "Mapsui.Styles.SymbolStyle")
             {
                 var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                 Log.Debug($"Route Object. GPS Position: " + b.ToString());
-
-
             }
         }
     }
