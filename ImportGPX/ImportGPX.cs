@@ -694,14 +694,14 @@ namespace hajk
                 Position p1 = new Position(GPSlineString.Vertices[i].X, GPSlineString.Vertices[i].Y);
                 Position p2 = new Position(GPSlineString.Vertices[i + 1].X, GPSlineString.Vertices[i + 1].Y);
 
-                //Center point on line for arrow
-                Point p_center = Utils.Misc.CalculateCenter(lineString.Vertices[i].Y, lineString.Vertices[i].X, lineString.Vertices[i + 1].Y, lineString.Vertices[i + 1].X);
+                //Quarter point on line for arrow
+                Point p_quarter = Utils.Misc.CalculateQuarter(lineString.Vertices[i].Y, lineString.Vertices[i].X, lineString.Vertices[i + 1].Y, lineString.Vertices[i + 1].X);
 
                 //Bearing of arrow
                 var p = new PositionHandler();
                 var angle = p.CalculateBearing(p1, p2);
 
-                var FeatureArrow = new Feature { Geometry = p_center };
+                var FeatureArrow = new Feature { Geometry = p_quarter };
                 FeatureArrow.Styles.Add(new SymbolStyle
                 {
                     BitmapId = bitmapId,
