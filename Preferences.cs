@@ -16,7 +16,8 @@ namespace hajk
         public readonly static int OffTrackDistanceWarning_m = 100;     //Warn if distance from route is greater than n meters
         public readonly static int freq_OffRoute_s = 60;                //How often to check if OffRoute
         public readonly static int OffRouteSnooze_m = 5;                //Default alarm snooze in minutes
-        public readonly static bool DrawPOIonGui_b = true;              //Draw POI on GUI            
+        public readonly static bool DrawPOIonGui_b = true;              //Draw POI on GUI at Startup
+        public readonly static bool DrawTracksOnGui_b = true;           //Draw Tracks on GUI at Startup
 
         //Runtime only
         public const string POIDB = "POI.db3";                          //Database to store all POI (WayPoints)

@@ -59,6 +59,12 @@
 		android:key="DrawPOIOnGui"
 		android:defaultValue="true" />
 
+	<SwitchPreference
+		android:title="@string/DisplayTracks"
+		android:summary="@string/DisplayTracksDescription"
+		android:key="DrawTracksOnGui"
+		android:defaultValue="true" />
+
   </PreferenceCategory>
 </PreferenceScreen>
 

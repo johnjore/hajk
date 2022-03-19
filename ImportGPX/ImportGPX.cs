@@ -114,7 +114,7 @@ namespace hajk
             Utils.Misc.ClearTrackRoutesFromMap();
 
             //Add to map
-            AddRouteToMap(mapTrack, GPXType.Track);
+            AddRouteToMap(mapTrack, GPXType.Track, true);
 
             //Create a standalone GPX
             var newGPX = new GpxClass()
@@ -168,7 +168,7 @@ namespace hajk
             Utils.Misc.ClearTrackRoutesFromMap();
 
             //Add to map
-            AddRouteToMap(mapRoute, GPXType.Route);
+            AddRouteToMap(mapRoute, GPXType.Route, true);
 
             //Create a standalone GPX
             var newGPX = new GpxClass()
@@ -275,6 +275,38 @@ namespace hajk
             Log.Information($"Done downloading map for {map.Id}");            
         }
 
+        public static void AddTracksToMap()
+        {
+            var Tracks = RouteDatabase.GetTracksAsync().Result;
+
+            if (Tracks == null)
+                return;
+
+            if (Tracks.Count == 0)
+                return;
+
+            try
+            {
+                foreach (var track in Tracks)
+                {
+                    GpxClass gpx = GpxClass.FromXml(track.GPX);
+
+                    if (track.GPXType == GPXType.Track)
+                    {
+                        gpx.Routes.Add(gpx.Tracks[0].ToRoutes()[0]);
+                    }
+                    string mapRouteTrack = Import.GPXtoRoute(gpx.Routes[0], false).Item1;
+
+                    //Menus etc not yet created as app not fully initialized. Dirty workaround
+                    Import.AddRouteToMap(mapRouteTrack, GPXType.Track, false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Crashed while adding tracks to map: {ex}");
+            }
+        }
+
         public static void AddPOIToMap()
         {
             List<GPXDataPOI> POIs = POIDatabase.GetPOIAsync().Result;
@@ -330,7 +362,7 @@ namespace hajk
             });
         }
 
-        public static void AddRouteToMap(string mapRoute, GPXType gpxtype)
+        public static void AddRouteToMap(string mapRoute, GPXType gpxtype, bool UpdateMenu)
         {
             //Add layer
             ILayer lineStringLayer;
@@ -349,8 +381,18 @@ namespace hajk
             Fragment_map.map.Layers.Add(lineStringLayer);
 
             //Enable menu
-            AndroidX.AppCompat.Widget.Toolbar toolbar = MainActivity.mContext.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
-            toolbar.Menu.FindItem(Resource.Id.action_clearmap).SetEnabled(true);
+            try
+            {
+                if (UpdateMenu)
+                {
+                    AndroidX.AppCompat.Widget.Toolbar toolbar = MainActivity.mContext.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
+                    toolbar.Menu.FindItem(Resource.Id.action_clearmap).SetEnabled(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Crashed while enabling menu: {ex}");
+            }
         }
 
         public static (string, float, int, int) GPXtoRoute(rteType route, bool getAscentDescent)

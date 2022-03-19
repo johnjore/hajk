@@ -65,6 +65,12 @@ namespace hajk.Fragments
                 Import.AddPOIToMap();
             }
 
+            Log.Debug($"Show All Tracks on Map");
+            if (Preferences.Get("DrawTracksOnGui", PrefsActivity.DrawTracksOnGui_b))
+            {
+                Import.AddTracksToMap();
+            }
+
             Log.Debug($"Set Zoom");
             mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
 
