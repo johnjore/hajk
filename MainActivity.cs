@@ -164,7 +164,6 @@ namespace hajk
 
             Log.Debug($"Create Fragments");
             var FragmentsTransaction = SupportFragmentManager.BeginTransaction();
-            FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx");
             FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragment_map(), "Fragment_map");
             FragmentsTransaction.Commit();
 
@@ -321,10 +320,10 @@ namespace hajk
                     item.SetTitle(Resource.String.Record_Track);
 
                     //Disable the menu item for pause / resume
-                    NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
-                    var item_nav = nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
-                    item_nav.SetTitle(Resource.String.PauseRecord_Track);
-                    item_nav.SetEnabled(false);
+                    MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view)
+                        .Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack)
+                        .SetTitle(Resource.String.PauseRecord_Track)
+                        .SetEnabled(false);
                 }
                 else
                 {
@@ -332,10 +331,10 @@ namespace hajk
                     item.SetTitle(Resource.String.Stop_Recording);
 
                     //Enable the menu item for pause / resume
-                    NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
-                    var item_nav = nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
-                    item_nav.SetTitle(Resource.String.PauseRecord_Track);
-                    item_nav.SetEnabled(true);
+                    MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view)
+                        .Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack)
+                        .SetTitle(Resource.String.PauseRecord_Track)
+                        .SetEnabled(true);
                 }
             }
             else if (id == Resource.Id.nav_PauseResumeRecordTrack)
@@ -359,17 +358,99 @@ namespace hajk
                     item_nav.SetTitle(Resource.String.PauseRecord_Track);
                 }
             }
-            else if (id == Resource.Id.nav_manage)
+            else if (id == Resource.Id.nav_routes)
             {
                 if (Fragment_map.mapControl.Visibility == ViewStates.Invisible)
                 {
-                    SwitchFragment("Fragment_map", item);
+                    NavigationView nav = mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
+                    item = nav.Menu.FindItem(Resource.Id.nav_routes);
+
+                    if (item.TitleFormatted.ToString() == Resources.GetString(Resource.String.Map))
+                    {
+                        SwitchFragment("Fragment_map", item);
+
+                        SupportFragmentManager.BeginTransaction()
+                            .Remove((AndroidX.Fragment.App.Fragment)SupportFragmentManager.FindFragmentByTag("Fragment_gpx"))
+                            .Commit();
+                        SupportFragmentManager.ExecutePendingTransactions();
+                    }
+                    else
+                    {
+                        SupportFragmentManager.BeginTransaction()
+                            .Remove((AndroidX.Fragment.App.Fragment)SupportFragmentManager.FindFragmentByTag("Fragment_gpx"))
+                            .Commit();
+                        SupportFragmentManager.ExecutePendingTransactions();
+
+                        nav.Menu.FindItem(Resource.Id.nav_tracks).SetTitle(Resource.String.Tracks);
+                        Fragment_gpx.GPXDisplay = Models.GPXType.Route;
+
+                        SupportFragmentManager.BeginTransaction()
+                            .Add(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx")
+                            .Commit();
+                        SupportFragmentManager.ExecutePendingTransactions();
+
+                        SwitchFragment("Fragment_gpx", item);
+                    }
                 }
                 else
                 {
+                    Fragment_gpx.GPXDisplay = Models.GPXType.Route;
+
+                    SupportFragmentManager.BeginTransaction()
+                        .Add(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx")
+                        .Commit();
+                    SupportFragmentManager.ExecutePendingTransactions();
+
                     SwitchFragment("Fragment_gpx", item);
                 }
             }
+            else if (id == Resource.Id.nav_tracks)
+            {
+                if (Fragment_map.mapControl.Visibility == ViewStates.Invisible)
+                {
+                    NavigationView nav = mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
+                    item = nav.Menu.FindItem(Resource.Id.nav_tracks);
+                    
+                    if (item.TitleFormatted.ToString() == Resources.GetString(Resource.String.Map))
+                    {
+                        SwitchFragment("Fragment_map", item);
+
+                        SupportFragmentManager.BeginTransaction()
+                            .Remove((AndroidX.Fragment.App.Fragment)SupportFragmentManager.FindFragmentByTag("Fragment_gpx"))
+                            .Commit();
+                        SupportFragmentManager.ExecutePendingTransactions();
+                    }
+                    else
+                    {
+                        SupportFragmentManager.BeginTransaction()
+                            .Remove((AndroidX.Fragment.App.Fragment)SupportFragmentManager.FindFragmentByTag("Fragment_gpx"))
+                            .Commit();
+                        SupportFragmentManager.ExecutePendingTransactions();
+
+                        nav.Menu.FindItem(Resource.Id.nav_routes).SetTitle(Resource.String.Routes);
+                        Fragment_gpx.GPXDisplay = Models.GPXType.Track;
+
+                        SupportFragmentManager.BeginTransaction()
+                            .Add(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx")
+                            .Commit();
+                        SupportFragmentManager.ExecutePendingTransactions();
+
+                        SwitchFragment("Fragment_gpx", item);
+                    }
+                }
+                else
+                {
+                    Fragment_gpx.GPXDisplay = Models.GPXType.Track;
+
+                    SupportFragmentManager.BeginTransaction()
+                        .Add(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx")
+                        .Commit();
+                    SupportFragmentManager.ExecutePendingTransactions();
+
+                    SwitchFragment("Fragment_gpx", item);
+                }
+            }
+
             else if (id == Resource.Id.nav_share)
             {
 
@@ -388,6 +469,7 @@ namespace hajk
         {
             SupportFragmentManager.BeginTransaction().Show(SupportFragmentManager.FindFragmentByTag(Fragment_Tag));
             SupportFragmentManager.BeginTransaction().Commit();
+            NavigationView nav = mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
 
             switch (Fragment_Tag)
             {
@@ -395,13 +477,24 @@ namespace hajk
                     Fragment_map.mapControl.Visibility = ViewStates.Invisible;
                     FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
 
-                    item.SetTitle(Resource.String.Map);
+                    if (item.TitleFormatted.ToString() == Resources.GetString(Resource.String.Routes))
+                    {
+                        nav.Menu.FindItem(Resource.Id.nav_routes).SetTitle(Resource.String.Map);
+                    }
+
+                    if (item.TitleFormatted.ToString() == Resources.GetString(Resource.String.Tracks))
+                    {
+                        nav.Menu.FindItem(Resource.Id.nav_tracks).SetTitle(Resource.String.Map);
+                    }
+
                     break;
                 case "Fragment_map":
                     Fragment_map.mapControl.Visibility = ViewStates.Visible;
                     FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
 
-                    item.SetTitle(Resource.String.Routes_Tracks);
+                    nav.Menu.FindItem(Resource.Id.nav_routes).SetTitle(Resource.String.Routes);
+                    nav.Menu.FindItem(Resource.Id.nav_tracks).SetTitle(Resource.String.Tracks);
+
                     break;
             }
         }
@@ -413,7 +506,7 @@ namespace hajk
             sfm.BeginTransaction().Commit();
 
             NavigationView nav = mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
-            var item = nav.Menu.FindItem(Resource.Id.nav_manage);
+            IMenuItem item;
 
             switch (Fragment_Tag)
             {
@@ -421,13 +514,23 @@ namespace hajk
                     Fragment_map.mapControl.Visibility = ViewStates.Invisible;
                     mContext.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
 
+                    item = nav.Menu.FindItem(Resource.Id.nav_routes);
                     item.SetTitle(Resource.String.Map);
+
+                    item = nav.Menu.FindItem(Resource.Id.nav_tracks);
+                    item.SetTitle(Resource.String.Map);
+
                     break;
                 case "Fragment_map":
                     Fragment_map.mapControl.Visibility = ViewStates.Visible;
                     mContext.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
 
-                    item.SetTitle(Resource.String.Routes_Tracks);
+                    item = nav.Menu.FindItem(Resource.Id.nav_routes);
+                    item.SetTitle(Resource.String.Routes);
+
+                    item = nav.Menu.FindItem(Resource.Id.nav_tracks);
+                    item.SetTitle(Resource.String.Tracks);
+
                     break;
             }
         }

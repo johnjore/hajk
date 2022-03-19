@@ -95,7 +95,7 @@ namespace hajk.Fragments
                 var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                 Log.Debug($"POI Object. GPS Position: " + b.ToString());
 
-                var c = args.MapInfo.Feature.Fields.GetEnumerator();
+                //var c = args.MapInfo.Feature.Fields.GetEnumerator();
             }
 
             //Track?

@@ -22,10 +22,15 @@
             android:title="@string/PauseRecord_Track"
 			android:enabled="false"/>
 		<item
-            android:id="@+id/nav_manage"
+            android:id="@+id/nav_routes"
             android:icon="@drawable/ic_menu_manage"
-            android:title="@string/Routes_Tracks" />
-    </group>
+            android:title="@string/Routes" />
+		<item
+            android:id="@+id/nav_tracks"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="@string/Tracks" />
+
+	</group>
 
     <item android:title="Communicate">
         <menu>

@@ -21,10 +21,16 @@ namespace hajk.Data
             database.CreateTableAsync<GPXDataRouteTrack>().Wait();
         }
 
-        public static Task<List<GPXDataRouteTrack>> GetRouteAsync()
+        public static Task<List<GPXDataRouteTrack>> GetRoutesAsync()
         {
             //Get all routes
-            return database.Table<GPXDataRouteTrack>().ToListAsync();
+            return database.Table<GPXDataRouteTrack>().Where(i => i.GPXType == GPXType.Route).ToListAsync();
+        }
+
+        public static Task<List<GPXDataRouteTrack>> GetTracksAsync()
+        {
+            //Get all tracks
+            return database.Table<GPXDataRouteTrack>().Where(i => i.GPXType == GPXType.Track).ToListAsync();
         }
 
         public static Task<GPXDataRouteTrack> GetRouteAsync(int id)

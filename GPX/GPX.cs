@@ -14,9 +14,15 @@ namespace hajk
         private readonly List<GPXDataRouteTrack> gpx;
 
         //Returns list of all items in list
-        public GpxData()
+        public GpxData(GPXType gpxtype)
         {
-            List<GPXDataRouteTrack> result = RouteDatabase.GetRouteAsync().Result;
+            List<GPXDataRouteTrack> result = gpxtype switch
+            {
+                GPXType.Route => RouteDatabase.GetRoutesAsync().Result,
+                GPXType.Track => RouteDatabase.GetTracksAsync().Result,
+                _ => null,
+            };
+
             result.Reverse();
             gpx = result;
         }

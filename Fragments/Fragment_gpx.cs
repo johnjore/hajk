@@ -34,6 +34,7 @@ namespace hajk.Fragments
         RecyclerView.LayoutManager mLayoutManager;
         static GpxData mGpxData;
         public static GpxAdapter mAdapter;
+        public static Models.GPXType GPXDisplay = Models.GPXType.Route;
 
         public override void OnCreate(Bundle savedInstanceState)
         {
@@ -44,7 +45,7 @@ namespace hajk.Fragments
         {
             var view = inflater.Inflate(Resource.Layout.fragment_gpx, container, false);
 
-            mGpxData = new GpxData();
+            mGpxData = new GpxData(GPXDisplay);
             mRecycleView = view.FindViewById<RecyclerView>(Resource.Id.recyclerView);
             mRecycleView.Visibility = ViewStates.Visible;
 
