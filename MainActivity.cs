@@ -504,6 +504,7 @@ namespace hajk
             var sfm = activity.SupportFragmentManager;
             sfm.BeginTransaction().Show(sfm.FindFragmentByTag(Fragment_Tag));
             sfm.BeginTransaction().Commit();
+            sfm.ExecutePendingTransactions();
 
             NavigationView nav = mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
             IMenuItem item;
@@ -511,6 +512,8 @@ namespace hajk
             switch (Fragment_Tag)
             {
                 case "Fragment_gpx":
+                    /**///This never runs?!?
+                    /*
                     Fragment_map.mapControl.Visibility = ViewStates.Invisible;
                     mContext.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
 
@@ -519,9 +522,14 @@ namespace hajk
 
                     item = nav.Menu.FindItem(Resource.Id.nav_tracks);
                     item.SetTitle(Resource.String.Map);
-
+                    */
                     break;
                 case "Fragment_map":
+                    sfm.BeginTransaction()
+                        .Remove((AndroidX.Fragment.App.Fragment)sfm.FindFragmentByTag("Fragment_gpx"))
+                        .Commit();
+                    sfm.ExecutePendingTransactions();
+
                     Fragment_map.mapControl.Visibility = ViewStates.Visible;
                     mContext.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
 
