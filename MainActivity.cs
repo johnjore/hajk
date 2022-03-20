@@ -324,6 +324,10 @@ namespace hajk
                         .Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack)
                         .SetTitle(Resource.String.PauseRecord_Track)
                         .SetEnabled(false);
+
+                    NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
+                    nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack).SetVisible(false);
+                    nav.Invalidate();
                 }
                 else
                 {
@@ -335,6 +339,10 @@ namespace hajk
                         .Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack)
                         .SetTitle(Resource.String.PauseRecord_Track)
                         .SetEnabled(true);
+
+                    NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
+                    nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack).SetVisible(true);
+                    nav.Invalidate();
                 }
             }
             else if (id == Resource.Id.nav_PauseResumeRecordTrack)

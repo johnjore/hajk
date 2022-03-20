@@ -20,6 +20,7 @@
             android:id="@+id/nav_PauseResumeRecordTrack"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/PauseRecord_Track"
+			android:visible="false"
 			android:enabled="false"/>
 		<item
             android:id="@+id/nav_routes"

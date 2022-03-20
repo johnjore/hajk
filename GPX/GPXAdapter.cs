@@ -144,6 +144,9 @@ namespace hajk.Adapter
                                 .SetTitle(Resource.String.PauseRecord_Track)
                                 .SetEnabled(true);
 
+                            nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack).SetVisible(true);
+                            nav.Invalidate();
+
                             break;
                         case Resource.Id.gpx_menu_showonmap:
                             Log.Information($"Show route on map '{vh.Name.Text}'");
