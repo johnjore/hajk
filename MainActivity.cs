@@ -68,7 +68,7 @@ namespace hajk
         public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
 #endif
 
-        readonly string[] permission =
+        readonly string[] permission1 =
         {
             Android.Manifest.Permission.AccessCoarseLocation,
             Android.Manifest.Permission.AccessFineLocation,
@@ -80,6 +80,12 @@ namespace hajk
             Android.Manifest.Permission.Vibrate,
         };
 
+        readonly string[] permission2 =
+        {
+            Android.Manifest.Permission.AccessBackgroundLocation,
+        };
+
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -87,11 +93,17 @@ namespace hajk
             //Init
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
 
-            //Permissions
+            //Permissions1
             while (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.AccessFineLocation) != (int)Android.Content.PM.Permission.Granted ||
                    AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.WriteExternalStorage) != (int)Android.Content.PM.Permission.Granted)
             {
-                RequestPermissions(permission, 0);
+                RequestPermissions(permission1, 0);
+            }
+
+            //Permissions2
+            while (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.AccessBackgroundLocation) != (int)Android.Content.PM.Permission.Granted)
+            {
+                RequestPermissions(permission2, 0);
             }
 
             ServicePointManager.ServerCertificateValidationCallback = (message, certificate, chain, sslPolicyErrors) => true;
