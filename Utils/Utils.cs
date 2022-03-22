@@ -131,7 +131,7 @@ namespace Utils
             using (var alert = new AlertDialog.Builder(hajk.MainActivity.mContext))
             {
                 alert.SetTitle(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.ExitTitle));
-                alert.SetMessage(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.ExitTitle));
+                alert.SetMessage(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.ExitPrompt));
                 alert.SetPositiveButton(hajk.Resource.String.Yes, (sender, args) => { hajk.MainActivity.mContext.FinishAffinity(); });
                 alert.SetNegativeButton(hajk.Resource.String.No, (sender, args) => { });
 
