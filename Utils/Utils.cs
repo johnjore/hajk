@@ -1,11 +1,12 @@
-﻿using Android.Graphics;
-using Android.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Mapsui.Layers;
+using Android.Graphics;
+using Android.Util;
+using AndroidX.AppCompat.App;
 
 namespace Utils
 {
@@ -101,7 +102,6 @@ namespace Utils
             return p;
         }
 
-
         public static bool ClearTrackRoutesFromMap()
         {
             //Serilog.Log.Information($"Clear gpx entries from map");
@@ -123,6 +123,20 @@ namespace Utils
             {
                 Serilog.Log.Error(ex, $"Utils - ClearTrackRoutesFromMap()");
                 return false;
+            }
+        }
+
+        public static void PromptToConfirmExit()
+        {
+            using (var alert = new AlertDialog.Builder(hajk.MainActivity.mContext))
+            {
+                alert.SetTitle(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.ExitTitle));
+                alert.SetMessage(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.ExitTitle));
+                alert.SetPositiveButton(hajk.Resource.String.Yes, (sender, args) => { hajk.MainActivity.mContext.FinishAffinity(); });
+                alert.SetNegativeButton(hajk.Resource.String.No, (sender, args) => { });
+
+                var dialog = alert.Create();
+                dialog.Show();
             }
         }
     }

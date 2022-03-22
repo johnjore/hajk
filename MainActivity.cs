@@ -202,12 +202,14 @@ namespace hajk
                 }
                 else
                 {
-                    base.OnBackPressed();
+                    //base.OnBackPressed();
+                    Utils.Misc.PromptToConfirmExit();                    
                 }
             }
             else
             {
-                base.OnBackPressed();
+                //base.OnBackPressed();
+                Utils.Misc.PromptToConfirmExit();
             }
         }
 

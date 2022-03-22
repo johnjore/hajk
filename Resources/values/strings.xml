@@ -72,4 +72,8 @@
 	<string name="DisplayPOIDescription">Display POIs on Map</string>
 	<string name="DisplayTracks">Show Tracks</string>
 	<string name="DisplayTracksDescription">Show all Tracks on Map</string>
+	<string name="ExitTitle">Confirm Exit</string>
+	<string name="ExitPrompt">Are you sure you want to exit?</string>
+	<string name="Yes">Yes</string>
+	<string name="No">No</string>
 </resources>
