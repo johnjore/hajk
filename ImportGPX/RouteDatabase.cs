@@ -16,9 +16,16 @@ namespace hajk.Data
 
         static RouteDatabase()
         {
-            string dbPath = Path.Combine(MainActivity.rootPath, Preferences.Get("RouteDB", PrefsActivity.RouteDB));
-            database = new SQLiteAsyncConnection(dbPath);
-            database.CreateTableAsync<GPXDataRouteTrack>().Wait();
+            try
+            {
+                string dbPath = Path.Combine(MainActivity.rootPath, Preferences.Get("RouteDB", PrefsActivity.RouteDB));
+                database = new SQLiteAsyncConnection(dbPath);
+                database.CreateTableAsync<GPXDataRouteTrack>().Wait();
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"RouteDatabase - RouteDatabase()");
+            }
         }
 
         public static Task<List<GPXDataRouteTrack>> GetRoutesAsync()

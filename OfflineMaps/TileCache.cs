@@ -18,17 +18,25 @@ namespace hajk
 
         public static ITileSource GetOSMBasemap(string cacheFilename)
         {
-            if (mbTileCache == null)
-                mbTileCache = new MbTileCache(cacheFilename, "png");
+            try
+            {
+                if (mbTileCache == null)
+                    mbTileCache = new MbTileCache(cacheFilename, "png");
 
-            HttpTileSource src = new HttpTileSource(new GlobalSphericalMercator(PrefsActivity.MinZoom, PrefsActivity.MaxZoom),
-                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                new[] { "a", "b", "c" }, name: "OpenStreetMap",
-                persistentCache: mbTileCache,
-                userAgent: "OpenStreetMap in Mapsui (hajk)",
-                attribution: new Attribution("(c) OpenStreetMap contributors", "https://www.openstreetmap.org/copyright"));
+                HttpTileSource src = new HttpTileSource(new GlobalSphericalMercator(PrefsActivity.MinZoom, PrefsActivity.MaxZoom),
+                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    new[] { "a", "b", "c" }, name: "OpenStreetMap",
+                    persistentCache: mbTileCache,
+                    userAgent: "OpenStreetMap in Mapsui (hajk)",
+                    attribution: new Attribution("(c) OpenStreetMap contributors", "https://www.openstreetmap.org/copyright"));
 
-            return src;
+                return src;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"TileCache - GetOSMBasemap()");
+                return null;
+            }            
         }
 
         public class MbTileCache : IPersistentCache<byte[]>, IDisposable
@@ -38,25 +46,32 @@ namespace hajk
 
             public MbTileCache(string filename, string format)
             {
-                sqlConn = new SQLiteConnection(filename);
-                openConnections.Add(this);
-                sqlConn.CreateTable<metadata>();
-                sqlConn.CreateTable<tiles>();
-
-                var metaList = new List<metadata>
+                try
                 {
-                    new metadata { name = "name", value = "Offline" },
-                    new metadata { name = "type", value = "baselayer" },
-                    new metadata { name = "version", value = "1" },
-                    new metadata { name = "description", value = "Offline" },
-                    new metadata { name = "format", value = format }
-                };
+                    sqlConn = new SQLiteConnection(filename);
+                    openConnections.Add(this);
+                    sqlConn.CreateTable<metadata>();
+                    sqlConn.CreateTable<tiles>();
 
-                foreach (var meta in metaList)
-                    sqlConn.InsertOrReplace(meta);
+                    var metaList = new List<metadata>
+                    {
+                        new metadata { name = "name", value = "Offline" },
+                        new metadata { name = "type", value = "baselayer" },
+                        new metadata { name = "version", value = "1" },
+                        new metadata { name = "description", value = "Offline" },
+                        new metadata { name = "format", value = format }
+                    };
 
-                double[] originalBounds = new double[4] { double.MaxValue, double.MaxValue, double.MinValue, double.MinValue }; // In WGS1984, the total extent of all bounds
-                sqlConn.InsertOrReplace(new metadata { name = "bounds", value = string.Join(",", originalBounds) });
+                    foreach (var meta in metaList)
+                        sqlConn.InsertOrReplace(meta);
+
+                    double[] originalBounds = new double[4] { double.MaxValue, double.MaxValue, double.MinValue, double.MinValue }; // In WGS1984, the total extent of all bounds
+                    sqlConn.InsertOrReplace(new metadata { name = "bounds", value = string.Join(",", originalBounds) });
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, $"TileCache - MBTileCache()");
+                }
             }
 
             /// <summary>
@@ -72,63 +87,82 @@ namespace hajk
 
             public void Add(TileIndex index, byte[] tile)
             {
-                tiles mbtile = new tiles
+                try
                 {
-                    zoom_level = index.Level,
-                    tile_column = index.Col,
-                    tile_row = index.Row,
-                    tile_data = tile,
-                    createDate = DateTime.UtcNow
-                };
-
-                mbtile.tile_row = OSMtoTMS(mbtile.zoom_level, mbtile.tile_row);
-
-                lock (sqlConn)
-                {
-                    tiles oldTile = sqlConn.Table<tiles>().Where(x => x.zoom_level == mbtile.zoom_level && x.tile_column == mbtile.tile_column && x.tile_row == mbtile.tile_row).FirstOrDefault();
-
-                    if (oldTile == null)
+                    tiles mbtile = new tiles
                     {
-                        sqlConn.Insert(mbtile);
-                        return;
-                    }
+                        zoom_level = index.Level,
+                        tile_column = index.Col,
+                        tile_row = index.Row,
+                        tile_data = tile,
+                        createDate = DateTime.UtcNow
+                    };
 
-                    if ((DateTime.UtcNow - oldTile.createDate).TotalDays >= 30)
+                    mbtile.tile_row = OSMtoTMS(mbtile.zoom_level, mbtile.tile_row);
+
+                    lock (sqlConn)
                     {
-                        mbtile.id = oldTile.id;
-                        sqlConn.Update(mbtile);
-                        return;
+                        tiles oldTile = sqlConn.Table<tiles>().Where(x => x.zoom_level == mbtile.zoom_level && x.tile_column == mbtile.tile_column && x.tile_row == mbtile.tile_row).FirstOrDefault();
+
+                        if (oldTile == null)
+                        {
+                            sqlConn.Insert(mbtile);
+                            return;
+                        }
+
+                        if ((DateTime.UtcNow - oldTile.createDate).TotalDays >= 30)
+                        {
+                            mbtile.id = oldTile.id;
+                            sqlConn.Update(mbtile);
+                            return;
+                        }
                     }
                 }
-
-                return;
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, $"TileCache - Add()");
+                }
             }
 
             public void Dispose()
             {
-                if (sqlConn != null)
+                try
                 {
-                    lock (sqlConn)
+                    if (sqlConn != null)
                     {
-                        sqlConn.Close();
-                        sqlConn.Dispose();
-                        sqlConn = null;
+                        lock (sqlConn)
+                        {
+                            sqlConn.Close();
+                            sqlConn.Dispose();
+                            sqlConn = null;
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, $"TileCache - Dispose()");
                 }
             }
 
             public byte[] Find(TileIndex index)
             {
-                int level = index.Level;
-                int rowNum = OSMtoTMS(level, index.Row);
-
-                lock (sqlConn)
+                try
                 {
-                    tiles oldTile = sqlConn.Table<tiles>().Where(x => x.zoom_level == level && x.tile_column == index.Col && x.tile_row == rowNum).FirstOrDefault();
+                    int level = index.Level;
+                    int rowNum = OSMtoTMS(level, index.Row);
 
-                    // You may also want to put a check here to 'age' the tile, i.e., if it is too old, return null so a new one is fetched.
-                    if (oldTile != null)
-                        return oldTile.tile_data;
+                    lock (sqlConn)
+                    {
+                        tiles oldTile = sqlConn.Table<tiles>().Where(x => x.zoom_level == level && x.tile_column == index.Col && x.tile_row == rowNum).FirstOrDefault();
+
+                        // You may also want to put a check here to 'age' the tile, i.e., if it is too old, return null so a new one is fetched.
+                        if (oldTile != null)
+                            return oldTile.tile_data;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, $"TileCache - Find()");
                 }
 
                 return null;
@@ -136,7 +170,7 @@ namespace hajk
 
             public void Remove(TileIndex index)
             {
-                // We don't remove.
+                // We don't remove
             }
         }
     }

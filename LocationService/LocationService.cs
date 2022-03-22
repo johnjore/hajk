@@ -37,20 +37,21 @@ namespace hajk
 					Xamarin.Essentials.Location loc = gpslocation.GetGPSLocationData();
 					if (loc != null)
 					{
-						Serilog.Log.Information($"Location Service - Latitude: {loc.Latitude}, Longitude: {loc.Longitude}, Altitude: {loc.Altitude}");
+						if (loc.Speed == null)
+							loc.Speed = 0;
+
+						Serilog.Log.Information($"Location Service - Update Lat: {loc.Latitude:N5}, Lon: {loc.Longitude:N5}, Altitude: {loc.Altitude:N2}m, Speed: {loc.Speed:N2}m/s, DateStamp: {loc.Timestamp.LocalDateTime}");
 						Location.location = loc;
 					}
-					Serilog.Log.Information($"Location Service running...");
+					//Serilog.Log.Information($"Location Service running...");
 					Intent i = new Intent(PrefsActivity.NOTIFICATION_BROADCAST_ACTION);
 					i.PutExtra(PrefsActivity.BROADCAST_MESSAGE_KEY, "What is the purpose of this?");
 					LocalBroadcastManager.GetInstance(this).SendBroadcast(i);
 
 					int UpdateGPSLocation_s = Int32.Parse(Preferences.Get("UpdateGPSLocation", PrefsActivity.UpdateGPSLocation_s.ToString()));
-
 					
 					//Update the location beacon on map
 					Location.UpdateLocationMarker(Preferences.Get("TrackLocation", false) == false);
-
 
 					handler.PostDelayed(runnable, UpdateGPSLocation_s * 1000);
 				}

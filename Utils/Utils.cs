@@ -13,17 +13,24 @@ namespace Utils
     {
         public static string ConvertBitMapToString(Bitmap bitmap)
         {
-
-            byte[] bitmapData;
-            using (MemoryStream stream = new MemoryStream())
+            try
             {
-                bitmap.Compress(Bitmap.CompressFormat.Jpeg, 50, stream);
-                bitmapData = stream.ToArray();
+                byte[] bitmapData;
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    bitmap.Compress(Bitmap.CompressFormat.Jpeg, 50, stream);
+                    bitmapData = stream.ToArray();
+                }
+
+                string ImageBase64 = Convert.ToBase64String(bitmapData);
+
+                return ImageBase64;
             }
-
-            string ImageBase64 = Convert.ToBase64String(bitmapData);
-
-            return ImageBase64;
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Utils - ConverBitMapToString()");
+                return null;
+            }
         }
 
         public static Bitmap ConvertStringToBitmap(string mystr)
@@ -52,10 +59,18 @@ namespace Utils
 
         public static int GetBitmapIdForEmbeddedResource(string imagePath)
         {
-            var assembly = typeof(hajk.MainActivity).GetTypeInfo().Assembly;
-            var image = assembly.GetManifestResourceStream(imagePath);
-            var bitmapId = Mapsui.Styles.BitmapRegistry.Instance.Register(image);
-            return bitmapId;
+            try
+            {
+                var assembly = typeof(hajk.MainActivity).GetTypeInfo().Assembly;
+                var image = assembly.GetManifestResourceStream(imagePath);
+                var bitmapId = Mapsui.Styles.BitmapRegistry.Instance.Register(image);
+                return bitmapId;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Utils - AcessOSMLayerDirect()");
+                return 0;
+            }
         }
 
         public static Mapsui.Geometries.Point CalculateCenter(double BoundsRight, double BoundsTop, double BoundsLeft, double BoundsBottom)
@@ -89,18 +104,26 @@ namespace Utils
 
         public static bool ClearTrackRoutesFromMap()
         {
-            Serilog.Log.Information($"Clear gpx entries from map");
+            //Serilog.Log.Information($"Clear gpx entries from map");
 
-            //Remove recorded waypoints
-            hajk.RecordTrack.trackGpx.Waypoints.Clear();
-
-            IEnumerable<ILayer> layers = hajk.Fragments.Fragment_map.map.Layers.Where(x => (string)x.Tag == "route" || (string)x.Tag == "track" || (string)x.Tag == "tracklayer");
-            foreach (ILayer rt in layers)
+            try
             {
-                hajk.Fragments.Fragment_map.map.Layers.Remove(rt);
-            }
+                //Remove recorded waypoints
+                hajk.RecordTrack.trackGpx.Waypoints.Clear();
 
-            return true;
+                IEnumerable<ILayer> layers = hajk.Fragments.Fragment_map.map.Layers.Where(x => (string)x.Tag == "route" || (string)x.Tag == "track" || (string)x.Tag == "tracklayer");
+                foreach (ILayer rt in layers)
+                {
+                    hajk.Fragments.Fragment_map.map.Layers.Remove(rt);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Utils - ClearTrackRoutesFromMap()");
+                return false;
+            }
         }
     }
 }

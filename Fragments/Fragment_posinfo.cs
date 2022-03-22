@@ -37,9 +37,17 @@ namespace hajk.Fragments
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
-            var view = inflater.Inflate(Resource.Layout.fragment_posinfo, container, false);
+            try
+            {
+                var view = inflater.Inflate(Resource.Layout.fragment_posinfo, container, false);
+                return view;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Fragment_posinfo Crashed");
+            }
 
-            return view;
+            return null;
         }
     }
 }

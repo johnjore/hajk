@@ -37,45 +37,52 @@ namespace hajk
 
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                bool DownloadOfflineMap = false;
-                GpxClass gpxData = await PickAndParse();
-
-                if (gpxData == null)
-                    return;
-
-                //Only ask if we have routes and/or tracks and/or Waypoints to import
-                if (gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0)
+                try
                 {
-                    //Does the user want maps downloaded for offline usage?                
-                    Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
-                    if (await msg1.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                    bool DownloadOfflineMap = false;
+                    GpxClass gpxData = await PickAndParse();
+
+                    if (gpxData == null)
+                        return;
+
+                    //Only ask if we have routes and/or tracks and/or Waypoints to import
+                    if (gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0)
                     {
-                        DownloadOfflineMap = true;
+                        //Does the user want maps downloaded for offline usage?                
+                        Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                        if (await msg1.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                        {
+                            DownloadOfflineMap = true;
+                        }
                     }
-                }
 
-                foreach (rteType route in gpxData.Routes)
+                    foreach (rteType route in gpxData.Routes)
+                    {
+                        AddGPXRoute(route, DownloadOfflineMap);
+                    }
+
+                    foreach (trkType track in gpxData.Tracks)
+                    {
+                        AddGPXTrack(track, DownloadOfflineMap);
+                    }
+
+                    foreach (wptType wptType in gpxData.Waypoints)
+                    {
+                        AddGPXWayPoint(wptType, DownloadOfflineMap);
+                    }
+
+                    //Display Imported POIs, regardless of settings. Importing with nothing visible will confuse users
+                    if (gpxData.Waypoints.Count > 0)
+                    {
+                        Import.AddPOIToMap();
+                    }
+
+                    Log.Information($"Done importing gpx file");
+                }
+                catch (Exception ex)
                 {
-                    AddGPXRoute(route, DownloadOfflineMap);
-                }
-
-                foreach (trkType track in gpxData.Tracks)
-                {
-                    AddGPXTrack(track, DownloadOfflineMap);
-                }
-
-                foreach (wptType wptType in gpxData.Waypoints)
-                {
-                    AddGPXWayPoint(wptType, DownloadOfflineMap);
-                }
-
-                //Display Imported POIs, regardless of settings. Importing with nothing visible will confuse users
-                if (gpxData.Waypoints.Count > 0)
-                {
-                    Import.AddPOIToMap();
-                }
-
-                Log.Information($"Done importing gpx file");
+                    Serilog.Log.Error(ex, $"Import - GetRoute()");
+                };
             });
 
             return null;
@@ -83,196 +90,233 @@ namespace hajk
 
         public static void AddGPXWayPoint(wptType wptType, bool DownloadOfflineMap) 
         {
-            //Add to POI DB
-            GPXDataPOI p = new GPXDataPOI
+            try
             {
-                Name = wptType.name,
-                Description = wptType.desc,
-                Symbol = wptType.sym,
-                Lat = wptType.lat,
-                Lon = wptType.lon
-            };
-            POIDatabase.SavePOI(p);
+                //Add to POI DB
+                GPXDataPOI p = new GPXDataPOI
+                {
+                    Name = wptType.name,
+                    Description = wptType.desc,
+                    Symbol = wptType.sym,
+                    Lat = wptType.lat,
+                    Lon = wptType.lon
+                };
+                POIDatabase.SavePOI(p);
 
-            if (DownloadOfflineMap)
+                if (DownloadOfflineMap)
+                {
+                    var b = new boundsType(p.Lat, p.Lat, p.Lon, p.Lon);
+                    GetloadOfflineMap(b, -1, null);
+                }
+            }
+            catch (Exception ex)
             {
-                var b = new boundsType(p.Lat, p.Lat, p.Lon, p.Lon);
-                GetloadOfflineMap(b, -1, null);
+                Serilog.Log.Error(ex, $"Import - AddGPXWayPoint()");
             }
         }
 
         public static void AddGPXTrack(trkType track, bool DownloadOfflineMap)
         {
-            //Get Track and distance from GPX
-            var t = GPXtoRoute(track.ToRoutes()[0], true);
-            string mapTrack = t.Item1;
-            float mapDistanceKm = t.Item2;
-            int ascent = t.Item3;
-            int descent = t.Item4;
-
-            //Clear existing GPX routes from map, else they will be included
-            Utils.Misc.ClearTrackRoutesFromMap();
-
-            //Add to map
-            AddRouteToMap(mapTrack, GPXType.Track, true);
-
-            //Create a standalone GPX
-            var newGPX = new GpxClass()
+            try
             {
-                Metadata = new metadataType()
+                //Get Track and distance from GPX
+                var t = GPXtoRoute(track.ToRoutes()[0], true);
+                string mapTrack = t.Item1;
+                float mapDistanceKm = t.Item2;
+                int ascent = t.Item3;
+                int descent = t.Item4;
+
+                //Clear existing GPX routes from map, else they will be included
+                Utils.Misc.ClearTrackRoutesFromMap();
+
+                //Add to map
+                AddRouteToMap(mapTrack, GPXType.Track, true);
+
+                //Create a standalone GPX
+                var newGPX = new GpxClass()
                 {
-                    name = track.name,
-                    desc = track.desc,
-                },
-            };
-            newGPX.Tracks.Add(track);
+                    Metadata = new metadataType()
+                    {
+                        name = track.name,
+                        desc = track.desc,
+                    },
+                };
+                newGPX.Tracks.Add(track);
 
-            //Create thumbsize map
-            string ImageBase64String = CreateThumbprintMap(newGPX);
+                //Create thumbsize map
+                string ImageBase64String = CreateThumbprintMap(newGPX);
 
-            //Add to routetrack DB
-            GPXDataRouteTrack r = new GPXDataRouteTrack
+                //Add to routetrack DB
+                GPXDataRouteTrack r = new GPXDataRouteTrack
+                {
+                    GPXType = GPXType.Track,
+                    Name = track.name,
+                    Distance = mapDistanceKm,
+                    Ascent = ascent,
+                    Descent = descent,
+                    Description = track.desc,
+                    GPX = newGPX.ToXml(),
+                    ImageBase64String = ImageBase64String,
+                };
+                RouteDatabase.SaveRoute(r);
+
+                //Update RecycleView with new entry
+                _ = Fragment_gpx.mAdapter.mGpxData.Insert(r);
+                Fragment_gpx.mAdapter.NotifyDataSetChanged();
+
+                //Does the user want the maps downloaded?
+                if (DownloadOfflineMap)
+                {
+                    GetloadOfflineMap(track.GetBounds(), r.Id, null);
+                }
+            }
+            catch (Exception ex)
             {
-                GPXType = GPXType.Track,
-                Name = track.name,
-                Distance = mapDistanceKm,
-                Ascent = ascent,
-                Descent = descent,
-                Description = track.desc,
-                GPX = newGPX.ToXml(),
-                ImageBase64String = ImageBase64String,
-            };
-            RouteDatabase.SaveRoute(r);
-
-            //Update RecycleView with new entry
-            _ = Fragment_gpx.mAdapter.mGpxData.Insert(r);
-            Fragment_gpx.mAdapter.NotifyDataSetChanged();
-
-            //Does the user want the maps downloaded?
-            if (DownloadOfflineMap)
-            {
-                GetloadOfflineMap(track.GetBounds(), r.Id, null);
+                Serilog.Log.Error(ex, $"Import - AddGPXTrack()");
             }
         }
 
         public static void AddGPXRoute(rteType route, bool DownloadOfflineMap)
         {
-            //Get Route and distance from GPX
-            var t = GPXtoRoute(route, true);
-            string mapRoute = t.Item1;
-            float mapDistanceKm = t.Item2;
-            int ascent = t.Item3;
-            int descent = t.Item4;
-
-            //Clear existing GPX routes from map, else they will be included
-            Utils.Misc.ClearTrackRoutesFromMap();
-
-            //Add to map
-            AddRouteToMap(mapRoute, GPXType.Route, true);
-
-            //Create a standalone GPX
-            var newGPX = new GpxClass()
+            try
             {
-                Metadata = new metadataType()
+                //Get Route and distance from GPX
+                var t = GPXtoRoute(route, true);
+                string mapRoute = t.Item1;
+                float mapDistanceKm = t.Item2;
+                int ascent = t.Item3;
+                int descent = t.Item4;
+
+                //Clear existing GPX routes from map, else they will be included
+                Utils.Misc.ClearTrackRoutesFromMap();
+
+                //Add to map
+                AddRouteToMap(mapRoute, GPXType.Route, true);
+
+                //Create a standalone GPX
+                var newGPX = new GpxClass()
                 {
-                    name = route.name,
-                    desc = route.desc,
-                },
-            };
-            newGPX.Routes.Add(route);
+                    Metadata = new metadataType()
+                    {
+                        name = route.name,
+                        desc = route.desc,
+                    },
+                };
+                newGPX.Routes.Add(route);
 
-            //Create thumbsize map
-            string ImageBase64String = CreateThumbprintMap(newGPX);
+                //Create thumbsize map
+                string ImageBase64String = CreateThumbprintMap(newGPX);
 
-            //Add to routetrack DB
-            GPXDataRouteTrack r = new GPXDataRouteTrack
+                //Add to routetrack DB
+                GPXDataRouteTrack r = new GPXDataRouteTrack
+                {
+                    GPXType = GPXType.Route,
+                    Name = route.name,
+                    Distance = mapDistanceKm,
+                    Ascent = ascent,
+                    Descent = descent,
+                    Description = route.desc,
+                    GPX = newGPX.ToXml(),
+                    ImageBase64String = ImageBase64String,
+                };
+                RouteDatabase.SaveRoute(r);
+
+                //Update RecycleView with new entry
+                _ = Fragment_gpx.mAdapter.mGpxData.Insert(r);
+                Fragment_gpx.mAdapter.NotifyDataSetChanged();
+
+                //Does the user want the maps downloaded?
+                if (DownloadOfflineMap)
+                {
+                    GetloadOfflineMap(route.GetBounds(), r.Id, null);
+                }
+            }
+            catch (Exception ex)
             {
-                GPXType = GPXType.Route,
-                Name = route.name,
-                Distance = mapDistanceKm,
-                Ascent = ascent,
-                Descent = descent,
-                Description = route.desc,
-                GPX = newGPX.ToXml(),
-                ImageBase64String = ImageBase64String,
-            };
-            RouteDatabase.SaveRoute(r);
-
-            //Update RecycleView with new entry
-            _ = Fragment_gpx.mAdapter.mGpxData.Insert(r);
-            Fragment_gpx.mAdapter.NotifyDataSetChanged();
-
-            //Does the user want the maps downloaded?
-            if (DownloadOfflineMap)
-            {
-                GetloadOfflineMap(route.GetBounds(), r.Id, null);
+                Serilog.Log.Error(ex, $"Import - AddGPXRoute()");
             }
         }
 
         public static string CreateThumbprintMap(GpxClass newGPX)
         {
-            //Overlay GPX on map and zoom
-            var bounds = newGPX.GetBounds();
-            var min = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
-            var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
-
-            //Set location to match route/track
-            Fragment_map.mapControl.Navigator.RotateTo(0.0);
-            Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
-
-            //Create viewport to match GPX list
-            var viewport = new Viewport(Fragment_map.mapControl.Viewport)
+            try
             {
-                Width = MainActivity.wTrackRouteMap
-            };
+                //Overlay GPX on map and zoom
+                var bounds = newGPX.GetBounds();
+                var min = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
+                var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
 
-            //Set loction to match route/ track (again). Why?
-            var navigator = new Navigator(Fragment_map.map, viewport);
-            navigator.RotateTo(0, 0);
-            navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
+                //Set location to match route/track
+                Fragment_map.mapControl.Navigator.RotateTo(0.0);
+                Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
 
-            //Wait for each layer to complete
-            foreach (ILayer layer in Fragment_map.map.Layers)
-            {
-                while (layer.Busy)
+                //Create viewport to match GPX list
+                var viewport = new Viewport(Fragment_map.mapControl.Viewport)
                 {
-                    System.Threading.Thread.Sleep(10);
+                    Width = MainActivity.wTrackRouteMap
+                };
+
+                //Set loction to match route/ track (again). Why?
+                var navigator = new Navigator(Fragment_map.map, viewport);
+                navigator.RotateTo(0, 0);
+                navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
+
+                //Wait for each layer to complete
+                foreach (ILayer layer in Fragment_map.map.Layers)
+                {
+                    while (layer.Busy)
+                    {
+                        System.Threading.Thread.Sleep(10);
+                    }
                 }
+
+                //Create the thumbprint
+                MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
+                bitmap.Position = 0;
+                string ImageBase64String = Convert.ToBase64String(bitmap.ToArray());
+
+                return ImageBase64String;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Import - CreateThumbprintMap()");
             }
 
-            //Create the thumbprint
-            MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
-            bitmap.Position = 0;
-            string ImageBase64String = Convert.ToBase64String(bitmap.ToArray());
-
-            return ImageBase64String;
+            return null;
         }
 
         public static async void GetloadOfflineMap(boundsType bounds, int id, string strFilePath)
         {
-            Models.Map map = new Models.Map
+            try
             {
-                Id = id,
-                ZoomMin = PrefsActivity.MinZoom,
-                ZoomMax = PrefsActivity.MaxZoom,
-                BoundsLeft = (double)bounds.minlat,
-                BoundsBottom = (double)bounds.maxlon,
-                BoundsRight = (double)bounds.maxlat,
-                BoundsTop = (double)bounds.minlon
-            };
+                Models.Map map = new Models.Map
+                {
+                    Id = id,
+                    ZoomMin = PrefsActivity.MinZoom,
+                    ZoomMax = PrefsActivity.MaxZoom,
+                    BoundsLeft = (double)bounds.minlat,
+                    BoundsBottom = (double)bounds.maxlon,
+                    BoundsRight = (double)bounds.maxlat,
+                    BoundsTop = (double)bounds.minlon
+                };
 
-            //Get all missing tiles
-            await DownloadRasterImageMap.DownloadMap(map);
+                //Get all missing tiles
+                await DownloadRasterImageMap.DownloadMap(map);
 
-            //Also exporting?
-            if (strFilePath != null)
-            {
-                DownloadRasterImageMap.ExportMapTiles(id, strFilePath);
+                //Also exporting?
+                if (strFilePath != null)
+                {
+                    DownloadRasterImageMap.ExportMapTiles(id, strFilePath);
+                }
+
+                //Refresh with new map
+                DownloadRasterImageMap.LoadOSMLayer();
+                Log.Information($"Done downloading map for {map.Id}");
             }
-            
-            //Refresh with new map
-            DownloadRasterImageMap.LoadOSMLayer();
-            Log.Information($"Done downloading map for {map.Id}");            
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Import - GetloadOfflineMap()");
+            }
         }
 
         public static void AddTracksToMap()
@@ -303,82 +347,105 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error($"Crashed while adding tracks to map: {ex}");
+                Serilog.Log.Error(ex, $"Import - AddTracksToMap()");
             }
         }
-
+    
         public static void AddPOIToMap()
         {
-            List<GPXDataPOI> POIs = POIDatabase.GetPOIAsync().Result;
-
-            if (POIs == null)
-                return;
-
-            if (POIs.Count == 0)
-                return;
-
-            //Add layer
-            var POILayer = new MemoryLayer
+            try
             {
-                Name = "Poi",
-                Tag = "poi",
-                Enabled = true,
-                IsMapInfoLayer = true,
-                DataSource = new MemoryProvider(ConvertListToInumerable(POIs)),
-                Style = new SymbolStyle { Enabled = false },
-            };
+                List<GPXDataPOI> POIs = POIDatabase.GetPOIAsync().Result;
 
-            Fragment_map.map.Layers.Add(POILayer);
+                if (POIs == null)
+                    return;
+
+                if (POIs.Count == 0)
+                    return;
+
+                //Add layer
+                var POILayer = new MemoryLayer
+                {
+                    Name = "Poi",
+                    Tag = "poi",
+                    Enabled = true,
+                    IsMapInfoLayer = true,
+                    DataSource = new MemoryProvider(ConvertListToInumerable(POIs)),
+                    Style = new SymbolStyle { Enabled = false },
+                };
+
+                Fragment_map.map.Layers.Add(POILayer);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Import - AddPOIToMap");
+            }
         }
 
         public static IEnumerable<IFeature> ConvertListToInumerable(List<GPXDataPOI> POIs)
         {
-            return POIs.Select(c =>
+            try
             {
-                var feature = new Feature();
-                var point = SphericalMercator.FromLonLat((double)c.Lon, (double)c.Lat);
-                feature.Geometry = point;
-                feature["name"] = c.Name;
-                feature["description"] = c.Description;
-
-                //Icon
-                string svg = "hajk.Images.Black-dot.svg";
-                switch (c.Symbol)
+                return POIs.Select(c =>
                 {
-                    case "Drinking Water":
-                        svg = "hajk.Images.Drinking-water.svg";
-                        break;
-                }
+                    var feature = new Feature();
+                    var point = SphericalMercator.FromLonLat((double)c.Lon, (double)c.Lat);
+                    feature.Geometry = point;
+                    feature["name"] = c.Name;
+                    feature["description"] = c.Description;
 
-                //Style
-                feature.Styles.Add(new SymbolStyle
-                {
-                    SymbolScale = 1.0f,
-                    RotateWithMap = true,
-                    BitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource(svg),
+                    //Icon
+                    string svg = "hajk.Images.Black-dot.svg";
+                    switch (c.Symbol)
+                    {
+                        case "Drinking Water":
+                            svg = "hajk.Images.Drinking-water.svg";
+                            break;
+                    }
+
+                    //Style
+                    feature.Styles.Add(new SymbolStyle
+                    {
+                        SymbolScale = 1.0f,
+                        RotateWithMap = true,
+                        BitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource(svg),
+                    });
+
+                    return feature;
                 });
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Import - ConverTListToInumerable()");
+            }
 
-                return feature;
-            });
+            return null;
         }
 
         public static void AddRouteToMap(string mapRoute, GPXType gpxtype, bool UpdateMenu)
         {
-            //Add layer
-            ILayer lineStringLayer;
-            if (gpxtype == GPXType.Route)
+            try
             {
-                lineStringLayer = CreateRouteLayer(mapRoute, CreateRouteStyle());
-                lineStringLayer.Tag = "route";
+                //Add layer
+                ILayer lineStringLayer;
+                if (gpxtype == GPXType.Route)
+                {
+                    lineStringLayer = CreateRouteLayer(mapRoute, CreateRouteStyle());
+                    lineStringLayer.Tag = "route";
+                }
+                else
+                {
+                    lineStringLayer = CreateRouteLayer(mapRoute, CreateTrackStyle());
+                    lineStringLayer.Tag = "track";
+                }
+                lineStringLayer.IsMapInfoLayer = true;
+                lineStringLayer.Enabled = true;
+                Fragment_map.map.Layers.Add(lineStringLayer);
             }
-            else
+            catch (Exception ex)
             {
-                lineStringLayer = CreateRouteLayer(mapRoute, CreateTrackStyle());
-                lineStringLayer.Tag = "track";
+                Serilog.Log.Error(ex, $"Import - AddRouteToMap()");
             }
-            lineStringLayer.IsMapInfoLayer = true;
-            lineStringLayer.Enabled = true;
-            Fragment_map.map.Layers.Add(lineStringLayer);
 
             //Enable menu
             try
@@ -391,7 +458,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error($"Crashed while enabling menu: {ex}");
+                Serilog.Log.Error(ex, $"Import - AddRouteToMap()");
             }
         }
 
@@ -476,9 +543,9 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error($"Crashed while parsing gpx: {ex}");
+                Log.Error(ex, $"Import - GPXtoRoute()");
                 return (null, 0, 0, 0);
-            }          
+            }
         }
 
         private static string DownloadElevationDataAsync(string ElevationUrl)
@@ -502,7 +569,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error($"DownloadElevationDataAsync(...) crashed: {ex}");
+                Log.Error(ex, $"Import - DownloadElevationDataAsync()");
             }
 
             Log.Error($"DownloadElevationDataAsync(...) failed to download elevation data");
@@ -564,7 +631,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error($"Crashed while calculating ascent / descent: {ex}");
+                Log.Error(ex, $"Import - GetElevationData()");
                 return (0, 0); 
             }
 
@@ -612,7 +679,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Debug($"Crashed while calculating ascent / descent: {ex}");
+                Log.Error(ex, $"Import - CalculateAscentDescent()");
                 return (0, 0);
             }
         }
@@ -621,20 +688,27 @@ namespace hajk
         {
             var LineString = "LINESTRING(";
 
-            for (int i = 0; i < ListLatLon.Count(); i++)
+            try
             {
-                if (i == 0)
+                for (int i = 0; i < ListLatLon.Count(); i++)
                 {
-                    LineString += ListLatLon[i].Latitude + " " + ListLatLon[i].Longitude;
+                    if (i == 0)
+                    {
+                        LineString += ListLatLon[i].Latitude + " " + ListLatLon[i].Longitude;
+                    }
+
+                    if (i != 0)
+                    {
+                        LineString += "," + ListLatLon[i].Latitude + " " + ListLatLon[i].Longitude;
+                    }
                 }
 
-                if (i != 0)
-                {
-                    LineString += "," + ListLatLon[i].Latitude + " " + ListLatLon[i].Longitude;
-                }
+                LineString += ")";
             }
-
-            LineString += ")";
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Import - ConvertLatLonListToLineString()");
+            }
 
             return LineString;
         }
@@ -684,8 +758,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                // The user canceled or something went wrong
-                Log.Error($"Import GPX Crashed: " + ex.ToString());
+                Log.Error(ex, $"Import - PickAndParse()");
             }
 
             return null;
@@ -694,84 +767,91 @@ namespace hajk
         public static ILayer CreateRouteLayer(string strRoute, IStyle style = null)
         {
             var features = new Features();
-            var GPSlineString = (LineString)Geometry.GeomFromText(strRoute);
 
-            //Lines between each waypoint
-            var lineString = new LineString(GPSlineString.Vertices.Select(v => SphericalMercator.FromLonLat(v.Y, v.X)));
-            features.Add(new Feature { Geometry = lineString });
+            try {
+                var GPSlineString = (LineString)Geometry.GeomFromText(strRoute);
 
-            //End of route
-            var FeatureEnd = new Feature { Geometry = lineString.EndPoint };
-            FeatureEnd.Styles.Add(new SymbolStyle
-            {
-                SymbolScale = 1.5f,
-                MaxVisible = 2.0f,
-                MinVisible = 0.0f,
-                RotateWithMap = true,
-                SymbolType = SymbolType.Ellipse,
-                Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Red, Background = Color.Transparent },
-                Outline = new Pen { Color = Color.Red, Width = 1.5f }
-            });
-            features.Add(FeatureEnd);
+                //Lines between each waypoint
+                var lineString = new LineString(GPSlineString.Vertices.Select(v => SphericalMercator.FromLonLat(v.Y, v.X)));
+                features.Add(new Feature { Geometry = lineString });
 
-            //Start of route
-            var FeatureStart = new Feature { Geometry = lineString.StartPoint };
-            FeatureStart.Styles.Add(new SymbolStyle
-            {
-                SymbolScale = 1.5f,
-                MaxVisible = 2.0f,
-                MinVisible = 0.0f,
-                RotateWithMap = true,
-                SymbolType = SymbolType.Ellipse,
-                Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Green, Background = Color.Transparent },
-                Outline = new Pen { Color = Color.Green, Width = 1.5f }
-            });
-            features.Add(FeatureStart);
-
-            //Add arrow halfway between waypoints and highlight routing points
-            var bitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource("hajk.Images.Arrow-up.svg");
-            for (int i = 0; i < GPSlineString.NumPoints - 1; i++)
-            {
-                //End points for line
-                Position p1 = new Position(GPSlineString.Vertices[i].X, GPSlineString.Vertices[i].Y);
-                Position p2 = new Position(GPSlineString.Vertices[i + 1].X, GPSlineString.Vertices[i + 1].Y);
-
-                //Quarter point on line for arrow
-                Point p_quarter = Utils.Misc.CalculateQuarter(lineString.Vertices[i].Y, lineString.Vertices[i].X, lineString.Vertices[i + 1].Y, lineString.Vertices[i + 1].X);
-
-                //Bearing of arrow
-                var p = new PositionHandler();
-                var angle = p.CalculateBearing(p1, p2);
-
-                var FeatureArrow = new Feature { Geometry = p_quarter };
-                FeatureArrow.Styles.Add(new SymbolStyle
+                //End of route
+                var FeatureEnd = new Feature { Geometry = lineString.EndPoint };
+                FeatureEnd.Styles.Add(new SymbolStyle
                 {
-                    BitmapId = bitmapId,
-                    SymbolScale = 0.5f,
+                    SymbolScale = 1.5f,
                     MaxVisible = 2.0f,
                     MinVisible = 0.0f,
                     RotateWithMap = true,
-                    SymbolRotation = angle,
-                    SymbolOffset = new Offset(0, 0),
-                    SymbolType = SymbolType.Triangle,
-                });
-                features.Add(FeatureArrow);
-
-                //Waypoints
-                var FeatureWaypoint = new Feature { Geometry = lineString.Vertices[i] };
-                FeatureWaypoint.Styles.Add(new SymbolStyle
-                {
-                    SymbolScale = 0.7f,
-                    MaxVisible = 2.0f,
-                    MinVisible = 0.0f,
-                    RotateWithMap = true,
-                    SymbolRotation = 0,
                     SymbolType = SymbolType.Ellipse,
-                    //Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Blue, Background = Color.Transparent },
-                    Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
-                    Outline = new Pen { Color = Color.Blue, Width = 1.5f },
+                    Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Red, Background = Color.Transparent },
+                    Outline = new Pen { Color = Color.Red, Width = 1.5f }
                 });
-                features.Add(FeatureWaypoint);
+                features.Add(FeatureEnd);
+
+                //Start of route
+                var FeatureStart = new Feature { Geometry = lineString.StartPoint };
+                FeatureStart.Styles.Add(new SymbolStyle
+                {
+                    SymbolScale = 1.5f,
+                    MaxVisible = 2.0f,
+                    MinVisible = 0.0f,
+                    RotateWithMap = true,
+                    SymbolType = SymbolType.Ellipse,
+                    Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Green, Background = Color.Transparent },
+                    Outline = new Pen { Color = Color.Green, Width = 1.5f }
+                });
+                features.Add(FeatureStart);
+
+                //Add arrow halfway between waypoints and highlight routing points
+                var bitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource("hajk.Images.Arrow-up.svg");
+                for (int i = 0; i < GPSlineString.NumPoints - 1; i++)
+                {
+                    //End points for line
+                    Position p1 = new Position(GPSlineString.Vertices[i].X, GPSlineString.Vertices[i].Y);
+                    Position p2 = new Position(GPSlineString.Vertices[i + 1].X, GPSlineString.Vertices[i + 1].Y);
+
+                    //Quarter point on line for arrow
+                    Point p_quarter = Utils.Misc.CalculateQuarter(lineString.Vertices[i].Y, lineString.Vertices[i].X, lineString.Vertices[i + 1].Y, lineString.Vertices[i + 1].X);
+
+                    //Bearing of arrow
+                    var p = new PositionHandler();
+                    var angle = p.CalculateBearing(p1, p2);
+
+                    var FeatureArrow = new Feature { Geometry = p_quarter };
+                    FeatureArrow.Styles.Add(new SymbolStyle
+                    {
+                        BitmapId = bitmapId,
+                        SymbolScale = 0.5f,
+                        MaxVisible = 2.0f,
+                        MinVisible = 0.0f,
+                        RotateWithMap = true,
+                        SymbolRotation = angle,
+                        SymbolOffset = new Offset(0, 0),
+                        SymbolType = SymbolType.Triangle,
+                    });
+                    features.Add(FeatureArrow);
+
+                    //Waypoints
+                    var FeatureWaypoint = new Feature { Geometry = lineString.Vertices[i] };
+                    FeatureWaypoint.Styles.Add(new SymbolStyle
+                    {
+                        SymbolScale = 0.7f,
+                        MaxVisible = 2.0f,
+                        MinVisible = 0.0f,
+                        RotateWithMap = true,
+                        SymbolRotation = 0,
+                        SymbolType = SymbolType.Ellipse,
+                        //Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Blue, Background = Color.Transparent },
+                        Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
+                        Outline = new Pen { Color = Color.Blue, Width = 1.5f },
+                    });
+                    features.Add(FeatureWaypoint);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Import - CreateRouteLayer()");
             }
 
             return new MemoryLayer
@@ -786,28 +866,35 @@ namespace hajk
         {
             var features = new Features();
 
-            //Convert from string and line strings
-            var lineString = (LineString)Geometry.GeomFromText(strTrack);
-            lineString = new LineString(lineString.Vertices.Select(v => SphericalMercator.FromLonLat(v.Y, v.X)));
-            features.Add(new Feature { Geometry = lineString });
-
-            //Waypoint markers
-            foreach (var waypoint in lineString.Vertices)
+            try
             {
-                var feature = new Feature { Geometry = waypoint };
-                feature.Styles.Add(new SymbolStyle
-                {
-                    SymbolScale = 0.2f,
-                    MaxVisible = 10.0f,
-                    MinVisible = 0.0f,
-                    RotateWithMap = true,
-                    SymbolType = SymbolType.Ellipse,
-                    //Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Red, Background = Color.Transparent },
-                    Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
-                    Outline = new Pen { Color = Color.Red, Width = 0.2f },
+                //Convert from string and line strings
+                var lineString = (LineString)Geometry.GeomFromText(strTrack);
+                lineString = new LineString(lineString.Vertices.Select(v => SphericalMercator.FromLonLat(v.Y, v.X)));
+                features.Add(new Feature { Geometry = lineString });
 
-                });
-                features.Add(feature);
+                //Waypoint markers
+                foreach (var waypoint in lineString.Vertices)
+                {
+                    var feature = new Feature { Geometry = waypoint };
+                    feature.Styles.Add(new SymbolStyle
+                    {
+                        SymbolScale = 0.2f,
+                        MaxVisible = 10.0f,
+                        MinVisible = 0.0f,
+                        RotateWithMap = true,
+                        SymbolType = SymbolType.Ellipse,
+                        //Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Red, Background = Color.Transparent },
+                        Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
+                        Outline = new Pen { Color = Color.Red, Width = 0.2f },
+
+                    });
+                    features.Add(feature);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Import - CreateTrackLayer()");
             }
 
             return new MemoryLayer

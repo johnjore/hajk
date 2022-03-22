@@ -61,7 +61,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Information($"No location information? '{ex}'");
+                Serilog.Log.Error(ex, $"Location - UpdateLocationMarker()");
             }
         }
 
@@ -112,14 +112,14 @@ namespace hajk
             ILayer layer = Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
             if (layer == null)
             {
-                Serilog.Log.Information($"No layer?");
+                Serilog.Log.Debug($"No layer?");
                 return;
             }
 
             var feature = layer.GetFeaturesInView(layer.Envelope, 99).FirstOrDefault();
             if (feature == null)
             {
-                Serilog.Log.Information($"No features?");
+                Serilog.Log.Debug($"No features?");
                 return;
             }
 

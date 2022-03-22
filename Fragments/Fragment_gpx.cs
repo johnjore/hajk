@@ -43,19 +43,28 @@ namespace hajk.Fragments
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
-            var view = inflater.Inflate(Resource.Layout.fragment_gpx, container, false);
+            try
+            {
+                var view = inflater.Inflate(Resource.Layout.fragment_gpx, container, false);
 
-            mGpxData = new GpxData(GPXDisplay);
-            mRecycleView = view.FindViewById<RecyclerView>(Resource.Id.recyclerView);
-            mRecycleView.Visibility = ViewStates.Visible;
+                mGpxData = new GpxData(GPXDisplay);
+                mRecycleView = view.FindViewById<RecyclerView>(Resource.Id.recyclerView);
+                mRecycleView.Visibility = ViewStates.Visible;
 
-            mLayoutManager = new LinearLayoutManager(view.Context);
-            mRecycleView.SetLayoutManager(mLayoutManager);
-            mAdapter = new GpxAdapter(mGpxData);
-            //mAdapter.ItemClick += GpxAdapter.MAdapter_ItemClick;
-            mRecycleView.SetAdapter(mAdapter);
+                mLayoutManager = new LinearLayoutManager(view.Context);
+                mRecycleView.SetLayoutManager(mLayoutManager);
+                mAdapter = new GpxAdapter(mGpxData);
+                //mAdapter.ItemClick += GpxAdapter.MAdapter_ItemClick;
+                mRecycleView.SetAdapter(mAdapter);
 
-            return view;
+                return view;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Fragment_gpx - OnCreateView()");
+            }
+
+            return null;
         }
     }
 }

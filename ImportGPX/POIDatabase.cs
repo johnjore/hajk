@@ -25,10 +25,10 @@ namespace hajk.Data
             }
             catch (Exception ex)
             {
-                Log.Error($"Crashed: '" + ex.ToString() + "'");
+                Serilog.Log.Error(ex, $"POIDatabase - POIDatabase()");
             }
         }
-
+    
         //Get all waypoints
         public static Task<List<GPXDataPOI>> GetPOIAsync()
         {

@@ -31,14 +31,21 @@ namespace hajk
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"CreateDatabase(...) crashed: {ex}");
+                    Log.Error(ex, $"MBTilesWriter - CreateDatabaseConnection() - Create");
                 }
             }
             else
             {
                 //Open database
-                var sqliteConnection = new SQLiteConnection(db, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex, true);
-                return sqliteConnection;
+                try
+                {
+                    var sqliteConnection = new SQLiteConnection(db, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex, true);
+                    return sqliteConnection;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"MBTilesWriter - CreateDatabaseConnection() - Open");
+                }
             }
 
             return null;
@@ -67,7 +74,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error($"WriteTile(...) crashed: {ex}");
+                Log.Error(ex, $"MBTilesWriter - WriteTile()");
                 return 0;
             }
         }
@@ -92,7 +99,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error($"CreateDatabase(...) crashed: {ex}");
+                Log.Error(ex, $"MBTilesWriter - CreateDatabase()");
             }
 
             return null;
@@ -109,7 +116,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error($"InsertMetadata(...) crashed: {ex}");
+                Log.Error(ex, $"MBTilesWriter - InsertMetadata()");
             }
         }            
     }

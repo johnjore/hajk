@@ -119,74 +119,76 @@ namespace hajk
                 .WriteTo.File(_Path, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 2, outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}{NewLine}"
                 ).CreateLogger();
             Log.Information($"Logging to '{_Path}'");
-
-            Log.Debug($"Create toolbar");
-            SetContentView(Resource.Layout.activity_main);
-            AndroidX.AppCompat.Widget.Toolbar toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
-            SetSupportActionBar(toolbar);
-
-            Log.Debug($"Create floating action button");
-            FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
-            fab.Click += FabOnClick;
-
-            Log.Debug($"Create drawer layout");
-            DrawerLayout drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
-            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
-            drawer.AddDrawerListener(toggle);
-            toggle.SyncState();
-
-            Log.Debug($"Create navigation view");
-            NavigationView navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
-            navigationView.SetNavigationItemSelectedListener(this);
-
-            //Sanity
-            Log.Debug($"Set RecordingTrack to false - sanity check");
-            Preferences.Set("RecordingTrack", false);
-
-            Log.Debug($"Create Location Service");
-            OnNewIntent(this.Intent);
-            if (savedInstanceState != null)
-            {
-                isLocationServiceStarted = savedInstanceState.GetBoolean(PrefsActivity.SERVICE_STARTED_KEY, false);
-            }
-
-            startLocationServiceIntent = new Intent(this, typeof(LocationService));
-            startLocationServiceIntent.SetAction(PrefsActivity.ACTION_START_SERVICE);
-
-            if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
-            {
-                StartForegroundService(startLocationServiceIntent);
-            }
-            else
-            {
-                StartService(startLocationServiceIntent);
-            }
-            isLocationServiceStarted = true;
-
-            Log.Debug($"Add location marker");
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                if (Location.location == null)
-                {
-                    var request = new GeolocationRequest(GeolocationAccuracy.Best, TimeSpan.FromSeconds(5));
-                    Location.location = await Geolocation.GetLocationAsync(request, new CancellationTokenSource().Token);
-                }
-                Location.UpdateLocationMarker(true);
-            });
-
-            Log.Debug($"Create Fragments");
-            var FragmentsTransaction = SupportFragmentManager.BeginTransaction();
-            FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragment_map(), "Fragment_map");
-            FragmentsTransaction.Commit();
-
-            Log.Debug($"Save context");
-            mContext = this;
             
-            Log.Debug($"Save width for TrackRouteMap (Needs fixing...)");
-            /**///Save width... There must be a better way...
-            wTrackRouteMap = Resources.DisplayMetrics.WidthPixels;
+            try
+            {
+                SetContentView(Resource.Layout.activity_main);
+                AndroidX.AppCompat.Widget.Toolbar toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
+                SetSupportActionBar(toolbar);
 
-            Log.Debug($"Done with OnCreate()");
+                FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
+                fab.Click += FabOnClick;
+
+                DrawerLayout drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
+                ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
+                drawer.AddDrawerListener(toggle);
+                toggle.SyncState();
+
+                NavigationView navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
+                navigationView.SetNavigationItemSelectedListener(this);
+
+                //Sanity
+                Log.Debug($"Set RecordingTrack to false - sanity check");
+                Preferences.Set("RecordingTrack", false);
+
+                Log.Debug($"Create Location Service");
+                OnNewIntent(this.Intent);
+                if (savedInstanceState != null)
+                {
+                    isLocationServiceStarted = savedInstanceState.GetBoolean(PrefsActivity.SERVICE_STARTED_KEY, false);
+                }
+
+                Log.Debug($"LocationService");
+                startLocationServiceIntent = new Intent(this, typeof(LocationService));
+                startLocationServiceIntent.SetAction(PrefsActivity.ACTION_START_SERVICE);
+
+                if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
+                {
+                    StartForegroundService(startLocationServiceIntent);
+                }
+                else
+                {
+                    StartService(startLocationServiceIntent);
+                }
+                isLocationServiceStarted = true;
+
+                Log.Debug($"LocationMarker");
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    if (Location.location == null)
+                    {
+                        var request = new GeolocationRequest(GeolocationAccuracy.Best, TimeSpan.FromSeconds(5));
+                        Location.location = await Geolocation.GetLocationAsync(request, new CancellationTokenSource().Token);
+                    }
+                    Location.UpdateLocationMarker(true);
+                });
+
+                Log.Debug($"Create Fragment_Map");
+                var FragmentsTransaction = SupportFragmentManager.BeginTransaction();
+                FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragment_map(), "Fragment_map");
+                FragmentsTransaction.Commit();
+
+                Log.Debug($"Save context for future usage");
+                mContext = this;
+
+                Log.Debug($"Save width for TrackRouteMap (Needs fixing...)");
+                /**///Save width... There must be a better way...
+                wTrackRouteMap = Resources.DisplayMetrics.WidthPixels;                
+            }
+            catch (Exception ex)
+            {
+                Log.Debug(ex, $"MainActivity - OnCreate");
+            }
         }
 
         public override void OnBackPressed()
@@ -238,47 +240,55 @@ namespace hajk
 
         protected override void OnStart()
         {
-            base.OnStart();
             Log.Information($"OnStart()");
 
             //Disable battery optimization
             SetDozeOptimization();
+
+            base.OnStart();
         }
 
         protected override void OnStop()
         {
-            base.OnStop();
             Log.Information($"OnStop()");
+            base.OnStop();
         }
 
         protected override void OnPause()
         {
-            base.OnPause();
             Log.Information($"OnPause()");
+            base.OnPause();
         }
 
         protected override void OnResume()
         {
-            base.OnResume();
             Log.Information($"OnResume()");
+            base.OnResume();
         }
 
         protected override void OnDestroy()
         {
-            Log.Information($"OnDestroy()");
+            try
+            {
+                Log.Information($"OnDestroy()");
 
-            //Cleanup Log file
-            Log.CloseAndFlush();
+                //Cleanup Log file
+                Log.CloseAndFlush();
 
-            if (OfflineDBConn != null)
-                OfflineDBConn.Close();
+                if (OfflineDBConn != null)
+                    OfflineDBConn.Close();
 
-            //Re-enable battery optimization
-            //ClearDozeOptimization();
+                //Re-enable battery optimization
+                //ClearDozeOptimization();
 
-            //Location Service
-            StopService(startLocationServiceIntent);
-            isLocationServiceStarted = false;
+                //Location Service
+                StopService(startLocationServiceIntent);
+                isLocationServiceStarted = false;
+            }
+            catch (Exception ex)
+            {
+                Log.Debug(ex, $"OnDestroy()");
+            }
 
             base.OnDestroy();
         }

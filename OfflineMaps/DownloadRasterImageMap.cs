@@ -21,40 +21,47 @@ namespace hajk
 
         public static async Task DownloadMap(Models.Map map)
         {
-            if (AccessOSMLayerDirect() == false)
-            {
-                return;
+            try 
+            { 
+                if (AccessOSMLayerDirect() == false)
+                {
+                    return;
+                }
+
+                //Reset counters for next download
+                done = 0;
+                totalTilesCount = 0;
+
+                for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
+                {
+                    var leftBottom = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsLeft, map.BoundsBottom, zoom);
+                    var topRight = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsRight, map.BoundsTop, zoom);
+
+                    var minX = Math.Min(leftBottom.X, topRight.X);
+                    var maxX = Math.Max(leftBottom.X, topRight.X);
+                    var minY = Math.Min(leftBottom.Y, topRight.Y);
+                    var maxY = Math.Max(leftBottom.Y, topRight.Y);
+
+                    var tiles = new AwesomeTiles.TileRange(minX, minY, maxX, maxY, zoom);
+
+                    var tilesCount = tiles.Count;
+                    totalTilesCount += tilesCount;
+                    Log.Information($"Need to download {tilesCount} tiles for zoom level {zoom}");
+
+                    await DownloadTiles(tiles, zoom, MainActivity.OfflineDBConn, map.Id);
+                }
+
+                Log.Information($"Done downloading map for {map.Id}");
+
+                Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
+                await msg3.ShowDialog($"Done", $"GPX Import Completed", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+
+                LoadOSMLayer();
             }
-
-            //Reset counters for next download
-            done = 0;
-            totalTilesCount = 0;
-
-            for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
+            catch (Exception ex)
             {
-                var leftBottom = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsLeft, map.BoundsBottom, zoom);
-                var topRight = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsRight, map.BoundsTop, zoom);
-
-                var minX = Math.Min(leftBottom.X, topRight.X);
-                var maxX = Math.Max(leftBottom.X, topRight.X);
-                var minY = Math.Min(leftBottom.Y, topRight.Y);
-                var maxY = Math.Max(leftBottom.Y, topRight.Y);
-
-                var tiles = new AwesomeTiles.TileRange(minX, minY, maxX, maxY, zoom);
-
-                var tilesCount = tiles.Count;
-                totalTilesCount += tilesCount;
-                Log.Information($"Need to download {tilesCount} tiles for zoom level {zoom}");
-
-                await DownloadTiles(tiles, zoom, MainActivity.OfflineDBConn, map.Id);
+                Log.Error(ex, $"DownloadRasterImageMap - DownloadMap()");
             }
-
-            Log.Information($"Done downloading map for {map.Id}");
-
-            Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
-            await msg3.ShowDialog($"Done", $"GPX Import Completed", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
-
-            LoadOSMLayer();
         }
 
         private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id)
@@ -80,78 +87,84 @@ namespace hajk
                 WriteOsmSQlite(data, zoom, tile.X, tile.Y);
             };
             */
-
-            await range.ParallelForEachAsync(async tile =>
+            try
             {
-                int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
-                tiles oldTile = new tiles();
-
-                for (int i = 0; i < 10; i++)
+                await range.ParallelForEachAsync(async tile =>
                 {
-                    try
+                    int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
+                    tiles oldTile = new tiles();
+
+                    for (int i = 0; i < 10; i++)
                     {
-                        oldTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
-                        if ((oldTile != null) && ((DateTime.UtcNow - oldTile.createDate).TotalDays < PrefsActivity.OfflineMaxAge))
+                        try
                         {
-                            break;
+                            oldTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
+                            if ((oldTile != null) && ((DateTime.UtcNow - oldTile.createDate).TotalDays < PrefsActivity.OfflineMaxAge))
+                            {
+                                break;
+                            }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error($"Crashed: {ex}");
-                    }
-
-                    try
-                    {
-                        var url = OSMServer + $"{zoom}/{tile.X}/{tile.Y}.png";
-                        var data = await DownloadImageAsync(url);
-                        oldTile = new tiles()
+                        catch (Exception ex)
                         {
-                            tile_data = data,
-                            tile_row = tmsY,
-                            tile_column = tile.X,
-                            zoom_level = zoom,
-                            createDate = DateTime.UtcNow,
-                        };
-
-                        if (oldTile.tile_data != null)
-                        {
-                            break;
+                            Log.Error($"Crashed: {ex}");
                         }
 
-                        Thread.Sleep(10000);
+                        try
+                        {
+                            var url = OSMServer + $"{zoom}/{tile.X}/{tile.Y}.png";
+                            var data = await DownloadImageAsync(url);
+                            oldTile = new tiles()
+                            {
+                                tile_data = data,
+                                tile_row = tmsY,
+                                tile_column = tile.X,
+                                zoom_level = zoom,
+                                createDate = DateTime.UtcNow,
+                            };
+
+                            if (oldTile.tile_data != null)
+                            {
+                                break;
+                            }
+
+                            Thread.Sleep(10000);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error($"Crashed: {ex}");
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        Log.Error($"Crashed: {ex}");
-                    }
-                }
 
-                if (oldTile.tile_data == null)
-                {
-                    return;
-                }
-
-                ++done;
-
-                if (oldTile.reference == null)
-                {
-                    oldTile.reference = id.ToString();
-                }
-                else
-                {
-                    if (oldTile.reference.Contains(id.ToString()))
+                    if (oldTile.tile_data == null)
                     {
                         return;
                     }
 
-                    oldTile.reference += "," + id.ToString();
-                }
+                    ++done;
 
-                Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{done}/{totalTilesCount}");
-                MBTilesWriter.WriteTile(conn, oldTile);
+                    if (oldTile.reference == null)
+                    {
+                        oldTile.reference = id.ToString();
+                    }
+                    else
+                    {
+                        if (oldTile.reference.Contains(id.ToString()))
+                        {
+                            return;
+                        }
 
-            });
+                        oldTile.reference += "," + id.ToString();
+                    }
+
+                    Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{done}/{totalTilesCount}");
+                    MBTilesWriter.WriteTile(conn, oldTile);
+
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"DownloadRasterImageMap - DownloadTiles()");
+            }
         }
 
         private static async Task<byte[]> DownloadImageAsync(string imageUrl)
@@ -175,38 +188,44 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error($"DownloadImageAsync(...) crashed: {ex}");
+                Log.Error(ex, $"DownloadRasterIamgeMap - DownloadImageAsync()");
             }
 
-            Log.Error($"DownloadImageAsync(...) failed to download image");
             return null;
         }
 
         private static bool AccessOSMLayerDirect()
         {
-            //Remove
-            var OSMLayer = Fragments.Fragment_map.map.Layers.FindLayer("OSM").FirstOrDefault();
-            if (OSMLayer != null)
+            try
             {
-                Fragments.Fragment_map.map.Layers.Remove(OSMLayer);
-            }
+                //Remove
+                var OSMLayer = Fragments.Fragment_map.map.Layers.FindLayer("OSM").FirstOrDefault();
+                if (OSMLayer != null)
+                {
+                    Fragments.Fragment_map.map.Layers.Remove(OSMLayer);
+                }
 
-            //First time
-            if (MainActivity.OfflineDBConn == null)
-            {
-                MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
-            }
+                //First time
+                if (MainActivity.OfflineDBConn == null)
+                {
+                    MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
+                }
 
-            //Empty?
-            if (MainActivity.OfflineDBConn == null)
-            {
-                return false;
-            }
+                //Empty?
+                if (MainActivity.OfflineDBConn == null)
+                {
+                    return false;
+                }
 
-            //No handle?
-            if (MainActivity.OfflineDBConn.Handle == null)
+                //No handle?
+                if (MainActivity.OfflineDBConn.Handle == null)
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
             {
-                return false;
+                Log.Error(ex, $"DownloadRasterIamgeMap - AcessOSMLayerDirect()");
             }
 
             //Success
@@ -215,92 +234,109 @@ namespace hajk
 
         public static void LoadOSMLayer()
         {
-            if (MainActivity.OfflineDBConn != null)
+            try
             {
-                MainActivity.OfflineDBConn.Close();
-                MainActivity.OfflineDBConn = null;
-            }
+                if (MainActivity.OfflineDBConn != null)
+                {
+                    MainActivity.OfflineDBConn.Close();
+                    MainActivity.OfflineDBConn = null;
+                }
 
-            var tileSource = TileCache.GetOSMBasemap(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
-            var tileLayer = new TileLayer(tileSource)
+                var tileSource = TileCache.GetOSMBasemap(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
+                var tileLayer = new TileLayer(tileSource)
+                {
+                    Name = "OSM",
+                };
+                Fragments.Fragment_map.map.Layers.Insert(0, tileLayer);
+            }
+            catch (Exception ex)
             {
-                Name = "OSM",
-            };
-            Fragments.Fragment_map.map.Layers.Insert(0, tileLayer);
+                Log.Error(ex, $"DownloadRasterIamgeMap - LoadOSMLayer()");
+            }
         }
 
         public static void PurgeMapDB(int Id)
         {
-            if (AccessOSMLayerDirect() == false)
+            try
             {
-                return;
+                if (AccessOSMLayerDirect() == false)
+                {
+                    return;
+                }
+
+                string id = Id.ToString();
+                Log.Debug($"Remove Id: {id}");
+
+                //Remove single reference tiles
+                var query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference == id);
+                Log.Debug($"Query Count: " + query.Count().ToString());
+                foreach (tiles maptile in query)
+                {
+                    Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+                    MainActivity.OfflineDBConn.Delete(maptile);
+                }
+
+                //Remove reference
+                query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference.Contains(id));
+                Log.Debug($"Query Count: " + query.Count().ToString());
+                foreach (tiles maptile in query)
+                {
+                    Log.Debug($"Tile Id: {maptile.id}, Before: {maptile.reference}");
+
+                    maptile.reference = maptile.reference.Replace("," + id, "");
+                    maptile.reference = maptile.reference.Replace(id + ",", "");
+
+                    Log.Debug($"Tile Id: {maptile.id}, After: {maptile.reference}");
+                    MainActivity.OfflineDBConn.Update(maptile);
+                }
+
+                LoadOSMLayer();
             }
-
-            string id = Id.ToString();
-            Log.Debug($"Remove Id: {id}");
-
-            //Remove single reference tiles
-            var query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference == id);
-            Log.Debug($"Query Count: " + query.Count().ToString());
-            foreach (tiles maptile in query)
+            catch (Exception ex)
             {
-                Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
-                MainActivity.OfflineDBConn.Delete(maptile);
-            }
-
-            //Remove reference
-            query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference.Contains(id));
-            Log.Debug($"Query Count: " + query.Count().ToString());
-            foreach (tiles maptile in query)
-            {
-                Log.Debug($"Tile Id: {maptile.id}, Before: {maptile.reference}");
-
-                maptile.reference = maptile.reference.Replace("," + id, "");
-                maptile.reference = maptile.reference.Replace(id + ",", "");
-
-                Log.Debug($"Tile Id: {maptile.id}, After: {maptile.reference}");
-                MainActivity.OfflineDBConn.Update(maptile);
-            }
-
-            LoadOSMLayer();
-
-            return;
+                Log.Error(ex, $"DownloadRasterIamgeMap - AcessOSMLayerDirect()");
+            }            
         }
 
         public static void ExportMapTiles(int Id, string strFileName)
         {
-            if (AccessOSMLayerDirect() == false)
+            try
             {
-                return;
+                if (AccessOSMLayerDirect() == false)
+                {
+                    return;
+                }
+
+                //Save tiles here
+                var ExportDB = MBTilesWriter.CreateDatabaseConnection(strFileName);
+
+                //Get tiles
+                string id = Id.ToString();
+                var query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference.Contains(id));
+                Log.Debug($"Query Count: " + query.Count().ToString());
+                foreach (tiles maptile in query)
+                {
+                    Log.Debug($"Tile Id: {maptile.id}");
+
+                    //Fix the id, and clear the reference, so insert, not update is used
+                    maptile.id = 0;
+                    maptile.reference = "";
+
+                    MBTilesWriter.WriteTile(ExportDB, maptile);
+                }
+                ExportDB.Close();
+                ExportDB = null;
+
+                var m = MainActivity.mContext;
+                Show_Dialog msg = new Show_Dialog(m);
+                msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapExportCompleted), Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+
+                LoadOSMLayer();
             }
-
-            //Save tiles here
-            var ExportDB = MBTilesWriter.CreateDatabaseConnection(strFileName);
-
-            //Get tiles
-            string id = Id.ToString();
-            var query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference.Contains(id));
-            Log.Debug($"Query Count: " + query.Count().ToString());
-            foreach (tiles maptile in query)
+            catch (Exception ex)
             {
-                Log.Debug($"Tile Id: {maptile.id}");
-
-                //Fix the id, and clear the reference, so insert, not update is used
-                maptile.id = 0;
-                maptile.reference = "";
-
-                MBTilesWriter.WriteTile(ExportDB, maptile);
+                Log.Error(ex, $"DownloadRasterIamgeMap - ExportMapTiles()");
             }
-            ExportDB.Close();
-            ExportDB = null;
-
-            var m = MainActivity.mContext;
-            Show_Dialog msg = new Show_Dialog(m);
-            msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapExportCompleted), Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
-
-            LoadOSMLayer();
-
-            return;
         }
 
         public static void ImportMapTiles()
