@@ -146,18 +146,20 @@ namespace hajk
                 if (savedInstanceState != null)
                 {
                     isLocationServiceStarted = savedInstanceState.GetBoolean(PrefsActivity.SERVICE_STARTED_KEY, false);
+                    Log.Debug($"isLocationServiceStarted {isLocationServiceStarted}");
                 }
 
-                Log.Debug($"LocationService");
                 startLocationServiceIntent = new Intent(this, typeof(LocationService));
                 startLocationServiceIntent.SetAction(PrefsActivity.ACTION_START_SERVICE);
 
                 if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
                 {
+                    Log.Debug($"Start Foreground Service");
                     StartForegroundService(startLocationServiceIntent);
                 }
                 else
                 {
+                    Log.Debug($"Start Foreground Service");
                     StartService(startLocationServiceIntent);
                 }
                 isLocationServiceStarted = true;
