@@ -130,10 +130,6 @@ namespace hajk
                     GPX = track.ToXml(),
                 };
                 RouteDatabase.SaveRouteAsync(r).Wait();
-
-                //Update RecycleView with new entry
-                _ = Fragment_gpx.mAdapter.mGpxData.Insert(r);
-                Fragment_gpx.mAdapter.NotifyDataSetChanged();
             }
             catch (Exception ex)
             {
