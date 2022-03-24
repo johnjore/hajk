@@ -19,26 +19,26 @@ namespace hajk
             {
                 var task = Task.Run(async () =>
                 {
-                    var request = new GeolocationRequest(GeolocationAccuracy.High, TimeSpan.FromSeconds(2));
+                    var request = new GeolocationRequest(GeolocationAccuracy.Best, TimeSpan.FromSeconds(2));
                     CancellationTokenSource cts = new CancellationTokenSource();
                     location = await Geolocation.GetLocationAsync(request, cts.Token);
                 });
             }
             catch (FeatureNotSupportedException fnsEx)
             {
-                Serilog.Log.Information($"FeatureNotSupportedException: '{fnsEx}'");
+                Serilog.Log.Error($"FeatureNotSupportedException: '{fnsEx}'");
             }
             catch (FeatureNotEnabledException fneEx)
             {
-                Serilog.Log.Information($"FeatureNotEnabledException: '{fneEx}'");
+                Serilog.Log.Error($"FeatureNotEnabledException: '{fneEx}'");
             }
             catch (PermissionException pEx)
             {
-                Serilog.Log.Information($"PermissionException: '{pEx}'");
+                Serilog.Log.Error($"PermissionException: '{pEx}'");
             }
             catch (Exception ex)
             {
-                Serilog.Log.Information($"Unable to get location: '{ex}'");
+                Serilog.Log.Error($"Unable to get location: '{ex}'");
             }
 
             return location;
