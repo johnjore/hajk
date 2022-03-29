@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 using FFI.NVector;
 using SharpGPX.GPX1_1;
 
@@ -6,6 +8,53 @@ using SharpGPX.GPX1_1;
 
 namespace GPXUtils
 {
+    public static class GPXUtils
+    {
+        public static (int, int, int) CalculateElevationDistanceData(wptTypeCollection Waypoints, int start_index, int end_index)
+        {
+            decimal ascent = 0;
+            decimal descent = 0;
+            decimal distance = 0;
+
+            try
+            {
+                //Flip around?
+                if (start_index > end_index)
+                {
+                    (end_index, start_index) = (start_index, end_index);
+                }
+
+                //Calculate distance and the gain and loss of elevation
+                for (int j = start_index; j < end_index - 1; j++)
+                {
+                    decimal j0 = Waypoints[j].ele;
+                    decimal j1 = Waypoints[j + 1].ele;
+
+                    if (j0 > j1)
+                    {
+                        descent += j0 - j1;
+                    }
+                    else
+                    {
+                        ascent += j1 - j0;
+                    }
+                    
+                    var p1 = new Position((float)Waypoints[j].lat, (float)Waypoints[j + 1].lon, 0);
+                    var p2 = new Position((float)Waypoints[j].lat, (float)Waypoints[j + 1].lon, 0);
+                    var p = new PositionHandler();
+                    distance += (decimal)p.CalculateDistance(p1, p2, DistanceType.Kilometers) * 1000;
+                }
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"GPXUtils - CalculationElevationData()");
+                return (0, 0, 0);
+            }
+
+            return ((int)ascent, (int)descent, (int)distance);
+        }
+    }
+
     public class AngleConverter
     {
         public double ConvertDegreesToRadians(double angle)
@@ -40,14 +89,16 @@ namespace GPXUtils
 
     public class Position
     {
-        public Position(double latitude, double longitude)
+        public Position(double latitude, double longitude, double elevation)
         {
             Latitude = latitude;
             Longitude = longitude;
+            Elevation = elevation;
         }
 
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+        public double Elevation { get; set; }
     }
 
     public interface IBearingCalculator
@@ -80,7 +131,7 @@ namespace GPXUtils
         }
 
         public static double EarthRadiusInKilometers { get { return 6367.0; } }
-        public static double EarthRadiusInMiles { get { return 3956.0; } }
+        public static double EarthRadiusInMiles { get { return 3956.0; } }        
 
         public double CalculateBearing(Position position1, Position position2)
         {
@@ -107,6 +158,12 @@ namespace GPXUtils
             var distance = c * R;
 
             return Math.Round(distance, 2);
+        }
+
+        public double CalculateDistance(Position position1, Xamarin.Essentials.Location location2, DistanceType distanceType)
+        {
+            var position2 = new Position(location2.Latitude, location2.Longitude, 0);
+            return CalculateDistance(position1, position2, distanceType);
         }
 
         public double CalculateRhumbBearing(Position position1, Position position2)
@@ -138,7 +195,7 @@ namespace GPXUtils
             var dist = Math.Sqrt(dLat * dLat + q * q * dLon * dLon) * R;
 
             return dist;
-        }
+        }        
     }
 
     //This is from https://www.ffi.no/en/research/n-vector
@@ -183,7 +240,7 @@ namespace GPXUtils
             var n_EC_E = Utilities.VecMul(Math.Sign(Utilities.Dot(n_EC_E_tmp, n_EA1_E)), n_EC_E_tmp);
 
             // Convert to lat, lon in Degrees
-            var pos_EC = new Position(_NV.deg(_NV.n_E2lat(n_EC_E)), _NV.deg(_NV.n_E2long(n_EC_E)));
+            var pos_EC = new Position(_NV.deg(_NV.n_E2lat(n_EC_E)), _NV.deg(_NV.n_E2long(n_EC_E)), 0);
 
             return pos_EC;
         }
@@ -206,19 +263,28 @@ namespace GPXUtils
         }
 
         //Calculate distance between two locations
-        public static double CalculateDistance(wptType a1, wptType a2)
+        public static double CalculateDistance(wptType wpt_a1, wptType a2)
         {
-            var a2_p = new Position((double)a2.lat, (double)a2.lon);
-            var s_AB = CalculateDistance(a1, a2_p);
+            var a2_p = new Position((double)a2.lat, (double)a2.lon, 0);
+            var s_AB = CalculateDistance(wpt_a1, a2_p);
 
             return s_AB;
         }
 
         //Calculate distance between two locations
-        public static double CalculateDistance(Position a1, Position a2)
+        public static double CalculateDistance(Position a1, Position a2_p)
         {
             var wpt_a1 = new wptType((double)a1.Latitude, (double)a1.Longitude);
-            var s_AB = CalculateDistance(wpt_a1, a2);
+            var s_AB = CalculateDistance(wpt_a1, a2_p);
+
+            return s_AB;
+        }
+
+        //Calculate distance between two locations
+        public static double CalculateDistance(wptType wpt_a1, Xamarin.Essentials.Location a2)
+        {
+            var a2_p = new Position((double)a2.Latitude, (double)a2.Longitude, 0);
+            var s_AB = CalculateDistance(wpt_a1, a2_p);
 
             return s_AB;
         }
@@ -226,12 +292,38 @@ namespace GPXUtils
 
     public static class MapInformation
     {
-        //Find WayPoint we are closest to. Assume, incorrectly, this is where we are
-        public static int FindClosestWayPoint(Position mapPoint)
+        //Find WayPoint we are closest to. Use it, incorrectly, as start point for calculations
+        public static (Position, int) FindClosestWayPoint(rteType route, Position position)
         {
-            return 0;
+            try
+            {
+                if (route == null)
+                    return (null, -1);
+
+                int pos_index_i = 0;           //Index to position closest to GPS Position
+                double pos_distance = 0.0f;    //Distance to position
+
+                for (int i = 0; i < route.rtept.Count; i++)
+                {
+                    double mapDistanceMeters = CrossTrackCalculations.CalculateDistance(route.rtept[i], position);
+
+                    if (mapDistanceMeters < pos_distance || pos_distance == 0)
+                    {
+                        pos_distance = mapDistanceMeters;
+                        pos_index_i = i;
+                        Serilog.Log.Debug($"Shortest Location is index: '" + pos_index_i.ToString() + "' and '" + pos_distance.ToString("N2") + "m");
+                    }
+                }
+
+                var pos_w = new Position((float)route.rtept[pos_index_i].lat, (float)route.rtept[pos_index_i].lon, 0);
+                return (pos_w, pos_index_i);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "GPXUtils - FindClosestWayPoint()");
+            }
+
+            return (null, -1);
         }
-
     }
-
 }

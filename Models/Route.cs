@@ -11,7 +11,6 @@ namespace hajk.Models
         public float Distance { get; set; }
         public int Ascent { get; set; }
         public int Descent { get; set; }
-
         public string Description { get; set; }
         public string GPX { get; set; }
         public string ImageBase64String { get; set; }

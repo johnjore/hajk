@@ -10,6 +10,7 @@ using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
+using Android.Graphics;
 using System.Threading;
 using System.Net;
 using System.Reflection;
@@ -25,6 +26,8 @@ using Xamarin.Essentials;
 using hajk.Data;
 using hajk.Adapter;
 using hajk.Fragments;
+using GPXUtils;
+using SharpGPX.GPX1_1;
 
 namespace hajk.Fragments
 {
@@ -34,12 +37,176 @@ namespace hajk.Fragments
         {
             base.OnCreate(savedInstanceState);
         }
-
+                
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
             try
-            {
+            { 
+                var activity = (FragmentActivity)MainActivity.mContext;
                 var view = inflater.Inflate(Resource.Layout.fragment_posinfo, container, false);
+                view.SetBackgroundColor(Color.White);
+
+                Button hideFragment = view.FindViewById<Button>(Resource.Id.btn_HideFragment);
+                hideFragment.Click += delegate {
+                    var activity = (FragmentActivity)MainActivity.mContext;
+                    activity.SupportFragmentManager.BeginTransaction()
+                        .Remove((AndroidX.Fragment.App.Fragment)activity.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo"))
+                        .Commit();
+                    activity.SupportFragmentManager.ExecutePendingTransactions();
+                };
+                
+
+                //Make sure data does not change while calculating values
+                Xamarin.Essentials.Location GpsLocation = new GPSLocation().GetGPSLocationData();
+                var MapPosition = Fragment_map.MapPosition;
+
+                //Current Elevation (Altitude)
+                try
+                {
+                    double ele = Math.Round((double)GpsLocation.Altitude);
+                    view.FindViewById<TextView>(Resource.Id.CurrentElevation_m).Text = "Current Elevation: " + ele.ToString("N0") + "m";
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, "posinfo - Crashed calculating 'CurrentElevation_m'");
+                }
+
+                //Elevation at MapPosition (Altitude)
+                try
+                {
+                    rteType route = MainActivity.ActiveRoute.Routes.First();
+
+                    //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
+                    var r1 = MapInformation.FindClosestWayPoint(route, new Position(MapPosition.Latitude, MapPosition.Longitude, 0));
+                    var route_index_end = r1.Item2;
+
+                    var p = route.rtept[route_index_end];
+
+                    view.FindViewById<TextView>(Resource.Id.ElevationMap_m).Text = "MapPoint Elevation: " + p.ele.ToString("N0") + "m";
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, "posinfo - Crashed calculating 'ElevationMap_m'");
+                }
+
+                //Distance Straight Line from GPSLocation to MapPosition
+                try
+                {
+                    var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, GpsLocation, DistanceType.Kilometers)) * 1000;
+                    view.FindViewById<TextView>(Resource.Id.DistanceStraightLine_m).Text = "GPS to Map: " + DistanceStraightLine_m.ToString("N0") + "m";
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, "posinfo - Crashed calculating 'DistanceStraightLine_m'");
+                }
+
+                //Ascent, Descent and Distance Along Route From GPSLocation to MapPosition
+                try
+                {
+                    rteType route = MainActivity.ActiveRoute.Routes.First();
+
+                    /**/
+                    //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
+                    var r2 = MapInformation.FindClosestWayPoint(route, new Position(MapPosition.Latitude, MapPosition.Longitude, 0));
+                    var route_index_end = r2.Item2;
+
+                    //WayPoint we are closest to
+                    var r1 = MapInformation.FindClosestWayPoint(route, new Position(GpsLocation.Latitude, GpsLocation.Longitude, 0));
+                    var p1 = r1.Item1;
+                    var route_index_start = r1.Item2;
+
+                    var a = GPXUtils.GPXUtils.CalculateElevationDistanceData(route.rtept, route_index_start, route_index_end - 1);
+                    var AscentGPSLocationMapLocation_m = a.Item1;
+                    var DescentGPSLocationMapLocation_m = a.Item2;
+                    var DistanceGPSLocationMapLocation_m = a.Item3;
+
+                    //Add distance from GPSLocation to first waypoint. We might not be on-top of it. If we are, distance should be 0...
+                    DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(p1, GpsLocation, DistanceType.Kilometers)) * 1000;
+
+                    view.FindViewById<TextView>(Resource.Id.AscentGPSLocationMapLocation_m).Text = "Ascent From GPS to Map: " + AscentGPSLocationMapLocation_m.ToString("N0") + "m";
+                    view.FindViewById<TextView>(Resource.Id.DescentGPSLocationMapLocation_m).Text = "Descent From GPS to Map: " + DescentGPSLocationMapLocation_m.ToString("N0") + "m";
+                    view.FindViewById<TextView>(Resource.Id.DistanceGPSLocationMapLocation_m).Text = "Distance From GPS to Map: " + DistanceGPSLocationMapLocation_m.ToString("N0") + "m";
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, "posinfo - Crashed calculating 'Ascent, Descent and Distance from GPS Location to Map Position'");
+                }
+
+
+                //Distance Along Route to MapPosition from Start
+                if ((Preferences.Get("RecordingTrack", false) == true) && (RecordTrack.trackGpx.Waypoints.Count > 0))
+                {
+                    //Duration since first recording
+                    try
+                    {
+                        view.FindViewById<TextView>(Resource.Id.DurationTime).Text = "Duration: " + (DateTime.Now - RecordTrack.trackGpx.Waypoints.First().time).ToString(@"hh\:mm\:ss");
+                    }
+                    catch (Exception ex)
+                    {
+                        Serilog.Log.Error(ex, "posinfo - Crashed calculating 'DurationTime'");
+                    }
+
+                    //Distance Straight Line from Start to Map Position
+                    try
+                    {
+                        var PositionStart = new Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0);
+
+                        var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, PositionStart, DistanceType.Kilometers)) * 1000;
+                        view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStart_m).Text = "Straight Distance From Start To Map: " + DistanceStraightLine_m.ToString("N0") + "m";
+                    }
+                    catch (Exception ex)
+                    {
+                        Serilog.Log.Error(ex, "posinfo - Crashed calculating 'DistanceStraightLineFromStart_m'");
+                    }
+
+                    //Distance Straight Line from Start to Current Position
+                    try
+                    {
+                        var PositionStart = new Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0);
+
+                        var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(PositionStart, GpsLocation, DistanceType.Kilometers)) * 1000;
+                        view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStartGPS_m).Text = "Striaght Distance From Start To GPS: " + DistanceStraightLine_m.ToString("N0") + "m";
+                    }
+                    catch (Exception ex)
+                    {
+                        Serilog.Log.Error(ex, "posinfo - Crashed calculating 'DistanceStraightLineFromStartGPS_m'");
+                    }
+
+                    //Calculate Ascent / Descent from Start to Current Position
+                    try
+                    {
+                        var a = GPXUtils.GPXUtils.CalculateElevationDistanceData(RecordTrack.trackGpx.Waypoints, 0, RecordTrack.trackGpx.Waypoints.Count);
+                        int TrackAscentFromStart_m = a.Item1;
+                        int TrackDescentFromStart_m = a.Item2;
+                        int TrackDistanceFromStart_m = a.Item3;
+
+                        view.FindViewById<TextView>(Resource.Id.AscentFromStart_m).Text = "Ascent From Start To GPS: " + TrackAscentFromStart_m.ToString("N0") + "m";
+                        view.FindViewById<TextView>(Resource.Id.DescentFromStart_m).Text = "Descent From Start To GPS: " + TrackDescentFromStart_m.ToString("N0") + "m";
+                        view.FindViewById<TextView>(Resource.Id.TrackDistanceFromStart_m).Text = "Distance From Start To GPS: " + TrackDistanceFromStart_m.ToString("N0") + "m";
+                    }
+                    catch (Exception ex)
+                    {
+                        Serilog.Log.Error(ex, "posinfo - Crashed calculating 'Ascent / Descent'");
+                    }
+                }
+
+                if ((Preferences.Get("RecordingTrack", false) == false) || (RecordTrack.trackGpx.Waypoints.Count <= 0))
+                {
+                    try
+                    {
+                        view.FindViewById<TextView>(Resource.Id.DurationTime).Text = "n/a";
+                        view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStart_m).Text = "n/a";
+                        view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStartGPS_m).Text = "n/a";
+                        view.FindViewById<TextView>(Resource.Id.AscentFromStart_m).Text = "n/a";
+                        view.FindViewById<TextView>(Resource.Id.DescentFromStart_m).Text = "n/a";
+                        view.FindViewById<TextView>(Resource.Id.TrackDistanceFromStart_m).Text = "n/a";
+                    }
+                    catch (Exception ex)
+                    {
+                        Serilog.Log.Error(ex, "posinfo - Crashed while setting empty values");
+                    }
+                }
+
                 return view;
             }
             catch (Exception ex)

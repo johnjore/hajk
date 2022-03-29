@@ -40,6 +40,8 @@ namespace hajk.Fragments
             try
             {
                 var view = inflater.Inflate(Resource.Layout.fragment_stats, container, false);
+                view.SetBackgroundColor(Android.Graphics.Color.White);
+
                 return view;
             }
             catch (Exception ex)

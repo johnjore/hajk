@@ -23,19 +23,6 @@ using AndroidX.DrawerLayout.Widget;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Navigation;
 using Google.Android.Material.Snackbar;
-using Mapsui;
-using Mapsui.Geometries;
-using Mapsui.Layers;
-using Mapsui.Projection;
-using Mapsui.UI;
-using Mapsui.UI.Android;
-using Mapsui.Providers;
-using Mapsui.Styles;
-using Mapsui.Utilities;
-using Mapsui.Widgets;
-using Mapsui.Widgets.ScaleBar;
-using BruTile.Predefined;
-using BruTile.Web;
 using Serilog;
 using Xamarin.Essentials;
 using hajk.Data;
@@ -519,6 +506,9 @@ namespace hajk
 
                     nav.Menu.FindItem(Resource.Id.nav_routes).SetTitle(Resource.String.Routes);
                     nav.Menu.FindItem(Resource.Id.nav_tracks).SetTitle(Resource.String.Tracks);
+
+                    break;
+                case "Fragment_posinfo":
 
                     break;
             }

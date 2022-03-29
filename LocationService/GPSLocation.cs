@@ -19,7 +19,7 @@ namespace hajk
             {
                 var task = Task.Run(async () =>
                 {
-                    var request = new GeolocationRequest(GeolocationAccuracy.Best, TimeSpan.FromSeconds(2));
+                    var request = new GeolocationRequest(GeolocationAccuracy.High, TimeSpan.FromSeconds(2));
                     CancellationTokenSource cts = new CancellationTokenSource();
                     location = await Geolocation.GetLocationAsync(request, cts.Token);
                 });

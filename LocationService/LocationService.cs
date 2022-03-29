@@ -40,7 +40,7 @@ namespace hajk
 						if (loc.Speed == null)
 							loc.Speed = 0;
 
-						Serilog.Log.Information($"Location Service - Update Lat: {loc.Latitude:N5}, Lon: {loc.Longitude:N5}, Altitude: {loc.Altitude:N2}m, Speed: {loc.Speed:N2}m/s, DateStamp: {loc.Timestamp.LocalDateTime}");
+						Serilog.Log.Information($"Location Service Update - Lat: {loc.Latitude:N5}, Lon: {loc.Longitude:N5}, Altitude: {loc.Altitude:N2}m, Speed: {loc.Speed:N2}m/s, DateStamp: {loc.Timestamp.LocalDateTime}");
 						Location.location = loc;
 					}
 					//Serilog.Log.Information($"Location Service running...");

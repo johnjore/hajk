@@ -1,7 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:card_view="http://schemas.android.com/apk/res-auto"
+             android:layout_width="fill_parent"
+             android:layout_height="wrap_content">
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
 
-</RelativeLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/DurationTime"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/CurrentElevation_m"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/ElevationMap_m"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/DistanceStraightLine_m"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/DistanceStraightLineFromStart_m"        
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/DistanceStraightLineFromStartGPS_m"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/TrackDistanceFromStart_m"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/DistanceGPSLocationMapLocation_m"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/AscentFromStart_m"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/DescentFromStart_m"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/AscentGPSLocationMapLocation_m"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+       
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="#333333"
+            android:text=""
+            android:id="@+id/DescentGPSLocationMapLocation_m"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="@string/Hide"                    
+            android:id="@+id/btn_HideFragment"
+            android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+    </LinearLayout>
+
+</FrameLayout>

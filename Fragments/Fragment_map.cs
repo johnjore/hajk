@@ -1,7 +1,9 @@
 ﻿using System;
 using Android.OS;
 using Android.Views;
+using AndroidX.Fragment;
 using AndroidX.Fragment.App;
+using Xamarin.Essentials;
 using Mapsui;
 using Mapsui.Projection;
 using Mapsui.UI;
@@ -9,8 +11,9 @@ using Mapsui.UI.Android;
 using Mapsui.Styles;
 using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
-using Log = Serilog.Log;
-using Xamarin.Essentials;
+using Serilog;
+using GPXUtils;
+
 
 namespace hajk.Fragments
 {
@@ -18,7 +21,8 @@ namespace hajk.Fragments
     {
         public static MapControl mapControl;
         public static Mapsui.Map map = new Mapsui.Map();
-
+        public static Position MapPosition = null;        /**///Pass this as an argument instead of global variable
+        
         public override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -29,6 +33,7 @@ namespace hajk.Fragments
             try
             {
                 var view = inflater.Inflate(Resource.Layout.fragment_map, container, false);
+                view.SetBackgroundColor(Android.Graphics.Color.White);
 
                 Log.Debug($"Create mapControl");
                 mapControl = view.FindViewById<MapControl>(Resource.Id.mapcontrol);
@@ -126,7 +131,19 @@ namespace hajk.Fragments
                 if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "route" && style.ToString() == "Mapsui.Styles.SymbolStyle")
                 {
                     var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+                    MapPosition = new Position(b.Y, b.X, 0);
                     Log.Debug($"Route Object. GPS Position: " + b.ToString());
+
+                    var activity = (FragmentActivity)MainActivity.mContext;
+                    activity.SupportFragmentManager.BeginTransaction()
+                        .Add(Resource.Id.fragment_container, new Fragment_posinfo(), "Fragment_posinfo")
+                        .Commit();
+                    activity.SupportFragmentManager.ExecutePendingTransactions();
+
+                    activity.SupportFragmentManager.BeginTransaction()
+                        .Show(activity.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo"))
+                        .Commit();
+                    activity.SupportFragmentManager.ExecutePendingTransactions();
                 }
             }
             catch (Exception ex)

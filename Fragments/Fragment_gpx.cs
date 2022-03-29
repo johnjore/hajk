@@ -46,6 +46,7 @@ namespace hajk.Fragments
             try
             {
                 var view = inflater.Inflate(Resource.Layout.fragment_gpx, container, false);
+                view.SetBackgroundColor(Android.Graphics.Color.White);
 
                 mGpxData = new GpxData(GPXDisplay);
                 mRecycleView = view.FindViewById<RecyclerView>(Resource.Id.recyclerView);
