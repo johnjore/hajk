@@ -28,6 +28,9 @@ using hajk.Adapter;
 using hajk.Fragments;
 using GPXUtils;
 using SharpGPX.GPX1_1;
+using Microcharts;
+using Microcharts.Droid;
+using SkiaSharp;
 
 namespace hajk.Fragments
 {
@@ -37,28 +40,29 @@ namespace hajk.Fragments
         {
             base.OnCreate(savedInstanceState);
         }
-                
+
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
             try
-            { 
+            {
                 var activity = (FragmentActivity)MainActivity.mContext;
                 var view = inflater.Inflate(Resource.Layout.fragment_posinfo, container, false);
                 view.SetBackgroundColor(Color.White);
 
                 Button hideFragment = view.FindViewById<Button>(Resource.Id.btn_HideFragment);
-                hideFragment.Click += delegate {
+                hideFragment.Click += delegate
+                {
                     var activity = (FragmentActivity)MainActivity.mContext;
                     activity.SupportFragmentManager.BeginTransaction()
                         .Remove((AndroidX.Fragment.App.Fragment)activity.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo"))
                         .Commit();
                     activity.SupportFragmentManager.ExecutePendingTransactions();
                 };
-                
+
 
                 //Make sure data does not change while calculating values
                 Xamarin.Essentials.Location GpsLocation = new GPSLocation().GetGPSLocationData();
-                var MapPosition = Fragment_map.MapPosition;
+                GPXUtils.Position MapPosition = Fragment_map.MapPosition;
 
                 //Current Elevation (Altitude)
                 try
@@ -77,7 +81,7 @@ namespace hajk.Fragments
                     rteType route = MainActivity.ActiveRoute.Routes.First();
 
                     //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
-                    var r1 = MapInformation.FindClosestWayPoint(route, new Position(MapPosition.Latitude, MapPosition.Longitude, 0));
+                    var r1 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0));
                     var route_index_end = r1.Item2;
 
                     var p = route.rtept[route_index_end];
@@ -103,29 +107,32 @@ namespace hajk.Fragments
                 //Ascent, Descent and Distance Along Route From GPSLocation to MapPosition
                 try
                 {
-                    rteType route = MainActivity.ActiveRoute.Routes.First();
+                    if (MainActivity.ActiveRoute != null)
+                    {
+                        rteType route = MainActivity.ActiveRoute.Routes.First();
 
-                    /**/
-                    //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
-                    var r2 = MapInformation.FindClosestWayPoint(route, new Position(MapPosition.Latitude, MapPosition.Longitude, 0));
-                    var route_index_end = r2.Item2;
+                        /**/
+                        //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
+                        var r2 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0));
+                        var route_index_end = r2.Item2;
 
-                    //WayPoint we are closest to
-                    var r1 = MapInformation.FindClosestWayPoint(route, new Position(GpsLocation.Latitude, GpsLocation.Longitude, 0));
-                    var p1 = r1.Item1;
-                    var route_index_start = r1.Item2;
+                        //WayPoint we are closest to
+                        var r1 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(GpsLocation.Latitude, GpsLocation.Longitude, 0));
+                        var p1 = r1.Item1;
+                        var route_index_start = r1.Item2;
 
-                    var a = GPXUtils.GPXUtils.CalculateElevationDistanceData(route.rtept, route_index_start, route_index_end - 1);
-                    var AscentGPSLocationMapLocation_m = a.Item1;
-                    var DescentGPSLocationMapLocation_m = a.Item2;
-                    var DistanceGPSLocationMapLocation_m = a.Item3;
+                        var a = GPXUtils.GPXUtils.CalculateElevationDistanceData(route.rtept, route_index_start, route_index_end - 1);
+                        var AscentGPSLocationMapLocation_m = a.Item1;
+                        var DescentGPSLocationMapLocation_m = a.Item2;
+                        var DistanceGPSLocationMapLocation_m = a.Item3;
 
-                    //Add distance from GPSLocation to first waypoint. We might not be on-top of it. If we are, distance should be 0...
-                    DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(p1, GpsLocation, DistanceType.Kilometers)) * 1000;
+                        //Add distance from GPSLocation to first waypoint. We might not be on-top of it. If we are, distance should be 0...
+                        DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(p1, GpsLocation, DistanceType.Kilometers)) * 1000;
 
-                    view.FindViewById<TextView>(Resource.Id.AscentGPSLocationMapLocation_m).Text = "Ascent From GPS to Map: " + AscentGPSLocationMapLocation_m.ToString("N0") + "m";
-                    view.FindViewById<TextView>(Resource.Id.DescentGPSLocationMapLocation_m).Text = "Descent From GPS to Map: " + DescentGPSLocationMapLocation_m.ToString("N0") + "m";
-                    view.FindViewById<TextView>(Resource.Id.DistanceGPSLocationMapLocation_m).Text = "Distance From GPS to Map: " + DistanceGPSLocationMapLocation_m.ToString("N0") + "m";
+                        view.FindViewById<TextView>(Resource.Id.AscentGPSLocationMapLocation_m).Text = "Ascent From GPS to Map: " + AscentGPSLocationMapLocation_m.ToString("N0") + "m";
+                        view.FindViewById<TextView>(Resource.Id.DescentGPSLocationMapLocation_m).Text = "Descent From GPS to Map: " + DescentGPSLocationMapLocation_m.ToString("N0") + "m";
+                        view.FindViewById<TextView>(Resource.Id.DistanceGPSLocationMapLocation_m).Text = "Distance From GPS to Map: " + DistanceGPSLocationMapLocation_m.ToString("N0") + "m";
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -149,7 +156,7 @@ namespace hajk.Fragments
                     //Distance Straight Line from Start to Map Position
                     try
                     {
-                        var PositionStart = new Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0);
+                        var PositionStart = new GPXUtils.Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0);
 
                         var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, PositionStart, DistanceType.Kilometers)) * 1000;
                         view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStart_m).Text = "Straight Distance From Start To Map: " + DistanceStraightLine_m.ToString("N0") + "m";
@@ -162,7 +169,7 @@ namespace hajk.Fragments
                     //Distance Straight Line from Start to Current Position
                     try
                     {
-                        var PositionStart = new Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0);
+                        var PositionStart = new GPXUtils.Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0);
 
                         var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(PositionStart, GpsLocation, DistanceType.Kilometers)) * 1000;
                         view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStartGPS_m).Text = "Striaght Distance From Start To GPS: " + DistanceStraightLine_m.ToString("N0") + "m";
@@ -207,6 +214,8 @@ namespace hajk.Fragments
                     }
                 }
 
+                ConfigureGraph(view, GpsLocation, MapPosition);
+
                 return view;
             }
             catch (Exception ex)
@@ -215,6 +224,87 @@ namespace hajk.Fragments
             }
 
             return null;
+        }                
+    
+        private void ConfigureGraph(View view, Xamarin.Essentials.Location GpsLocation, GPXUtils.Position MapPosition)
+        {
+            try
+            {
+                var chartView = view.FindViewById<ChartView>(Resource.Id.chartElevation);
+                chartView.Visibility = ViewStates.Gone;
+
+                if (MainActivity.ActiveRoute == null)
+                    return;
+
+                var route = MainActivity.ActiveRoute.Routes.First();
+                if (route == null)
+                    return;
+
+                if (route.rtept.Count == 0)
+                    return;
+
+                /**/
+                //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
+                var r2 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0));
+                var map_index = r2.Item2;
+
+                //WayPoint we are closest to
+                var r1 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(GpsLocation.Latitude, GpsLocation.Longitude, 0));
+                var gps_index = r1.Item2;
+
+                List<ChartEntry> entries = new List<ChartEntry>();
+
+                //Entries
+                SKColor Color = SKColor.Parse("#00ff00"); //Green
+                for (int i = 0; i < route.rtept.Count; i++)
+                {
+                    var entry = new ChartEntry((float)route.rtept[i].ele)
+                    {
+                        Color = Color,
+                    };
+
+                    //If GPS Position, change to Red and add label
+                    if (i == gps_index)
+                    {
+                        Color = SKColor.Parse("#ff0000"); //Red
+                        entry.Color = Color;
+                        entry.Label = "G";
+                        entry.TextColor = SKColor.Parse("#000000"); //Black
+                    }
+
+                    //If Map Position, add label
+                    if (i == map_index)
+                    {
+                        entry.Color = SKColor.Parse("#000000"); //Black
+                        entry.Label = "M";
+                        entry.TextColor = SKColor.Parse("#000000"); //Black
+                    }
+
+                    entries.Add(entry);
+                }
+
+                //Chart configuration
+                var chart = new LineChart
+                {
+                    LineMode = LineMode.Straight,
+                    LineSize = 5,
+                    PointMode = PointMode.None,
+                    AnimationDuration = TimeSpan.FromSeconds(0),
+                    LabelOrientation = Microcharts.Orientation.Horizontal,
+                    LabelTextSize = 40,
+                    LabelColor = SKColor.Parse("#000000"),
+                    Margin = 0,
+                    Entries = entries
+                };
+
+                //Set the Chart
+                chartView.Chart = chart;
+                chartView.Visibility = ViewStates.Visible;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "posinfo - Crashed while creating elevation graph");
+            }
         }
     }
 }

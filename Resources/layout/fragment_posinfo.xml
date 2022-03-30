@@ -118,6 +118,12 @@
             android:id="@+id/DescentGPSLocationMapLocation_m"
             android:layout_marginLeft="@dimen/layout_marginLeft" />
 
+        <microcharts.droid.ChartView
+            android:id="@+id/chartElevation"
+            android:layout_width="match_parent"
+            android:layout_height="200dp" 
+            android:visibility="gone" />
+
         <Button
             android:layout_width="match_parent"
             android:layout_height="40dp"
