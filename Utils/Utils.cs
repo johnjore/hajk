@@ -139,5 +139,16 @@ namespace Utils
                 dialog.Show();
             }
         }
+
+        public static string KMvsM(double value)
+        {
+            if (value > 1000)
+            {
+                value /= 1000;
+                return value.ToString("N2") + "km";
+            }
+
+            return value.ToString("N0") + "m";
+        }
     }
 }

@@ -97,7 +97,9 @@ namespace hajk.Fragments
                 try
                 {
                     var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, GpsLocation, DistanceType.Kilometers)) * 1000;
-                    view.FindViewById<TextView>(Resource.Id.DistanceStraightLine_m).Text = "GPS to Map: " + DistanceStraightLine_m.ToString("N0") + "m";
+
+                    string v = Utils.Misc.KMvsM(DistanceStraightLine_m);
+                    view.FindViewById<TextView>(Resource.Id.DistanceStraightLine_m).Text = "GPS to Map: " + v;
                 }
                 catch (Exception ex)
                 {
@@ -128,10 +130,11 @@ namespace hajk.Fragments
 
                         //Add distance from GPSLocation to first waypoint. We might not be on-top of it. If we are, distance should be 0...
                         DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(p1, GpsLocation, DistanceType.Kilometers)) * 1000;
+                        string v = Utils.Misc.KMvsM(DistanceGPSLocationMapLocation_m);
 
                         view.FindViewById<TextView>(Resource.Id.AscentGPSLocationMapLocation_m).Text = "Ascent From GPS to Map: " + AscentGPSLocationMapLocation_m.ToString("N0") + "m";
                         view.FindViewById<TextView>(Resource.Id.DescentGPSLocationMapLocation_m).Text = "Descent From GPS to Map: " + DescentGPSLocationMapLocation_m.ToString("N0") + "m";
-                        view.FindViewById<TextView>(Resource.Id.DistanceGPSLocationMapLocation_m).Text = "Distance From GPS to Map: " + DistanceGPSLocationMapLocation_m.ToString("N0") + "m";
+                        view.FindViewById<TextView>(Resource.Id.DistanceGPSLocationMapLocation_m).Text = "Distance From GPS to Map: " + v;
                     }
                 }
                 catch (Exception ex)
@@ -159,7 +162,9 @@ namespace hajk.Fragments
                         var PositionStart = new GPXUtils.Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0);
 
                         var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, PositionStart, DistanceType.Kilometers)) * 1000;
-                        view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStart_m).Text = "Straight Distance From Start To Map: " + DistanceStraightLine_m.ToString("N0") + "m";
+                        string v = Utils.Misc.KMvsM(DistanceStraightLine_m);
+
+                        view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStart_m).Text = "Straight Distance From Start To Map: " + v;
                     }
                     catch (Exception ex)
                     {
@@ -172,7 +177,9 @@ namespace hajk.Fragments
                         var PositionStart = new GPXUtils.Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0);
 
                         var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(PositionStart, GpsLocation, DistanceType.Kilometers)) * 1000;
-                        view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStartGPS_m).Text = "Striaght Distance From Start To GPS: " + DistanceStraightLine_m.ToString("N0") + "m";
+                        string v = Utils.Misc.KMvsM(DistanceStraightLine_m);
+
+                        view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStartGPS_m).Text = "Striaght Distance From Start To GPS: " + v;
                     }
                     catch (Exception ex)
                     {
@@ -186,10 +193,11 @@ namespace hajk.Fragments
                         int TrackAscentFromStart_m = a.Item1;
                         int TrackDescentFromStart_m = a.Item2;
                         int TrackDistanceFromStart_m = a.Item3;
+                        string v = Utils.Misc.KMvsM(TrackDistanceFromStart_m);
 
                         view.FindViewById<TextView>(Resource.Id.AscentFromStart_m).Text = "Ascent From Start To GPS: " + TrackAscentFromStart_m.ToString("N0") + "m";
                         view.FindViewById<TextView>(Resource.Id.DescentFromStart_m).Text = "Descent From Start To GPS: " + TrackDescentFromStart_m.ToString("N0") + "m";
-                        view.FindViewById<TextView>(Resource.Id.TrackDistanceFromStart_m).Text = "Distance From Start To GPS: " + TrackDistanceFromStart_m.ToString("N0") + "m";
+                        view.FindViewById<TextView>(Resource.Id.TrackDistanceFromStart_m).Text = "Distance From Start To GPS: " + v;
                     }
                     catch (Exception ex)
                     {
