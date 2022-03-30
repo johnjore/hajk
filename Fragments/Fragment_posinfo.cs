@@ -283,25 +283,53 @@ namespace hajk.Fragments
                     //If Map Position, add label
                     if (i == map_index)
                     {
-                        entry.Color = SKColor.Parse("#000000"); //Black
+                        Color = SKColor.Parse("#800080"); //Purple
+                        entry.Color = Color;
                         entry.Label = "M";
                         entry.TextColor = SKColor.Parse("#000000"); //Black
+                    }
+
+                    //Start
+                    if (i == 0)
+                    {
+                        entry.Label = "0";
+                        entry.TextColor = SKColor.Parse("#000000"); //Black
+                    }
+
+                    //End
+                    if (i == route.rtept.Count - 1)
+                    {
+                        var t = Import.GPXtoRoute(route, false);
+                        entry.Label =  t.Item2.ToString("N1");
+                        entry.TextColor = SKColor.Parse("#000000"); //Purple
                     }
 
                     entries.Add(entry);
                 }
 
                 //Chart configuration
+                const string text = "0";
+                var typeface = SKFontManager.Default.MatchCharacter(text[0]);
+                var a = SKFontManager.Default;
+
                 var chart = new LineChart
                 {
                     LineMode = LineMode.Straight,
                     LineSize = 5,
                     PointMode = PointMode.None,
                     AnimationDuration = TimeSpan.FromSeconds(0),
-                    LabelOrientation = Microcharts.Orientation.Horizontal,
-                    LabelTextSize = 40,
+                    LabelOrientation = Microcharts.Orientation.Vertical, //Change to Horizontal when support for X axis is done
+                    LabelTextSize = 40.0f,
                     LabelColor = SKColor.Parse("#000000"),
-                    Margin = 0,
+                    Margin = 10,
+                    ShowYAxisLines = true,
+                    ShowYAxisText = true,
+                    YAxisTextPaint = new SKPaint()
+                    {
+                        Typeface = SKTypeface.Default,
+                        TextSize = 32.0f,
+                        TextAlign = SKTextAlign.Left,
+                    },
                     Entries = entries
                 };
 

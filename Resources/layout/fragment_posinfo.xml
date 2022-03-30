@@ -119,6 +119,8 @@
             android:layout_marginLeft="@dimen/layout_marginLeft" />
 
         <microcharts.droid.ChartView
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp"
             android:id="@+id/chartElevation"
             android:layout_width="match_parent"
             android:layout_height="200dp" 
