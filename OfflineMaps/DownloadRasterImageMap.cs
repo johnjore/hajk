@@ -34,23 +34,18 @@ namespace hajk
 
                 for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
                 {
-                    var leftBottom = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsLeft, map.BoundsBottom, zoom);
-                    var topRight = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsRight, map.BoundsTop, zoom);
+                    AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
+                    totalTilesCount += tiles.Count;
+                    Log.Information($"Need to download {tiles.Count} tiles for zoom level {zoom}");
+                }
 
-                    var minX = Math.Min(leftBottom.X, topRight.X);
-                    var maxX = Math.Max(leftBottom.X, topRight.X);
-                    var minY = Math.Min(leftBottom.Y, topRight.Y);
-                    var maxY = Math.Max(leftBottom.Y, topRight.Y);
-
-                    var tiles = new AwesomeTiles.TileRange(minX, minY, maxX, maxY, zoom);
-
-                    var tilesCount = tiles.Count;
-                    totalTilesCount += tilesCount;
-                    Log.Information($"Need to download {tilesCount} tiles for zoom level {zoom}");
-
+                for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
+                {
+                    AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
                     await DownloadTiles(tiles, zoom, MainActivity.OfflineDBConn, map.Id);
                 }
 
+                Import.progress = 999;
                 Log.Information($"Done downloading map for {map.Id}");
 
                 Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
@@ -93,6 +88,11 @@ namespace hajk
                 {
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
                     tiles oldTile = new tiles();
+
+                    //Update Progressbar
+                    Import.progress = (int)Math.Floor((decimal)done * 100 / totalTilesCount);
+                    Import.progressBarText.Text = $"{MainActivity.mContext.GetString(Resource.String.DownloadTiles)} {zoom}";
+                    Import.progressBarText.Invalidate();
 
                     for (int i = 0; i < 10; i++)
                     {
@@ -158,7 +158,6 @@ namespace hajk
 
                     Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{done}/{totalTilesCount}");
                     MBTilesWriter.WriteTile(conn, oldTile);
-
                 });
             }
             catch (Exception ex)

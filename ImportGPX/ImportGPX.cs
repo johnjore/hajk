@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -26,12 +27,21 @@ using GPXUtils;
 using Mapsui.Rendering.Skia;
 using Mapsui.Utilities;
 using Mapsui;
+using Android.Widget;
+using Android.Views;
+using Android.OS;
+using AndroidX.AppCompat.App;
 using AndroidX.Fragment.App;
 
 namespace hajk
 {
     public class Import
     {
+        /**///Why do we need this as global variables
+        public static Android.App.Dialog dialog = null;
+        public static int progress  = 0;
+        public static Google.Android.Material.TextView.MaterialTextView progressBarText = null;
+
         public static ILayer GetRoute()
         {
             var strRoute = string.Empty;
@@ -328,6 +338,20 @@ namespace hajk
 
         public static async void GetloadOfflineMap(boundsType bounds, int id, string strFilePath)
         {
+            //Progress bar
+            LayoutInflater layoutInflater = LayoutInflater.From(MainActivity.mContext);
+            View progressDialogBox = layoutInflater.Inflate(Resource.Layout.progressbardialog, null);
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.mContext);
+            alertDialogBuilder.SetView(progressDialogBox);
+            var progressBar = progressDialogBox.FindViewById<ProgressBar>(Resource.Id.progressBar);
+            progressBar.Max = 100;
+            progressBar.Progress = 0;
+            progressBarText = progressDialogBox.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText);
+            dialog = alertDialogBuilder.Create();
+            dialog.Show();
+            UpdatePB uptask = new UpdatePB(progressBar);
+            uptask.Execute(0);
+
             try
             {
                 Models.Map map = new Models.Map
@@ -975,6 +999,28 @@ namespace hajk
                 Outline = null,
                 Line = { Color = Color.FromString("Red"), Width = 4, PenStyle = PenStyle.Solid },
             };
+        }
+
+        public class UpdatePB : AsyncTask<int, int, string>
+        {
+            readonly ProgressBar mpb;
+
+            public UpdatePB(ProgressBar pb)
+            {
+                this.mpb = pb;
+            }
+
+            protected override string RunInBackground(params int[] @params)
+            {
+                while (progress < 100)
+                {
+                    Thread.Sleep(1000);
+                    mpb.SetProgress(progress, false);
+                }
+
+                Import.dialog.Cancel();
+                return "finish";
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using hajk.Models;
 using FFI.NVector;
 using SharpGPX.GPX1_1;
 
@@ -10,6 +11,30 @@ namespace GPXUtils
 {
     public static class GPXUtils
     {
+        public static AwesomeTiles.TileRange GetTileRange(int zoom, Map map)
+        {
+            try
+            {
+                var leftBottom = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsLeft, map.BoundsBottom, zoom);
+                var topRight = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsRight, map.BoundsTop, zoom);
+
+                var minX = Math.Min(leftBottom.X, topRight.X);
+                var maxX = Math.Max(leftBottom.X, topRight.X);
+                var minY = Math.Min(leftBottom.Y, topRight.Y);
+                var maxY = Math.Max(leftBottom.Y, topRight.Y);
+
+                var tiles = new AwesomeTiles.TileRange(minX, minY, maxX, maxY, zoom);
+                Serilog.Log.Information($"Need to download {tiles.Count} tiles for zoom level {zoom}");
+                return tiles;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"GPXUtils - GetTileRange()");
+            }
+
+            return null;
+        }
+
         public static (int, int, int) CalculateElevationDistanceData(wptTypeCollection Waypoints, int start_index, int end_index)
         {
             decimal ascent = 0;

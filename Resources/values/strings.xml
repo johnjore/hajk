@@ -79,4 +79,5 @@
 	<string name="Yes">Yes</string>
 	<string name="No">No</string>
 	<string name="Hide">Hide</string>
+	<string name="DownloadTiles">Downloading tiles for level</string>
 </resources>
