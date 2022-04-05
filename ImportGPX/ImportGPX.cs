@@ -40,7 +40,7 @@ namespace hajk
         /**///Why do we need this as global variables
         public static Android.App.Dialog dialog = null;
         public static int progress  = 0;
-        public static Google.Android.Material.TextView.MaterialTextView progressBarText = null;
+        public static Google.Android.Material.TextView.MaterialTextView progressBarText2 = null;
 
         public static ILayer GetRoute()
         {
@@ -133,7 +133,7 @@ namespace hajk
                 //Get Track and distance from GPX
                 var t = GPXtoRoute(track.ToRoutes()[0], true);
                 string mapTrack = t.Item1;
-                float mapDistanceKm = t.Item2;
+                float mapDistance_m = t.Item2;
                 int ascent = t.Item3;
                 int descent = t.Item4;
                 List<Position> LatLon = t.Item5;
@@ -177,7 +177,7 @@ namespace hajk
                 {
                     GPXType = GPXType.Track,
                     Name = track.name,
-                    Distance = mapDistanceKm,
+                    Distance = (mapDistance_m / 1000),
                     Ascent = ascent,
                     Descent = descent,
                     Description = track.desc,
@@ -214,7 +214,7 @@ namespace hajk
                 //Get Route and distance from GPX
                 var t = GPXtoRoute(route, true);
                 string mapRoute = t.Item1;
-                float mapDistanceKm = t.Item2;
+                float mapDistance_m = t.Item2;
                 int ascent = t.Item3;
                 int descent = t.Item4;
                 List<Position> LatLon = t.Item5;
@@ -258,7 +258,7 @@ namespace hajk
                 {
                     GPXType = GPXType.Route,
                     Name = route.name,
-                    Distance = mapDistanceKm,
+                    Distance = (mapDistance_m / 1000),
                     Ascent = ascent,
                     Descent = descent,
                     Description = route.desc,
@@ -346,7 +346,9 @@ namespace hajk
             var progressBar = progressDialogBox.FindViewById<ProgressBar>(Resource.Id.progressBar);
             progressBar.Max = 100;
             progressBar.Progress = 0;
-            progressBarText = progressDialogBox.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText);
+            var progressBarText1 = progressDialogBox.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText1);
+            progressBarText1.Text = $"{MainActivity.mContext.GetString(Resource.String.DownloadTiles)}";
+            progressBarText2 = progressDialogBox.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText2);
             dialog = alertDialogBuilder.Create();
             dialog.Show();
             UpdatePB uptask = new UpdatePB(progressBar);
@@ -534,7 +536,7 @@ namespace hajk
 
             try
             {
-                float mapDistanceKm = 0.0f;
+                float mapDistance_m = 0.0f;
                 var p = new PositionHandler();
                 var p2 = new Position(0, 0, 0);
                 List<Position> ListLatLon = new List<Position>();
@@ -556,7 +558,7 @@ namespace hajk
                             if (j == 0 && p2.Latitude != 0 && p2.Longitude != 0)
                             {
                                 var p1 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
-                                mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
+                                mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
 
                             //First leg
@@ -564,7 +566,7 @@ namespace hajk
                             {
                                 var p1 = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0);
                                 p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
-                                mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
+                                mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
 
                             //All other legs
@@ -572,7 +574,7 @@ namespace hajk
                             {
                                 var p1 = new Position((float)rtePteExt.rpt[j - 1].lat, (float)rtePteExt.rpt[j - 1].lon, 0);
                                 p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon,0);
-                                mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
+                                mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
                         }
 
@@ -588,7 +590,7 @@ namespace hajk
                         {
                             var p1 = new Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, 0);
                             p2 = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0);
-                            mapDistanceKm += (float)p.CalculateDistance(p1, p2, DistanceType.Kilometers);
+                            mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                         }
                     }
                 }
@@ -605,7 +607,7 @@ namespace hajk
                     descent = a.Item2;
                 }
 
-                return (mapRoute, mapDistanceKm, ascent, descent, ListLatLon);
+                return (mapRoute, mapDistance_m, ascent, descent, ListLatLon);
             }
             catch (Exception ex)
             {

@@ -67,7 +67,7 @@ namespace GPXUtils
                     var p1 = new Position((float)Waypoints[j].lat, (float)Waypoints[j + 1].lon, 0);
                     var p2 = new Position((float)Waypoints[j].lat, (float)Waypoints[j + 1].lon, 0);
                     var p = new PositionHandler();
-                    distance += (decimal)p.CalculateDistance(p1, p2, DistanceType.Kilometers) * 1000;
+                    distance += (decimal)p.CalculateDistance(p1, p2, DistanceType.Meters);
                 }
             }
             catch (Exception ex)
@@ -109,7 +109,8 @@ namespace GPXUtils
     public enum DistanceType
     {
         Miles = 0,
-        Kilometers = 1
+        Kilometers = 1,
+        Meters = 2,
     }
 
     public class Position
@@ -155,7 +156,7 @@ namespace GPXUtils
             angleConverter = new AngleConverter();
         }
 
-        public static double EarthRadiusInKilometers { get { return 6367.0; } }
+        public static double EarthRadiusInMeters { get { return 6371008.7714; } }
         public static double EarthRadiusInMiles { get { return 3956.0; } }        
 
         public double CalculateBearing(Position position1, Position position2)
@@ -175,7 +176,16 @@ namespace GPXUtils
 
         public double CalculateDistance(Position position1, Position position2, DistanceType distanceType)
         {
-            var R = (distanceType == DistanceType.Miles) ? EarthRadiusInMiles : EarthRadiusInKilometers;
+            double R = 0;
+            //R = (distanceType == DistanceType.Miles) ? EarthRadiusInMiles : EarthRadiusInKilometers;
+
+            switch (distanceType)
+            {
+                case DistanceType.Meters: { R = EarthRadiusInMeters; break; }
+                case DistanceType.Kilometers: { R = EarthRadiusInMeters * 1000; break; }
+                case DistanceType.Miles: { R = EarthRadiusInMiles; break; }
+            }
+           
             var dLat = angleConverter.ConvertDegreesToRadians(position2.Latitude) - angleConverter.ConvertDegreesToRadians(position1.Latitude);
             var dLon = angleConverter.ConvertDegreesToRadians(position2.Longitude) - angleConverter.ConvertDegreesToRadians(position1.Longitude);
             var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) + Math.Cos(angleConverter.ConvertDegreesToRadians(position1.Latitude)) * Math.Cos(angleConverter.ConvertDegreesToRadians(position2.Latitude)) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
@@ -183,7 +193,7 @@ namespace GPXUtils
             var distance = c * R;
 
             return Math.Round(distance, 2);
-        }
+        }        
 
         public double CalculateDistance(Position position1, Xamarin.Essentials.Location location2, DistanceType distanceType)
         {
@@ -206,7 +216,15 @@ namespace GPXUtils
 
         public double CalculateRhumbDistance(Position position1, Position position2, DistanceType distanceType)
         {
-            var R = (distanceType == DistanceType.Miles) ? EarthRadiusInMiles : EarthRadiusInKilometers;
+            double R = 0;
+            //R = (distanceType == DistanceType.Miles) ? EarthRadiusInMiles : EarthRadiusInKilometers;
+
+            switch (distanceType)
+            {
+                case DistanceType.Meters: { R = EarthRadiusInMeters; break; }
+                case DistanceType.Kilometers: { R = EarthRadiusInMeters * 1000; break; }
+                case DistanceType.Miles: { R = EarthRadiusInMiles; break; }
+            }
             var lat1 = angleConverter.ConvertDegreesToRadians(position1.Latitude);
             var lat2 = angleConverter.ConvertDegreesToRadians(position2.Latitude);
             var dLat = angleConverter.ConvertDegreesToRadians(position2.Latitude - position1.Latitude);

@@ -11,6 +11,7 @@ using SQLite;
 using hajk.Models;
 using Xamarin.Essentials;
 using Mapsui.Layers;
+using Android.Views;
 
 namespace hajk
 {
@@ -91,8 +92,8 @@ namespace hajk
 
                     //Update Progressbar
                     Import.progress = (int)Math.Floor((decimal)done * 100 / totalTilesCount);
-                    Import.progressBarText.Text = $"{MainActivity.mContext.GetString(Resource.String.DownloadTiles)} {zoom}";
-                    Import.progressBarText.Invalidate();
+                    Import.progressBarText2.Text = $"{done} of {totalTilesCount}";
+                    Import.progressBarText2.Invalidate();
 
                     for (int i = 0; i < 10; i++)
                     {

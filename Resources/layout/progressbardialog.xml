@@ -3,14 +3,20 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
+    
     <TextView
         android:layout_gravity="center"
-        android:paddingTop="40dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" 
-        android:id="@+id/progressBarText" />
+        android:id="@+id/progressBarText1" />
+
+    <TextView
+        android:layout_gravity="center"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" 
+        android:id="@+id/progressBarText2" />
 
     <ProgressBar
         style="?android:attr/progressBarStyleHorizontal"

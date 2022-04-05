@@ -96,7 +96,7 @@ namespace hajk.Fragments
                 //Distance Straight Line from GPSLocation to MapPosition
                 try
                 {
-                    var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, GpsLocation, DistanceType.Kilometers)) * 1000;
+                    var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, GpsLocation, DistanceType.Meters));
 
                     string v = Utils.Misc.KMvsM(DistanceStraightLine_m);
                     view.FindViewById<TextView>(Resource.Id.DistanceStraightLine_m).Text = "GPS to Map: " + v;
@@ -129,7 +129,7 @@ namespace hajk.Fragments
                         var DistanceGPSLocationMapLocation_m = a.Item3;
 
                         //Add distance from GPSLocation to first waypoint. We might not be on-top of it. If we are, distance should be 0...
-                        DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(p1, GpsLocation, DistanceType.Kilometers)) * 1000;
+                        DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(p1, GpsLocation, DistanceType.Meters));
                         string v = Utils.Misc.KMvsM(DistanceGPSLocationMapLocation_m);
 
                         view.FindViewById<TextView>(Resource.Id.AscentGPSLocationMapLocation_m).Text = "Ascent From GPS to Map: " + AscentGPSLocationMapLocation_m.ToString("N0") + "m";
@@ -161,7 +161,7 @@ namespace hajk.Fragments
                     {
                         var PositionStart = new GPXUtils.Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0);
 
-                        var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, PositionStart, DistanceType.Kilometers)) * 1000;
+                        var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, PositionStart, DistanceType.Meters));
                         string v = Utils.Misc.KMvsM(DistanceStraightLine_m);
 
                         view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStart_m).Text = "Straight Distance From Start To Map: " + v;
@@ -176,7 +176,7 @@ namespace hajk.Fragments
                     {
                         var PositionStart = new GPXUtils.Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0);
 
-                        var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(PositionStart, GpsLocation, DistanceType.Kilometers)) * 1000;
+                        var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(PositionStart, GpsLocation, DistanceType.Meters));
                         string v = Utils.Misc.KMvsM(DistanceStraightLine_m);
 
                         view.FindViewById<TextView>(Resource.Id.DistanceStraightLineFromStartGPS_m).Text = "Striaght Distance From Start To GPS: " + v;
@@ -192,8 +192,9 @@ namespace hajk.Fragments
                         var a = GPXUtils.GPXUtils.CalculateElevationDistanceData(RecordTrack.trackGpx.Waypoints, 0, RecordTrack.trackGpx.Waypoints.Count);
                         int TrackAscentFromStart_m = a.Item1;
                         int TrackDescentFromStart_m = a.Item2;
-                        int TrackDistanceFromStart_m = a.Item3;
+                        int TrackDistanceFromStart_m = a.Item3;                        
                         string v = Utils.Misc.KMvsM(TrackDistanceFromStart_m);
+                        Serilog.Log.Debug("Item3: '" + a.Item3.ToString() + "', TrackDistanceFromStart_m: '" + TrackDistanceFromStart_m.ToString() + "', v: '" + v + "'");
 
                         view.FindViewById<TextView>(Resource.Id.AscentFromStart_m).Text = "Ascent From Start To GPS: " + TrackAscentFromStart_m.ToString("N0") + "m";
                         view.FindViewById<TextView>(Resource.Id.DescentFromStart_m).Text = "Descent From Start To GPS: " + TrackDescentFromStart_m.ToString("N0") + "m";
@@ -300,7 +301,7 @@ namespace hajk.Fragments
                     if (i == route.rtept.Count - 1)
                     {
                         var t = Import.GPXtoRoute(route, false);
-                        entry.Label =  t.Item2.ToString("N1");
+                        entry.Label =  (t.Item2 / 1000).ToString("N1");
                         entry.TextColor = SKColor.Parse("#000000"); //Purple
                     }
 
