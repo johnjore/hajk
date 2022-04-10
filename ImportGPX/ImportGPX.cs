@@ -39,7 +39,7 @@ namespace hajk
     {
         /**///Why do we need this as global variables
         public static Android.App.Dialog dialog = null;
-        public static int progress  = 0;
+        public static int progress = 0;
         public static Google.Android.Material.TextView.MaterialTextView progressBarText2 = null;
 
         public static ILayer GetRoute()
@@ -56,8 +56,8 @@ namespace hajk
                     if (gpxData == null)
                         return;
 
-                    //Only ask if we have routes and/or tracks and/or Waypoints to import
-                    if (gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0)
+                    //Only ask if we have routes and/or tracks and/or Waypoints to import, and we have internet access. Most don't have a local tile server
+                    if ((gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0) && Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
                     {
                         //Does the user want maps downloaded for offline usage?                
                         Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
@@ -99,7 +99,7 @@ namespace hajk
             return null;
         }
 
-        public static void AddGPXWayPoint(wptType wptType, bool DownloadOfflineMap) 
+        public static void AddGPXWayPoint(wptType wptType, bool DownloadOfflineMap)
         {
             try
             {
@@ -417,7 +417,7 @@ namespace hajk
                 Serilog.Log.Error(ex, $"Import - AddTracksToMap()");
             }
         }
-    
+
         public static void AddPOIToMap()
         {
             try
@@ -573,7 +573,7 @@ namespace hajk
                             if (j >= 1)
                             {
                                 var p1 = new Position((float)rtePteExt.rpt[j - 1].lat, (float)rtePteExt.rpt[j - 1].lon, 0);
-                                p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon,0);
+                                p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
                                 mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
                         }
@@ -598,13 +598,17 @@ namespace hajk
                 //Convert the list to a string
                 string mapRoute = ConvertLatLonListToLineString(ListLatLon);
 
-                //Get elevation data
-                if (getAscentDescent)
+                //Get elevation data? (Requires internet access)
+                if (getAscentDescent && Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
                 {
                     ListLatLon = GetElevationData(ListLatLon);
-                    var a = CalculateAscentDescent(ListLatLon);
-                    ascent = a.Item1;
-                    descent = a.Item2;
+
+                    if (ListLatLon != null)
+                    {
+                        var a = CalculateAscentDescent(ListLatLon);
+                        ascent = a.Item1;
+                        descent = a.Item2;
+                    }
                 }
 
                 return (mapRoute, mapDistance_m, ascent, descent, ListLatLon);
@@ -666,6 +670,11 @@ namespace hajk
                         }
 
                         var a = DownloadElevationData(LatLon);
+
+                        //Do we have elevation datae?
+                        if (a == null)
+                            return ListLatLon;
+
                         ElevationData = ElevationData.Concat(a).ToList();
                         LatLon = String.Empty;
                     }
@@ -682,6 +691,11 @@ namespace hajk
                 if (LatLon != String.Empty)
                 {
                     var a = DownloadElevationData(LatLon);
+
+                    //Do we have elevation datae?
+                    if (a == null)
+                        return ListLatLon;
+
                     ElevationData = ElevationData.Concat(a).ToList();
                 }
 
@@ -692,19 +706,23 @@ namespace hajk
                 Log.Error(ex, $"Import - GetElevationData()");
             }
 
-            return null;
+            return ListLatLon;
         }
 
         private static List<Position> DownloadElevationData(string LatLon)
         {
             var Pre = $"https://api.opentopodata.org/v1/aster30m?locations=";
             var Post = $"&interpolation=bilinear&nodata_value=null";
-            List <Position> ElevationData = new List<Position>();
+            List<Position> ElevationData = new List<Position>();
 
             try
             {
                 //Get the data
                 var eleJSON = DownloadElevationDataAsync(Pre + LatLon + Post);
+
+                //Do we have elevation data?
+                if (eleJSON == null)
+                    return null;
 
                 //Convert from string to JSON
                 Models.Elevation.ElevationData elevationData = JsonSerializer.Deserialize<Models.Elevation.ElevationData>(eleJSON);
@@ -822,7 +840,7 @@ namespace hajk
                 }
 
                 GpxClass gpx = GpxClass.FromXml(contents);
-                var bounds = gpx.GetBounds();                
+                var bounds = gpx.GetBounds();
 
                 string r = (gpx.Routes.Count == 1) ? "route" : "routes";
                 string t = (gpx.Tracks.Count == 1) ? "track" : "tracks";
@@ -846,7 +864,8 @@ namespace hajk
         {
             var features = new Features();
 
-            try {
+            try
+            {
                 var GPSlineString = (LineString)Geometry.GeomFromText(strRoute);
 
                 //Lines between each waypoint

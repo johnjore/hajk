@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hajk", "hajk.csproj", "{DA2
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPXTest", "..\GPXTest\GPXTest\GPXTest.csproj", "{A5EE7455-9A2D-4BC7-9F19-D002D99309E4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeoTiffCOGConsole", "Libraries\GeoTiffCOG\GeoTiffCOGConsole\GeoTiffCOGConsole.csproj", "{CF1DD1D1-29E6-455B-8382-46494C0DFE3E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeoTiffCOG", "Libraries\GeoTiffCOG\GeoTiffCOG\GeoTiffCOG.csproj", "{AFA8AAEF-79C9-49BA-96F7-31E8079A20E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +27,14 @@ Global
 		{A5EE7455-9A2D-4BC7-9F19-D002D99309E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5EE7455-9A2D-4BC7-9F19-D002D99309E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5EE7455-9A2D-4BC7-9F19-D002D99309E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF1DD1D1-29E6-455B-8382-46494C0DFE3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF1DD1D1-29E6-455B-8382-46494C0DFE3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF1DD1D1-29E6-455B-8382-46494C0DFE3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF1DD1D1-29E6-455B-8382-46494C0DFE3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFA8AAEF-79C9-49BA-96F7-31E8079A20E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFA8AAEF-79C9-49BA-96F7-31E8079A20E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFA8AAEF-79C9-49BA-96F7-31E8079A20E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFA8AAEF-79C9-49BA-96F7-31E8079A20E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
