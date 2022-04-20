@@ -35,7 +35,7 @@ using SharpGPX;
 
 namespace hajk
 {
-    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
+    [Activity(Name = "no.johnjore.hajk.MainActivity", Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
     public class MainActivity : AppCompatActivity, NavigationView.IOnNavigationItemSelectedListener
     {
         public static Activity mContext;
@@ -72,7 +72,6 @@ namespace hajk
             Android.Manifest.Permission.AccessBackgroundLocation,
         };
 
-
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -106,7 +105,7 @@ namespace hajk
                 .WriteTo.File(_Path, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 2, outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}{NewLine}"
                 ).CreateLogger();
             Log.Information($"Logging to '{_Path}'");
-            
+
             try
             {
                 SetContentView(Resource.Layout.activity_main);
