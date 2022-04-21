@@ -50,45 +50,8 @@ namespace hajk
             {
                 try
                 {
-                    bool DownloadOfflineMap = false;
                     GpxClass gpxData = await PickAndParse();
-
-                    if (gpxData == null)
-                        return;
-
-                    //Only ask if we have routes and/or tracks and/or Waypoints to import, and we have internet access. Most don't have a local tile server
-                    if ((gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0) && Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
-                    {
-                        //Does the user want maps downloaded for offline usage?                
-                        Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
-                        if (await msg1.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
-                        {
-                            DownloadOfflineMap = true;
-                        }
-                    }
-
-                    foreach (rteType route in gpxData.Routes)
-                    {
-                        AddGPXRoute(route, DownloadOfflineMap);
-                    }
-
-                    foreach (trkType track in gpxData.Tracks)
-                    {
-                        AddGPXTrack(track, DownloadOfflineMap);
-                    }
-
-                    foreach (wptType wptType in gpxData.Waypoints)
-                    {
-                        AddGPXWayPoint(wptType, DownloadOfflineMap);
-                    }
-
-                    //Display Imported POIs, regardless of settings. Importing with nothing visible will confuse users
-                    if (gpxData.Waypoints.Count > 0)
-                    {
-                        Import.AddPOIToMap();
-                    }
-
-                    Log.Information($"Done importing gpx file");
+                    ProcessGPX(gpxData);
                 }
                 catch (Exception ex)
                 {
@@ -99,6 +62,109 @@ namespace hajk
             return null;
         }
 
+        public static void GPXImportfromIntent(Android.Content.Intent intent)
+        {
+            try
+            {
+                var action = intent.Action;
+                if ((action.CompareTo("android.intent.action.VIEW") == 0) && (intent.Scheme.CompareTo("content") == 0) && !String.IsNullOrEmpty(intent.DataString))
+                {
+                    var data = intent.DataString;
+                    var uri = intent.Data;
+
+                    Serilog.Log.Verbose("Content intent detected: " + action + " : " + data.ToString() + " : " + intent.Type.ToString() + " : " + uri.Path.ToString());
+                    Stream stream = MainActivity.mContext.ContentResolver.OpenInputStream(uri);
+
+                    string fileContents = String.Empty;
+                    using (var reader = new StreamReader(stream))
+                    {
+                        fileContents = reader.ReadToEndAsync().Result;
+                    }
+
+                    if (fileContents == null)
+                        return;
+
+                    if (fileContents.Length == 0)
+                        return;
+
+                    GpxClass gpxData = GpxClass.FromXml(fileContents);
+
+                    if (gpxData == null)
+                        return;
+
+                    string r = (gpxData.Routes.Count == 1) ? "route" : "routes";
+                    string t = (gpxData.Tracks.Count == 1) ? "track" : "tracks";
+                    string p = (gpxData.Waypoints.Count == 1) ? "POI" : "POIs";
+
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        Show_Dialog msg = new Show_Dialog(MainActivity.mContext);
+                        if (await msg.ShowDialog($"{uri.LastPathSegment}", $"Found {gpxData.Routes.Count} {r}, {gpxData.Tracks.Count} {t} and {gpxData.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                        {
+                            //Only ask if we have routes and/or tracks and/or Waypoints to import, and we have internet access. Most don't have a local tile server
+                            if ((gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0) && Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
+                            {
+                                Import.ProcessGPX(gpxData);
+                            }
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Import - GPXImportfromIntent()");
+            }
+        }
+
+        public static async void ProcessGPX(GpxClass gpxData)
+        {
+            try
+            {
+                bool DownloadOfflineMap = false;
+
+                if (gpxData == null)
+                    return;
+
+                //Only ask if we have routes and/or tracks and/or Waypoints to import, and we have internet access. Most don't have a local tile server
+                if ((gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0) && Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
+                {
+                    //Does the user want maps downloaded for offline usage?                
+                    Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                    if (await msg1.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                    {
+                        DownloadOfflineMap = true;
+                    }
+                }
+
+                foreach (rteType route in gpxData.Routes)
+                {
+                    AddGPXRoute(route, DownloadOfflineMap);
+                }
+
+                foreach (trkType track in gpxData.Tracks)
+                {
+                    AddGPXTrack(track, DownloadOfflineMap);
+                }
+
+                foreach (wptType wptType in gpxData.Waypoints)
+                {
+                    AddGPXWayPoint(wptType, DownloadOfflineMap);
+                }
+
+                //Display Imported POIs, regardless of settings. Importing with nothing visible will confuse users
+                if (gpxData.Waypoints.Count > 0)
+                {
+                    Import.AddPOIToMap();
+                }
+
+                Log.Information($"Done importing gpx file");
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Import - GetRoute()");
+            };
+        }
+    
         public static void AddGPXWayPoint(wptType wptType, bool DownloadOfflineMap)
         {
             try

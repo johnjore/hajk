@@ -235,6 +235,9 @@ namespace hajk
             //Disable battery optimization
             SetDozeOptimization();
 
+            //Check if passed GPX file as intent
+            Import.GPXImportfromIntent(Intent);
+
             base.OnStart();
         }
 
