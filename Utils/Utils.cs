@@ -17,22 +17,29 @@ namespace Utils
         {
             try
             {
-                if (Battery.EnergySaverStatus == EnergySaverStatus.On)
-                {
-                    using (var alert = new AlertDialog.Builder(hajk.MainActivity.mContext))
-                    {
-                        alert.SetTitle(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledTitle));
-                        alert.SetMessage(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledDescription));
-                        alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
-                        var dialog = alert.Create();
-                        dialog.Show();
-                    }
-                }
+                //Subscribe to events
+                Battery.EnergySaverStatusChanged += OnEnergySaverStatusChanged;
+
+                //Check if enabled or not
+                OnEnergySaverStatusChanged(null, null);
             }
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, $"Utils - BatterySaveModeNotification()");
             }
+        }
+
+        private static void OnEnergySaverStatusChanged(object sender, EnergySaverStatusChangedEventArgs e)
+        {
+            if (Battery.EnergySaverStatus == EnergySaverStatus.Off)
+                return;
+
+            using var alert = new AlertDialog.Builder(hajk.MainActivity.mContext);
+            alert.SetTitle(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledTitle));
+            alert.SetMessage(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledDescription));
+            alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
+            var dialog = alert.Create();
+            dialog.Show();
         }
 
         public static string ConvertBitMapToString(Bitmap bitmap)
