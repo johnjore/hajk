@@ -7,11 +7,34 @@ using Mapsui.Layers;
 using Android.Graphics;
 using Android.Util;
 using AndroidX.AppCompat.App;
+using Xamarin.Essentials;
 
 namespace Utils
 {
     public class Misc
     {
+        public static void BatterySaveModeNotification()
+        {
+            try
+            {
+                if (Battery.EnergySaverStatus == EnergySaverStatus.On)
+                {
+                    using (var alert = new AlertDialog.Builder(hajk.MainActivity.mContext))
+                    {
+                        alert.SetTitle(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledTitle));
+                        alert.SetMessage(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledDescription));
+                        alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
+                        var dialog = alert.Create();
+                        dialog.Show();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Utils - BatterySaveModeNotification()");
+            }
+        }
+
         public static string ConvertBitMapToString(Bitmap bitmap)
         {
             try

@@ -87,7 +87,7 @@ namespace hajk
             }
 
             //Permissions2
-            while (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.AccessBackgroundLocation) != (int)Android.Content.PM.Permission.Granted)
+            if (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.AccessBackgroundLocation) != (int)Android.Content.PM.Permission.Granted)
             {
                 RequestPermissions(permission2, 0);
             }
@@ -171,7 +171,10 @@ namespace hajk
 
                 Log.Debug($"Save width for TrackRouteMap (Needs fixing...)");
                 /**///Save width... There must be a better way...
-                wTrackRouteMap = Resources.DisplayMetrics.WidthPixels;                
+                wTrackRouteMap = Resources.DisplayMetrics.WidthPixels;
+
+                Log.Debug($"Notify user if battery save mode is enabled?");
+                Utils.Misc.BatterySaveModeNotification();
             }
             catch (Exception ex)
             {
