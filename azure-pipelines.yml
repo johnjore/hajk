@@ -19,6 +19,12 @@ steps:
   inputs:
     restoreSolution: '**/*.sln'
 
+- task: android-manifest-version@1
+  inputs:
+    sourcePath: './Properties/AndroidManifest.xml'
+    versionCodeOption: 'timestamp'
+    printFile: true
+
 - task: XamarinAndroid@1
   inputs:
     projectFile: '**/hajk.csproj'
@@ -27,7 +33,7 @@ steps:
     msbuildVersionOption: 'latest'
     jdkOption: 'JDKVersion'
     jdkVersionOption: '1.11'
-    
+
 - task: AndroidSigning@3
   inputs:
       apkFiles: '$(outputDirectory)\*.apk'
