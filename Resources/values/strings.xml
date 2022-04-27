@@ -83,4 +83,7 @@
 	<string name="DownloadTiles">Downloading tile </string>
 	<string name="BatterySaveModeEnabledTitle">Battery Save Mode</string>
 	<string name="BatterySaveModeEnabledDescription">Battery Save Mode is Enabled. GPS will not update in background</string>
+	<string name="Misc">Misc</string>
+	<string name="About">About</string>
+	<string name="Build">Build</string>
 </resources>

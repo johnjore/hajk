@@ -476,6 +476,15 @@ namespace hajk
                     SwitchFragment("Fragment_gpx", item);
                 }
             }
+            else if (id == Resource.Id.about)
+            {
+                using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(MainActivity.mContext);
+                alert.SetTitle(MainActivity.mContext.Resources.GetString(Resource.String.About));
+                alert.SetMessage(MainActivity.mContext.Resources.GetString(Resource.String.Build) + ": " + AppInfo.Version.ToString() );
+                alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
+                var dialog = alert.Create();
+                dialog.Show();
+            }
 
             DrawerLayout drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             drawer.CloseDrawer(GravityCompat.Start);

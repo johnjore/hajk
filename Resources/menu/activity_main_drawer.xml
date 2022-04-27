@@ -37,4 +37,12 @@
 		</menu>
 	</item>
 	
+	<item android:title="@string/Misc">
+		<menu>
+			<item
+                android:id="@+id/about"
+                android:icon="@android:drawable/ic_dialog_info"
+                android:title="@string/About" />
+	    </menu>
+    </item>
 </menu>
