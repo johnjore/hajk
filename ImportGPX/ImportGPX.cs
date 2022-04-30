@@ -420,7 +420,7 @@ namespace hajk
             dialog.Show();
             UpdatePB uptask = new UpdatePB(progressBar);
             uptask.Execute(0);
-            
+
             try
             {
                 Models.Map map = new Models.Map
@@ -1106,7 +1106,6 @@ namespace hajk
                 }
 
                 Import.dialog.Cancel();
-                progress = 0;
                 return "finish";
             }
         }

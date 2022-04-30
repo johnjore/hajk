@@ -51,6 +51,7 @@ namespace hajk
 
                 Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
                 await msg3.ShowDialog($"Done", $"GPX Import Completed", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                Import.progress = 0;
 
                 LoadOSMLayer();
             }
@@ -92,8 +93,10 @@ namespace hajk
 
                     //Update Progressbar
                     Import.progress = (int)Math.Floor((decimal)done * 100 / totalTilesCount);
-                    Import.progressBarText2.Text = $"{done} of {totalTilesCount}";
-                    Import.progressBarText2.Invalidate();
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        Import.progressBarText2.Text = $"{done} of {totalTilesCount}";
+                    });
 
                     for (int i = 0; i < 10; i++)
                     {
