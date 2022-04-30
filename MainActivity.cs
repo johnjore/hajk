@@ -81,6 +81,11 @@ namespace hajk
                 RequestPermissions(permissions, 0);
             }
 
+            //In debug mode, we use the Downloads folder for easy access, but app will only see files it creates. Uninstalling and re-installing same app, will not provide access to the old database files
+#if DEBUG
+            RequestPermissions(new string[] { Android.Manifest.Permission.ManageExternalStorage }, 0);
+#endif
+
             ServicePointManager.ServerCertificateValidationCallback = (message, certificate, chain, sslPolicyErrors) => true;
 
             //Preferences.Clear();
