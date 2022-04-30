@@ -50,7 +50,7 @@ namespace hajk
                 Log.Information($"Done downloading map for {map.Id}");
 
                 Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
-                await msg3.ShowDialog($"Done", $"GPX Import Completed", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                await msg3.ShowDialog($"Done", $"GPX Import Completed", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
 
                 LoadOSMLayer();
             }
@@ -329,7 +329,7 @@ namespace hajk
 
                 var m = MainActivity.mContext;
                 Show_Dialog msg = new Show_Dialog(m);
-                msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapExportCompleted), Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapExportCompleted), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
 
                 LoadOSMLayer();
             }
@@ -405,7 +405,7 @@ namespace hajk
 
                         var m = MainActivity.mContext;
                         Show_Dialog msg = new Show_Dialog(m);
-                        await msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapTilesImported), Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                        await msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapTilesImported), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
                     }
                 }
                 catch (Exception ex)

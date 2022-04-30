@@ -99,7 +99,7 @@ namespace hajk
                     MainThread.BeginInvokeOnMainThread(async () =>
                     {
                         Show_Dialog msg = new Show_Dialog(MainActivity.mContext);
-                        if (await msg.ShowDialog($"{uri.LastPathSegment}", $"Found {gpxData.Routes.Count} {r}, {gpxData.Tracks.Count} {t} and {gpxData.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                        if (await msg.ShowDialog($"{uri.LastPathSegment}", $"Found {gpxData.Routes.Count} {r}, {gpxData.Tracks.Count} {t} and {gpxData.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                         {
                             //Only ask if we have routes and/or tracks and/or Waypoints to import, and we have internet access. Most don't have a local tile server
                             if ((gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0) && Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
@@ -130,7 +130,7 @@ namespace hajk
                 {
                     //Does the user want maps downloaded for offline usage?                
                     Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
-                    if (await msg1.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                    if (await msg1.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                     {
                         DownloadOfflineMap = true;
                     }
@@ -914,7 +914,7 @@ namespace hajk
                 string p = (gpx.Waypoints.Count == 1) ? "POI" : "POIs";
 
                 Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
-                if (await msg1.ShowDialog($"{result.FileName}", $"Found {gpx.Routes.Count} {r}, {gpx.Tracks.Count} {t} and {gpx.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) != Show_Dialog.MessageResult.YES)
+                if (await msg1.ShowDialog($"{result.FileName}", $"Found {gpx.Routes.Count} {r}, {gpx.Tracks.Count} {t} and {gpx.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) != Show_Dialog.MessageResult.YES)
                     return null;
 
                 return gpx;
@@ -1102,7 +1102,6 @@ namespace hajk
             {
                 while (progress < 100)
                 {
-                    Thread.Sleep(1000);
                     mpb.SetProgress(progress, false);
                 }
 

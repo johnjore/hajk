@@ -196,7 +196,7 @@ namespace hajk.Adapter
                                 Log.Information($"Delete route '{vh.Name.Text}'");
 
                                 Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
-                                if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}' ?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                                if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}' ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                                 {
                                     //Remove map tiles from Offline DB
                                     DownloadRasterImageMap.PurgeMapDB(vh.Id);

@@ -81,7 +81,7 @@ namespace hajk
                 Location.UpdateLocationFeature();
 
                 Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
-                if (await msg1.ShowDialog($"Track", $"Save Track ?", Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.NO)
+                if (await msg1.ShowDialog($"Track", $"Save Track ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.NO)
                 {
                     return;
                 }
@@ -241,7 +241,7 @@ namespace hajk
                         var c = MainActivity.mContext.Resources.GetString(Resource.String.Minutes);
 
                         Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
-                        if (await msg1.ShowDialog(a, b + " " + OffTrackRouteSnooze_m.ToString() + " " + c, Android.Resource.Attribute.DialogIcon, true, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                        if (await msg1.ShowDialog(a, b + " " + OffTrackRouteSnooze_m.ToString() + " " + c, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                         {
                             int freq_s = int.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
                             RecordTrack.Timer_WarnIfOffRoute.Change(OffTrackRouteSnooze_m * 60 * 1000, freq_s * 1000);
