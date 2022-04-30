@@ -416,10 +416,11 @@ namespace hajk
             progressBarText1.Text = $"{MainActivity.mContext.GetString(Resource.String.DownloadTiles)}";
             progressBarText2 = progressDialogBox.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText2);
             dialog = alertDialogBuilder.Create();
+            dialog.SetCancelable(false);
             dialog.Show();
             UpdatePB uptask = new UpdatePB(progressBar);
             uptask.Execute(0);
-
+            
             try
             {
                 Models.Map map = new Models.Map
@@ -1106,6 +1107,7 @@ namespace hajk
                 }
 
                 Import.dialog.Cancel();
+                progress = 0;
                 return "finish";
             }
         }
