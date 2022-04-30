@@ -55,7 +55,7 @@ namespace hajk
         public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
 #endif
 
-        readonly string[] permission1 =
+        readonly string[] permissions =
         {
             Android.Manifest.Permission.AccessCoarseLocation,
             Android.Manifest.Permission.AccessFineLocation,
@@ -67,11 +67,6 @@ namespace hajk
             Android.Manifest.Permission.Vibrate,
         };
 
-        readonly string[] permission2 =
-        {
-            Android.Manifest.Permission.AccessBackgroundLocation,
-        };
-
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -79,17 +74,11 @@ namespace hajk
             //Init
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
 
-            //Permissions1
+            //Permissions
             while (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.AccessFineLocation) != (int)Android.Content.PM.Permission.Granted ||
                    AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.WriteExternalStorage) != (int)Android.Content.PM.Permission.Granted)
             {
-                RequestPermissions(permission1, 0);
-            }
-
-            //Permissions2
-            if (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.AccessBackgroundLocation) != (int)Android.Content.PM.Permission.Granted)
-            {
-                RequestPermissions(permission2, 0);
+                RequestPermissions(permissions, 0);
             }
 
             ServicePointManager.ServerCertificateValidationCallback = (message, certificate, chain, sslPolicyErrors) => true;
@@ -175,6 +164,9 @@ namespace hajk
 
                 Log.Debug($"Notify user if battery save mode is enabled?");
                 Utils.Misc.BatterySaveModeNotification();
+
+                Log.Debug($"Notify user if location permission does not allow background collection");
+                Utils.Misc.LocationPermissionNotification();
             }
             catch (Exception ex)
             {

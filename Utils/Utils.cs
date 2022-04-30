@@ -42,6 +42,25 @@ namespace Utils
             dialog.Show();
         }
 
+        public static void LocationPermissionNotification()
+        {
+            if (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(hajk.MainActivity.mContext, Android.Manifest.Permission.AccessBackgroundLocation) != (int) Android.Content.PM.Permission.Granted)
+            {
+                hajk.MainActivity.mContext.RequestPermissions( new string[] { Android.Manifest.Permission.AccessBackgroundLocation }, 0);
+            }
+
+            if (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(hajk.MainActivity.mContext, Android.Manifest.Permission.AccessBackgroundLocation) != (int)Android.Content.PM.Permission.Granted)
+            {
+                using var alert = new Android.App.AlertDialog.Builder(hajk.MainActivity.mContext);
+                alert.SetTitle(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.LocationPermissionTitle));
+                alert.SetMessage(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.LocationPermissionDescription));
+                alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
+                var dialog = alert.Create();
+                dialog.SetCancelable(false);
+                dialog.Show();
+            }
+        }
+
         public static string ConvertBitMapToString(Bitmap bitmap)
         {
             try
