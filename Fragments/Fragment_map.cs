@@ -135,11 +135,24 @@ namespace hajk.Fragments
                     Log.Debug($"Route Object. GPS Position: " + b.ToString());
 
                     var activity = (FragmentActivity)MainActivity.mContext;
+
+                    //Remove the old fragment, before creating a new one. Maybe replace this with update, instead of delete and create... /**/
+                    var fragment = activity.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo");
+                    if (fragment != null)
+                    {
+                        activity.SupportFragmentManager.BeginTransaction()
+                            .Remove((AndroidX.Fragment.App.Fragment)activity.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo"))
+                            .Commit();
+                        activity.SupportFragmentManager.ExecutePendingTransactions();
+                    }
+
+                    //Create fragment
                     activity.SupportFragmentManager.BeginTransaction()
                         .Add(Resource.Id.fragment_container, new Fragment_posinfo(), "Fragment_posinfo")
                         .Commit();
                     activity.SupportFragmentManager.ExecutePendingTransactions();
 
+                    //Show fragment
                     activity.SupportFragmentManager.BeginTransaction()
                         .Show(activity.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo"))
                         .Commit();

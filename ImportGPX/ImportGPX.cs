@@ -420,7 +420,7 @@ namespace hajk
             dialog.Show();
             UpdatePB uptask = new UpdatePB(progressBar);
             uptask.Execute(0);
-
+            
             try
             {
                 Models.Map map = new Models.Map
@@ -534,6 +534,9 @@ namespace hajk
                     {
                         case "Drinking Water":
                             svg = "hajk.Images.Drinking-water.svg";
+                            break;
+                        case "Campground":
+                            svg = "hajk.Images.Tent.svg";
                             break;
                     }
 
