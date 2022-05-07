@@ -1,71 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-  <PreferenceCategory android:title="General">
-    <SwitchPreference
-		android:title="@string/TrackRecordings"
-		android:summary="@string/TrackRecordingsDescription"
-		android:key="DrawTrackOnGui"
-		android:defaultValue="true" />
+	<PreferenceCategory android:title="General">
+		<SwitchPreference
+			android:title="@string/TrackRecordings"
+			android:summary="@string/TrackRecordingsDescription"
+			android:key="DrawTrackOnGui"
+			android:defaultValue="true" />
 
-    <EditTextPreference
-		android:title="@string/UpdateGPSLocation"
-		android:summary="@string/HowFrequentlyDoesGPSLocationUpdate"
-		android:key="UpdateGPSLocation"
-		android:inputType="numberDecimal"
-		android:digits="0123456789"
-		android:defaultValue="5" />
+		<EditTextPreference
+			android:title="@string/UpdateGPSLocation"
+			android:summary="@string/HowFrequentlyDoesGPSLocationUpdate"
+			android:key="UpdateGPSLocation"
+			android:inputType="numberDecimal"
+			android:digits="0123456789"
+			android:defaultValue="5" />
 
-    <EditTextPreference
-		android:title="@string/TrackRecording"
-		android:summary="@string/HowFrequentlyTrackRecording"
-		android:key="freq"
-		android:inputType="numberDecimal"
-		android:digits="0123456789"
-		android:defaultValue="5" />
+		<EditTextPreference
+			android:title="@string/TrackRecording"
+			android:summary="@string/HowFrequentlyTrackRecording"
+			android:key="freq"
+			android:inputType="numberDecimal"
+			android:digits="0123456789"
+			android:defaultValue="5" />
 
-	<SwitchPreference
-		android:title="@string/EnableOffrouteWarning"
-		android:summary="@string/EnableOffrouteWarningDescription"
-		android:key="EnableOffRouteWarning"
-		android:defaultValue="true" />
+		  <SwitchPreference
+		  android:title="@string/DisplayPOI"
+		  android:summary="@string/DisplayPOIDescription"
+		  android:key="DrawPOIOnGui"
+		  android:defaultValue="true" />
 
-	<EditTextPreference
-		android:title="@string/OffRouteNotification"
-		android:summary="@string/OffRouteNotificationDescription"
-		android:key="OffTrackDistanceWarning_m"
-		android:inputType="numberDecimal"
-		android:digits="0123456789"
-		android:defaultValue="100" />
+		  <SwitchPreference
+			  android:title="@string/DisplayTracks"
+			  android:summary="@string/DisplayTracksDescription"
+			  android:key="DrawTracksOnGui"
+			  android:defaultValue="true" />
 
-	<EditTextPreference
-		android:title="@string/OffRouteNotification_s"
-		android:summary="@string/OffRouteNotification_sDescription"
-		android:key="freq_s_OffRoute"
-		android:inputType="numberDecimal"
-		android:digits="0123456789"
-		android:defaultValue="60" />
+		  <SwitchPreference
+			  android:title="@string/MapLockNorthTitle"
+			  android:summary="@string/MapLockNorthDescription"
+			  android:key="MapLockNorth"
+			  android:defaultValue="false" />
+	</PreferenceCategory>
+	
+	<PreferenceCategory android:title="Off-Route">
+		<SwitchPreference
+			android:title="@string/EnableOffrouteWarning"
+			android:summary="@string/EnableOffrouteWarningDescription"
+			android:key="EnableOffRouteWarning"
+			android:defaultValue="true" />
 
-	<EditTextPreference
-		android:title="@string/OffRouteSnooze_m"
-		android:summary="@string/OffRouteSnooze_mDescription"
-		android:key="OffTrackRouteSnooze_m"
-		android:inputType="numberDecimal"
-		android:digits="0123456789"
-		android:defaultValue="5" />
+		<EditTextPreference
+			android:title="@string/OffRouteNotification"
+			android:summary="@string/OffRouteNotificationDescription"
+			android:key="OffTrackDistanceWarning_m"
+			android:inputType="numberDecimal"
+			android:digits="0123456789"
+			android:defaultValue="100" />
 
-	<SwitchPreference
-		android:title="@string/DisplayPOI"
-		android:summary="@string/DisplayPOIDescription"
-		android:key="DrawPOIOnGui"
-		android:defaultValue="true" />
+		<EditTextPreference
+			android:title="@string/OffRouteNotification_s"
+			android:summary="@string/OffRouteNotification_sDescription"
+			android:key="freq_s_OffRoute"
+			android:inputType="numberDecimal"
+			android:digits="0123456789"
+			android:defaultValue="60" />
 
-	<SwitchPreference
-		android:title="@string/DisplayTracks"
-		android:summary="@string/DisplayTracksDescription"
-		android:key="DrawTracksOnGui"
-		android:defaultValue="true" />
-
-  </PreferenceCategory>
+		<EditTextPreference
+			android:title="@string/OffRouteSnooze_m"
+			android:summary="@string/OffRouteSnooze_mDescription"
+			android:key="OffTrackRouteSnooze_m"
+			android:inputType="numberDecimal"
+			android:digits="0123456789"
+			android:defaultValue="5" />
+	</PreferenceCategory>
 </PreferenceScreen>
 
 

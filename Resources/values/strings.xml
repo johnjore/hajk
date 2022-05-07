@@ -88,4 +88,6 @@
 	<string name="Build">Build</string>
 	<string name="LocationPermissionTitle">GPS Location Permission</string>
 	<string name="LocationPermissionDescription">Permissions are preventing app from obtaining location data when in background or not front app</string>
+	<string name="MapLockNorthTitle">Lock Map with North Up</string>
+	<string name="MapLockNorthDescription">Disable rotation of map</string>
 </resources>

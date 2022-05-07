@@ -44,6 +44,10 @@ namespace hajk.Fragments
                 };
                 mapControl.Map = map;
 
+                bool LockMapRotation = Preferences.Get("MapLockNorth", false);
+                Log.Verbose($"Set map rotation (lock or not):" + LockMapRotation.ToString());
+                map.RotationLock = LockMapRotation;
+
                 Log.Debug($"Cache downloaded tiles");
                 DownloadRasterImageMap.LoadOSMLayer();
 

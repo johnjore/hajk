@@ -1,22 +1,13 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Net;
-using System.Linq;
-using System.Reflection;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Android.App;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
-using Android.Widget;
 using Android.Content;
 using Android.Content.Res;
-using Android.Support.V7.Widget;
 using AndroidX.AppCompat.App;
-using AndroidX.AppCompat.Widget;
-using AndroidX.Fragment;
 using AndroidX.Fragment.App;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
@@ -26,7 +17,6 @@ using Google.Android.Material.Snackbar;
 using Serilog;
 using Xamarin.Essentials;
 using hajk.Data;
-using hajk.Adapter;
 using hajk.Fragments;
 using SQLite;
 using SharpGPX;
@@ -50,7 +40,7 @@ namespace hajk
         bool isLocationServiceStarted = false;
 
 #if DEBUG
-        public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
+        public static string rootPath = Android.App.Application.Context.GetExternalFilesDir(null).AbsolutePath;
 #else
         public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
 #endif

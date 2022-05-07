@@ -18,6 +18,7 @@ namespace hajk
         public readonly static int OffRouteSnooze_m = 5;                //Default alarm snooze in minutes
         public readonly static bool DrawPOIonGui_b = true;              //Draw POI on GUI at Startup
         public readonly static bool DrawTracksOnGui_b = true;           //Draw Tracks on GUI at Startup
+        public readonly static bool DisableMapRotate_b = false;         //Disable Map Rotate. Lock North up
 
         //Runtime only
         public const string POIDB = "POI.db3";                          //Database to store all POI (WayPoints)

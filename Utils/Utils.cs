@@ -18,16 +18,16 @@ namespace Utils
         {
             try
             {
-                Serilog.Log.Error($"Start()");
+                Serilog.Log.Verbose($"Checking if '{dbFile}' exists");
                 // Only if file does not exist
                 if (!File.Exists(dbFile))
                 {
+                    Serilog.Log.Verbose($"Extracting embedded world map");
                     using (FileStream writeStream = new FileStream(dbFile, FileMode.OpenOrCreate, FileAccess.Write))
                     {
                         activity.Assets.Open(PrefsActivity.CacheDB).CopyTo(writeStream);
                     }
                 }
-                Serilog.Log.Error($"End()");
             }
             catch (Exception ex)
             {
