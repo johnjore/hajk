@@ -40,7 +40,7 @@ namespace hajk
         bool isLocationServiceStarted = false;
 
 #if DEBUG
-        public static string rootPath = Android.App.Application.Context.GetExternalFilesDir(null).AbsolutePath;
+        public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;        
 #else
         public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
 #endif
