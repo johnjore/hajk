@@ -102,6 +102,12 @@ namespace hajk
 
             try
             {
+                Log.Debug($"Save context for future usage");
+                mContext = this;
+
+                //Extract initial map, if not there
+                Utils.Misc.ExtractInitialMap(mContext, rootPath + "/" + PrefsActivity.CacheDB);
+
                 SetContentView(Resource.Layout.activity_main);
                 AndroidX.AppCompat.Widget.Toolbar toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
                 SetSupportActionBar(toolbar);
@@ -159,9 +165,6 @@ namespace hajk
                 var FragmentsTransaction = SupportFragmentManager.BeginTransaction();
                 FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragment_map(), "Fragment_map");
                 FragmentsTransaction.Commit();
-
-                Log.Debug($"Save context for future usage");
-                mContext = this;
 
                 Log.Debug($"Save width for TrackRouteMap (Needs fixing...)");
                 /**///Save width... There must be a better way...

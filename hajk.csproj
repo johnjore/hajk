@@ -108,9 +108,9 @@
     <None Include="Resources\AboutResources.txt" />
     <None Include="Properties\AndroidManifest.xml" />
     <None Include="Assets\AboutAssets.txt" />
-    <AndroidResource Include="Resources\raw\CacheDB.mbtiles">
+    <AndroidAsset Include="Assets\CacheDB.mbtiles">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidResource>
+    </AndroidAsset>
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\activity_main.xml">

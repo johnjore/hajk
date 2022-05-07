@@ -8,11 +8,33 @@ using Android.Graphics;
 using Android.Util;
 using AndroidX.AppCompat.App;
 using Xamarin.Essentials;
+using hajk;
 
 namespace Utils
 {
     public class Misc
     {
+        public static void ExtractInitialMap(Android.App.Activity activity, string dbFile)
+        {
+            try
+            {
+                Serilog.Log.Error($"Start()");
+                // Only if file does not exist
+                if (!File.Exists(dbFile))
+                {
+                    using (FileStream writeStream = new FileStream(dbFile, FileMode.OpenOrCreate, FileAccess.Write))
+                    {
+                        activity.Assets.Open(PrefsActivity.CacheDB).CopyTo(writeStream);
+                    }
+                }
+                Serilog.Log.Error($"End()");
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Utils - ExtractInitialMap()");
+            }
+        }
+
         public static void BatterySaveModeNotification()
         {
             try
