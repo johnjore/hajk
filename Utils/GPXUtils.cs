@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using hajk.Models;
 using FFI.NVector;
+using SharpGPX;
 using SharpGPX.GPX1_1;
 
 //https://danielsaidi.com/blog/2011/02/04/calculate-distance-and-bearing-between-two-positions
@@ -24,7 +25,32 @@ namespace GPXUtils
                 var maxY = Math.Max(leftBottom.Y, topRight.Y);
 
                 var tiles = new AwesomeTiles.TileRange(minX, minY, maxX, maxY, zoom);
-                Serilog.Log.Information($"Need to download {tiles.Count} tiles for zoom level {zoom}");
+                //Serilog.Log.Information($"Need to download {tiles.Count} tiles for zoom level {zoom}");
+                return tiles;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"GPXUtils - GetTileRange()");
+            }
+
+            return null;
+        }
+
+        public static AwesomeTiles.TileRange GetTileRange(int zoom, GpxClass gpx)
+        {
+            try
+            {
+                var bounds = gpx.GetBounds();
+                var leftBottom = AwesomeTiles.Tile.CreateAroundLocation((double)bounds.minlat, (double)bounds.minlon, zoom);
+                var topRight = AwesomeTiles.Tile.CreateAroundLocation((double)bounds.maxlat, (double)bounds.maxlon, zoom);
+
+                var minX = Math.Min(leftBottom.X, topRight.X);
+                var maxX = Math.Max(leftBottom.X, topRight.X);
+                var minY = Math.Min(leftBottom.Y, topRight.Y);
+                var maxY = Math.Max(leftBottom.Y, topRight.Y);
+
+                var tiles = new AwesomeTiles.TileRange(minX, minY, maxX, maxY, zoom);
+                //Serilog.Log.Information($"Need to download {tiles.Count} tiles for zoom level {zoom}");
                 return tiles;
             }
             catch (Exception ex)

@@ -21,15 +21,17 @@ namespace hajk
         public readonly static bool DisableMapRotate_b = false;         //Disable Map Rotate. Lock North up
 
         //Runtime only
+        public const string COGGeoTiffServer = "https://elevation-tiles-prod.s3.amazonaws.com/geotiff/"; //Cloud Optimized GeoTiff Server
+        public const string ElevationData = "ElevationData.tif";        //Elevation data
         public const string POIDB = "POI.db3";                          //Database to store all POI (WayPoints)
         public const string RouteDB = "Routes.db3";                     //Database to store all routes
         public const string CacheDB = "CacheDB.mbtiles";                //Database to store offline tiles
         public const string logFile = "hajk_.txt";                      //Log file
         public const int MinZoom = 0;                                   //MinZoom level to use
-        public const int MaxZoom = 17;                                  //MaxZoom level to use
+        public const int MaxZoom = 16;                                  //MaxZoom level to use
         public readonly static bool RecordingTrack = false;             //True when recording a Track
         public readonly static bool TrackLocation = false;              //True when map is continiously moved to center on our location
-        public readonly static int OfflineMaxAge = 30;                  //Don't refresh tiles until this threashhold in days
+        public readonly static int OfflineMaxAge = 30;                  //Don't refresh tiles until this threashhold in days        
 
         //Location Service
         public const int SERVICE_RUNNING_NOTIFICATION_ID = 10000;

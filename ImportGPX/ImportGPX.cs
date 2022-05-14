@@ -316,6 +316,12 @@ namespace hajk
                 }
                 newGPX.Routes.Add(route);
 
+                if (DownloadOfflineMap)
+                {
+                    //Elevation.GetElevationData(newGPX);
+                }
+                //return;
+
                 //Create thumbsize map
                 string ImageBase64String = CreateThumbprintMap(newGPX);
 
@@ -324,7 +330,7 @@ namespace hajk
                 {
                     GPXType = GPXType.Route,
                     Name = route.name,
-                    Distance = (mapDistance_m / 1000),
+                    Distance = mapDistance_m,
                     Ascent = ascent,
                     Descent = descent,
                     Description = route.desc,
@@ -347,7 +353,7 @@ namespace hajk
                 {
                     GetloadOfflineMap(route.GetBounds(), r.Id, null);
                 }
-            }
+}
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, $"Import - AddGPXRoute()");
