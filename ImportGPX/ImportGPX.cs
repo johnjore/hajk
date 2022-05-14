@@ -280,7 +280,7 @@ namespace hajk
                 //Get Route and distance from GPX
                 var t = GPXtoRoute(route, true);
                 string mapRoute = t.Item1;
-                float mapDistance_m = t.Item2;
+                float mapDistance_km = t.Item2;
                 int ascent = t.Item3;
                 int descent = t.Item4;
                 List<Position> LatLon = t.Item5;
@@ -330,7 +330,7 @@ namespace hajk
                 {
                     GPXType = GPXType.Route,
                     Name = route.name,
-                    Distance = mapDistance_m,
+                    Distance = mapDistance_km / 1000,
                     Ascent = ascent,
                     Descent = descent,
                     Description = route.desc,
