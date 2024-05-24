@@ -39,7 +39,15 @@
 	
 	<item android:title="@string/Misc">
 		<menu>
-			<item
+      <item
+                android:id="@+id/backup"
+                android:icon="@android:drawable/ic_dialog_info"
+                android:title="@string/Backup" />
+      <item
+                android:id="@+id/db_maintenance"
+                android:icon="@android:drawable/ic_dialog_info"
+                android:title="@string/DBMaintenance" />
+      <item
                 android:id="@+id/about"
                 android:icon="@android:drawable/ic_dialog_info"
                 android:title="@string/About" />

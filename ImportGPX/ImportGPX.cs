@@ -318,7 +318,7 @@ namespace hajk
 
                 if (DownloadOfflineMap)
                 {
-                    //Elevation.GetElevationData(newGPX);
+                    Elevation.GetElevationData(newGPX);
                 }
                 //return;
 

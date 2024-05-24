@@ -20,6 +20,11 @@ using hajk.Data;
 using hajk.Fragments;
 using SQLite;
 using SharpGPX;
+using hajk.Models;
+using GeoTiffCOG.Struture;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 //Location service: https://github.com/shernandezp/XamarinForms.LocationService
 
@@ -40,7 +45,12 @@ namespace hajk
         bool isLocationServiceStarted = false;
 
 #if DEBUG
-        public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;        
+        //public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
+        public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+        //storage/emulated/0/Dowload/CacheDB.mbtiles
+        //sdcard/Download/Routes.db3
+        //sdcard/download/POI.db3
+
 #else
         public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
 #endif
@@ -359,7 +369,7 @@ namespace hajk
                 var item_nav = nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
 
                 if (item_nav.TitleFormatted.ToString() == Resources.GetString(Resource.String.PauseRecord_Track))
-                { 
+                {
                     //Pause the timer
                     RecordTrack.Timer_Order.Change(Timeout.Infinite, Timeout.Infinite);
 
@@ -426,7 +436,7 @@ namespace hajk
                 {
                     NavigationView nav = mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
                     item = nav.Menu.FindItem(Resource.Id.nav_tracks);
-                    
+
                     if (item.TitleFormatted.ToString() == Resources.GetString(Resource.String.Map))
                     {
                         SwitchFragment("Fragment_map", item);
@@ -470,10 +480,61 @@ namespace hajk
             {
                 using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(MainActivity.mContext);
                 alert.SetTitle(MainActivity.mContext.Resources.GetString(Resource.String.About));
-                alert.SetMessage(MainActivity.mContext.Resources.GetString(Resource.String.Build) + ": " + AppInfo.Version.ToString() );
-                alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
+                alert.SetMessage(MainActivity.mContext.Resources.GetString(Resource.String.Build) + ": " + AppInfo.Version.ToString());
+                alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
                 var dialog = alert.Create();
                 dialog.Show();
+            }
+            else if (id == Resource.Id.backup)
+            {
+                //Backup tiles DB to Download folder. Change to pick folder?
+                string DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
+
+                //MBTiles
+                SQLiteConnection DBBackupConnection = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
+                string backupFileName = DownLoadFolder + "/Backup-" + Resources.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".mbtiles";
+                DBBackupConnection.Backup(backupFileName);
+                DBBackupConnection.Close();
+
+                //Route DB
+                DBBackupConnection = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.RouteDB);
+                backupFileName = DownLoadFolder + "/Backup-" + Resources.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".db3";
+                DBBackupConnection.Backup(backupFileName);
+                DBBackupConnection.Close();
+
+                //Message
+                using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(MainActivity.mContext);
+                alert.SetTitle(MainActivity.mContext.Resources.GetString(Resource.String.Backup));
+                alert.SetMessage(MainActivity.mContext.Resources.GetString(Resource.String.Done));
+                alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
+                var dialog = alert.Create();
+                dialog.Show();
+            }
+            else if (id == Resource.Id.db_maintenance)
+            {
+                Task.Run(() =>
+                {
+                    SQLiteConnection DBMaintenanceConnection = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
+                    int totalRecordsBefore = DBMaintenanceConnection.Table<tiles>().Count();
+                    Log.Debug($"Total Records: {totalRecordsBefore}");
+
+                    //Delete entries without a blob
+                    DBMaintenanceConnection.Table<tiles>().Where(x => x.tile_data == null).Delete();
+                    int totalRecordsEmptyBlob = DBMaintenanceConnection.Table<tiles>().Count();
+                    Log.Debug($"Total Records after empty blob: {totalRecordsEmptyBlob}");
+
+                    //Remove duplicates
+                    foreach (tiles dbTile in DBMaintenanceConnection.Table<tiles>().Reverse())
+                    {
+                        Log.Debug($"{dbTile.id}");
+                        DBMaintenanceConnection.Table<tiles>().Where(x => x.zoom_level == dbTile.zoom_level && x.tile_column == dbTile.tile_column && x.tile_row == dbTile.tile_row && x.id != dbTile.id).Delete();
+                    }
+                    int totalRecordsDuplicate = DBMaintenanceConnection.Table<tiles>().Count();
+
+                    Log.Debug($"Total Records: {totalRecordsBefore}");
+                    Log.Debug($"Total Records after empty blob: {totalRecordsEmptyBlob}");
+                    Log.Debug($"Total Records after duplicate: {totalRecordsDuplicate}");
+                });
             }
 
             DrawerLayout drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);

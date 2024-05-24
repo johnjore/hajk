@@ -18,7 +18,7 @@ namespace hajk
     class DownloadRasterImageMap
     {
         static int done = 0;
-        static int totalTilesCount = 0;
+        static int missingTilesCount = 0;
 
         public static async Task DownloadMap(Models.Map map)
         {
@@ -31,19 +31,20 @@ namespace hajk
 
                 //Reset counters for next download
                 done = 0;
-                totalTilesCount = 0;
+                missingTilesCount = 0;
 
                 for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
                 {
                     AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
-                    totalTilesCount += tiles.Count;
-                    Log.Information($"Need to download {tiles.Count} tiles for zoom level {zoom}");
+                    int tilesCount = await CountMissingTiles(tiles, zoom, MainActivity.OfflineDBConn, map.Id);
+                    missingTilesCount += tilesCount;
+                    Log.Information($"Need to download '{tilesCount}' tiles for zoom level '{zoom}', total to download '{missingTilesCount}'");
                 }
 
                 for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
                 {
                     AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
-                    await DownloadTiles(tiles, zoom, MainActivity.OfflineDBConn, map.Id);
+                    await DownloadTiles(tiles, zoom, MainActivity.OfflineDBConn, map.Id, missingTilesCount);
                 }
 
                 Import.progress = 999;
@@ -61,7 +62,31 @@ namespace hajk
             }
         }
 
-        private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id)
+        private static async Task<int> CountMissingTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id)
+        {
+            int CountMissingTiles = 0;
+
+            await range.ParallelForEachAsync(async tile =>
+            {
+                try
+                {
+                    int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
+                    tiles dbTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
+                    if ((dbTile == null) || ((DateTime.UtcNow - dbTile.createDate).TotalDays >= PrefsActivity.OfflineMaxAge))
+                    {
+                        CountMissingTiles++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Crashed: {ex}");
+                }
+            });
+
+            return CountMissingTiles;
+        }
+
+        private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id, int intmissingTiles)
         {
             string OSMServer = Preferences.Get("OSMServer", PrefsActivity.OSMServer_s);
 
@@ -89,79 +114,99 @@ namespace hajk
                 await range.ParallelForEachAsync(async tile =>
                 {
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
-                    tiles oldTile = new tiles();
+                    tiles newTile = new tiles();
 
                     //Update Progressbar
-                    Import.progress = (int)Math.Floor((decimal)done * 100 / totalTilesCount);
+                    Import.progress = (int)Math.Floor((decimal)done * 100 / intmissingTiles);
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
-                        Import.progressBarText2.Text = $"{done} of {totalTilesCount}";
+                        Import.progressBarText2.Text = $"{done} of {intmissingTiles}";
                     });
 
                     for (int i = 0; i < 10; i++)
                     {
+                        tiles oldTile = null;
                         try
                         {
                             oldTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
                             if ((oldTile != null) && ((DateTime.UtcNow - oldTile.createDate).TotalDays < PrefsActivity.OfflineMaxAge))
                             {
+                                //Tile is upto date. No need to download new blob. Break out of for-loop
                                 break;
                             }
                         }
                         catch (Exception ex)
                         {
                             Log.Error($"Crashed: {ex}");
+                            break;
                         }
 
                         try
                         {
                             var url = OSMServer + $"{zoom}/{tile.X}/{tile.Y}.png";
                             var data = await DownloadImageAsync(url);
-                            oldTile = new tiles()
-                            {
-                                tile_data = data,
-                                tile_row = tmsY,
-                                tile_column = tile.X,
-                                zoom_level = zoom,
-                                createDate = DateTime.UtcNow,
-                            };
 
-                            if (oldTile.tile_data != null)
+                            if (data != null)
                             {
+                                //Update / create tile
+                                newTile.tile_data = data;
+                                newTile.tile_row = tmsY;
+                                newTile.tile_column = tile.X;
+                                newTile.zoom_level = zoom;
+                                newTile.createDate = DateTime.UtcNow;
+
+                                //Old data to keep?
+                                if (oldTile != null)
+                                {
+                                    newTile.id = oldTile.id;
+                                    newTile.reference = oldTile.reference;
+
+                                    if (oldTile.reference == string.Empty || oldTile.reference == null)
+                                    {
+                                         newTile.reference = id.ToString();
+                                    }
+                                    else if (newTile.reference.Contains(id.ToString()))
+                                    {
+                                        //Do nothing if already added as a reference
+                                    }
+                                    else
+                                    {
+                                        newTile.reference += "," + id.ToString();
+                                    }
+                                }
+                                else
+                                {
+                                    newTile.id = 0;
+                                    newTile.reference = id.ToString();
+                                }
+                                
+                                //Break out of loop as we have an updatd blob
                                 break;
                             }
-
-                            Thread.Sleep(10000);
                         }
                         catch (Exception ex)
                         {
                             Log.Error($"Crashed: {ex}");
+                            break;
                         }
                     }
 
-                    if (oldTile.tile_data == null)
+                    //Update progress counter as the tile is processed, even if unsuccessful
+                    ++done;
+
+                    //If no blob, exit here
+                    if (newTile.tile_data == null)
                     {
                         return;
                     }
 
-                    ++done;
-
-                    if (oldTile.reference == null)
+                    if (MBTilesWriter.WriteTile(conn, newTile) == 0)
                     {
-                        oldTile.reference = id.ToString();
-                    }
-                    else
+                        Log.Error($"Failed to add rows to database");
+                    } else
                     {
-                        if (oldTile.reference.Contains(id.ToString()))
-                        {
-                            return;
-                        }
-
-                        oldTile.reference += "," + id.ToString();
+                        Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{done}/{missingTilesCount}");
                     }
-
-                    Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{done}/{totalTilesCount}");
-                    MBTilesWriter.WriteTile(conn, oldTile);
                 });
             }
             catch (Exception ex)
@@ -174,7 +219,7 @@ namespace hajk
         {
             HttpClientHandler clientHandler = new HttpClientHandler
             {
-                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }
+                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }  
             };
             var _httpClient = new HttpClient(clientHandler)
             {

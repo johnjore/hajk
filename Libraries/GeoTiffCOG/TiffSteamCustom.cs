@@ -110,12 +110,10 @@ namespace GeoTiffCOG
                     int length;
                     using (var webResponse = (HttpWebResponse)webRequest.GetResponse())
                     {
-                        using (var webStream = webResponse.GetResponseStream())
+                        using var webStream = webResponse.GetResponseStream();
+                        while ((length = webStream.Read(buffer, 0, buffer.Length)) != 0)
                         {
-                            while ((length = webStream.Read(buffer, 0, buffer.Length)) != 0)
-                            {
-                                ms.Write(buffer, 0, length);
-                            }
+                            ms.Write(buffer, 0, length);
                         }
                     }
 

@@ -41,7 +41,7 @@ namespace hajk
                     return;
 
                 //Merge to single tile
-                //MergeElevationTiles(FileNames);
+                MergeElevationTiles(FileNames);
 
                 //Convert Lat/Lon to Mercator
                 float lat = -37.94607f;
@@ -92,11 +92,11 @@ namespace hajk
                         }
 
                         short bps = value[0].ToShort();
-                        if (bps != 1)
+                        /*if (bps != 1)
                         {
                             Serilog.Log.Error("Unsupported number of bits per sample");
                             return;
-                        }
+                        }*/
 
                         value = image.GetField(TiffTag.SAMPLESPERPIXEL);
                         if (value == null)
@@ -116,6 +116,9 @@ namespace hajk
                         int stripSize = image.StripSize();
                         int stripMax = image.NumberOfStrips();
                         Serilog.Log.Information($"stripSize: {stripSize}. stripMax: {stripMax}");
+
+                        //Tiff image = Tiff.Open(file, "r"))
+                        image.Close();
                     }
 
                     //files.Add(File.ReadAllBytes(file));
@@ -164,7 +167,7 @@ namespace hajk
                             if (data != null)
                                 break;
 
-                            Thread.Sleep(10000);
+                            //Thread.Sleep(10000);
                         }
 
                         FileNames.Add(LocalFileName);

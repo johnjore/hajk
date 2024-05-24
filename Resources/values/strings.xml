@@ -7,7 +7,9 @@
     <string name="action_settings">Settings</string>
     <string name="show_on_map">Show on map</string>
     <string name="export_gpx">Export GPX</string>
-	<string name="export_map">Export map</string>
+  <string name="Backup">Backup</string>
+  <string name="DBMaintenance">DBMaintenance</string>  
+  <string name="export_map">Export map</string>
 	<string name="save_offline_map">Save offline map</string>
     <string name="follow_route">Follow route</string>
     <string name="delete_route">Delete route</string>

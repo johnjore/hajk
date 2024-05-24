@@ -69,8 +69,10 @@ namespace hajk
                 {
                     return sqliteConnection.Insert(mbtile);
                 }
-
-                return sqliteConnection.Update(mbtile);
+                else
+                {
+                    return sqliteConnection.Update(mbtile); ;
+                }
             }
             catch (Exception ex)
             {

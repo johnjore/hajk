@@ -31,7 +31,7 @@ namespace hajk
         public const int MaxZoom = 16;                                  //MaxZoom level to use
         public readonly static bool RecordingTrack = false;             //True when recording a Track
         public readonly static bool TrackLocation = false;              //True when map is continiously moved to center on our location
-        public readonly static int OfflineMaxAge = 30;                  //Don't refresh tiles until this threashhold in days        
+        public readonly static int OfflineMaxAge = 90;                  //Don't refresh tiles until this threashhold in days        
 
         //Location Service
         public const int SERVICE_RUNNING_NOTIFICATION_ID = 10000;
