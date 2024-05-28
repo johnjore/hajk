@@ -198,8 +198,8 @@ namespace hajk.Adapter
                                 Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
                                 if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}' ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                                 {
-                                    //Remove map tiles from Offline DB
-                                    DownloadRasterImageMap.PurgeMapDB(vh.Id);
+                                    //Remove map tiles
+                                    MBTilesWriter.PurgeMapDB(vh.Id);
 
                                     //Remove from route DB
                                     _ = RouteDatabase.DeleteRouteAsync(vh.Id);
@@ -283,19 +283,20 @@ namespace hajk.Adapter
                                 alertbuilder2.SetCancelable(false)
                                 .SetPositiveButton(Resource.String.Submit, delegate
                                 {
-                                    string mbtTilesPath = Path.Combine(MainActivity.rootPath, userdata2.Text);
+                                    string DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
+                                    string mbtTilesPath = DownLoadFolder + "/" + userdata2.Text;
 
                                     var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
                                     GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
 
                                     if (vh.GPXType == GPXType.Track)
                                     {
-                                        Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, mbtTilesPath);
+                                        Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, mbtTilesPath, false);
                                     }
 
                                     if (vh.GPXType == GPXType.Route)
                                     {
-                                        Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, mbtTilesPath);
+                                        Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, mbtTilesPath, false);
                                     }
                                 })
                                 .SetNegativeButton(Resource.String.Cancel, delegate
@@ -319,7 +320,7 @@ namespace hajk.Adapter
                                 string mapRouteGPX = string.Empty;
                                 if (vh.GPXType == GPXType.Track)
                                 {
-                                    Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null);
+                                    Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null, true);
 
                                     mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0], false).Item1;
                                     Import.AddRouteToMap(mapRouteGPX, GPXType.Track, true);
@@ -327,7 +328,7 @@ namespace hajk.Adapter
 
                                 if (vh.GPXType == GPXType.Route)
                                 {
-                                    Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null);
+                                    Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null, false);
 
                                     mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Routes[0], false).Item1;
                                     Import.AddRouteToMap(mapRouteGPX, GPXType.Route, true);

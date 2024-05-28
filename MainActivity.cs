@@ -25,6 +25,7 @@ using GeoTiffCOG.Struture;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 
 //Location service: https://github.com/shernandezp/XamarinForms.LocationService
 
@@ -37,7 +38,6 @@ namespace hajk
         public static RouteDatabase routedatabase;
         private Intent BatteryOptimizationsIntent;
         public static int wTrackRouteMap = 0;
-        public static SQLiteConnection OfflineDBConn = null;
         public static GpxClass ActiveRoute = null;                  // Active Route / Track for calculations, inc Off-Route detection
 
         //Location Service
@@ -47,10 +47,6 @@ namespace hajk
 #if DEBUG
         //public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
         public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
-        //storage/emulated/0/Dowload/CacheDB.mbtiles
-        //sdcard/Download/Routes.db3
-        //sdcard/download/POI.db3
-
 #else
         public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
 #endif
@@ -89,6 +85,8 @@ namespace hajk
             ServicePointManager.ServerCertificateValidationCallback = (message, certificate, chain, sslPolicyErrors) => true;
 
             //Preferences.Clear();
+            //new FileInfo(rootPath + "/" + PrefsActivity.CacheDB).Delete();
+
 
             //Logging
             string _Path = System.IO.Path.Combine(rootPath, Preferences.Get("logFile", PrefsActivity.logFile));
@@ -271,8 +269,8 @@ namespace hajk
                 //Cleanup Log file
                 Log.CloseAndFlush();
 
-                if (OfflineDBConn != null)
-                    OfflineDBConn.Close();
+                //if (TileCache.MbTileCache.sqlConn != null)
+                //  TileCache.MbTileCache.sqlConn.Close();
 
                 //Re-enable battery optimization
                 //ClearDozeOptimization();
@@ -328,7 +326,7 @@ namespace hajk
             else if (id == Resource.Id.nav_offlinemap)
             {
                 //Import .mbtiles file
-                DownloadRasterImageMap.ImportMapTiles();
+                MBTilesWriter.ImportMapTiles();
             }
             else if (id == Resource.Id.nav_recordtrack)
             {
@@ -491,13 +489,14 @@ namespace hajk
                 string DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
 
                 //MBTiles
-                SQLiteConnection DBBackupConnection = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
+                SQLiteConnection DBBackupConnection = TileCache.MbTileCache.sqlConn;
                 string backupFileName = DownLoadFolder + "/Backup-" + Resources.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".mbtiles";
                 DBBackupConnection.Backup(backupFileName);
                 DBBackupConnection.Close();
 
                 //Route DB
-                DBBackupConnection = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.RouteDB);
+                string dbPath = Path.Combine(rootPath, Preferences.Get("RouteDB", PrefsActivity.RouteDB));
+                DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
                 backupFileName = DownLoadFolder + "/Backup-" + Resources.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".db3";
                 DBBackupConnection.Backup(backupFileName);
                 DBBackupConnection.Close();
@@ -514,26 +513,30 @@ namespace hajk
             {
                 Task.Run(() =>
                 {
-                    SQLiteConnection DBMaintenanceConnection = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
-                    int totalRecordsBefore = DBMaintenanceConnection.Table<tiles>().Count();
-                    Log.Debug($"Total Records: {totalRecordsBefore}");
+                    SQLiteConnection DBMaintenanceConnection = TileCache.MbTileCache.sqlConn;
 
-                    //Delete entries without a blob
-                    DBMaintenanceConnection.Table<tiles>().Where(x => x.tile_data == null).Delete();
-                    int totalRecordsEmptyBlob = DBMaintenanceConnection.Table<tiles>().Count();
-                    Log.Debug($"Total Records after empty blob: {totalRecordsEmptyBlob}");
-
-                    //Remove duplicates
-                    foreach (tiles dbTile in DBMaintenanceConnection.Table<tiles>().Reverse())
+                    lock (DBMaintenanceConnection)
                     {
-                        Log.Debug($"{dbTile.id}");
-                        DBMaintenanceConnection.Table<tiles>().Where(x => x.zoom_level == dbTile.zoom_level && x.tile_column == dbTile.tile_column && x.tile_row == dbTile.tile_row && x.id != dbTile.id).Delete();
-                    }
-                    int totalRecordsDuplicate = DBMaintenanceConnection.Table<tiles>().Count();
+                        int totalRecordsBefore = DBMaintenanceConnection.Table<tiles>().Count();
+                        Log.Debug($"Total Records: {totalRecordsBefore}");
 
-                    Log.Debug($"Total Records: {totalRecordsBefore}");
-                    Log.Debug($"Total Records after empty blob: {totalRecordsEmptyBlob}");
-                    Log.Debug($"Total Records after duplicate: {totalRecordsDuplicate}");
+                        //Delete entries without a blob
+                        DBMaintenanceConnection.Table<tiles>().Where(x => x.tile_data == null).Delete();
+                        int totalRecordsEmptyBlob = DBMaintenanceConnection.Table<tiles>().Count();
+                        Log.Debug($"Total Records after empty blob: {totalRecordsEmptyBlob}");
+
+                        //Remove duplicates
+                        foreach (tiles dbTile in DBMaintenanceConnection.Table<tiles>().Reverse())
+                        {
+                            Log.Debug($"{dbTile.id}");
+                            DBMaintenanceConnection.Table<tiles>().Where(x => x.zoom_level == dbTile.zoom_level && x.tile_column == dbTile.tile_column && x.tile_row == dbTile.tile_row && x.id != dbTile.id).Delete();
+                        }
+                        int totalRecordsDuplicate = DBMaintenanceConnection.Table<tiles>().Count();
+
+                        Log.Debug($"Total Records: {totalRecordsBefore}");
+                        Log.Debug($"Total Records after empty blob: {totalRecordsEmptyBlob}");
+                        Log.Debug($"Total Records after duplicate: {totalRecordsDuplicate}");
+                    }
                 });
             }
 

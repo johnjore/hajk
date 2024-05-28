@@ -183,7 +183,7 @@ namespace hajk
                 if (DownloadOfflineMap)
                 {
                     var b = new boundsType(p.Lat, p.Lat, p.Lon, p.Lon);
-                    GetloadOfflineMap(b, -1, null);
+                    GetloadOfflineMap(b, -1, null, false);
                 }
             }
             catch (Exception ex)
@@ -264,7 +264,7 @@ namespace hajk
                 //Does the user want the maps downloaded?
                 if (DownloadOfflineMap)
                 {
-                    GetloadOfflineMap(track.GetBounds(), r.Id, null);
+                    GetloadOfflineMap(track.GetBounds(), r.Id, null, false);
                 }
             }
             catch (Exception ex)
@@ -351,7 +351,7 @@ namespace hajk
                 //Does the user want the maps downloaded?
                 if (DownloadOfflineMap)
                 {
-                    GetloadOfflineMap(route.GetBounds(), r.Id, null);
+                    GetloadOfflineMap(route.GetBounds(), r.Id, null, false);
                 }
 }
             catch (Exception ex)
@@ -408,7 +408,7 @@ namespace hajk
             return null;
         }
 
-        public static async void GetloadOfflineMap(boundsType bounds, int id, string strFilePath)
+        public static async void GetloadOfflineMap(boundsType bounds, int id, string strFilePath, bool ShowDialog)
         {
             //Progress bar
             LayoutInflater layoutInflater = LayoutInflater.From(MainActivity.mContext);
@@ -441,7 +441,7 @@ namespace hajk
                 };
 
                 //Get all missing tiles
-                await DownloadRasterImageMap.DownloadMap(map);
+                await DownloadRasterImageMap.DownloadMap(map, false);
 
                 //Also exporting?
                 if (strFilePath != null)
@@ -450,7 +450,6 @@ namespace hajk
                 }
 
                 //Refresh with new map
-                DownloadRasterImageMap.LoadOSMLayer();
                 Log.Information($"Done downloading map for {map.Id}");
             }
             catch (Exception ex)

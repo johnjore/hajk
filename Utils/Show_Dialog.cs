@@ -1,4 +1,6 @@
 ﻿using Android.App;
+using Android.OS;
+using System;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
 
@@ -27,22 +29,36 @@ public class Show_Dialog
     public Task<MessageResult> ShowDialog(string Title, string Message, int IconAttribute = Android.Resource.Attribute.AlertDialogIcon, bool SetCancelable = false, MessageResult PositiveButton = MessageResult.OK, MessageResult NegativeButton = MessageResult.NONE, MessageResult NeutralButton = MessageResult.NONE)
     {
         var tcs = new TaskCompletionSource<MessageResult>();
-
         var builder = new AlertDialog.Builder(mcontext);
         builder.SetIconAttribute(IconAttribute);
         builder.SetTitle(Title);
         builder.SetMessage(Message);
-        builder.SetInverseBackgroundForced(false);
+        /*if (Build.VERSION.SdkInt < Android.OS.BuildVersionCodes.M)
+        {
+            builder.SetInverseBackgroundForced(false);
+        }
+
+        if (System.OperatingSystem.IsAndroidVersionAtLeast(23))
+        {
+            
+        } 
+        else
+        {
+            builder.SetInverseBackgroundForced(false);
+        }*/
+
         builder.SetCancelable(SetCancelable);
 
         builder.SetPositiveButton((PositiveButton != MessageResult.NONE) ? PositiveButton.ToString() : string.Empty, (senderAlert, args) =>
         {
             tcs.SetResult(PositiveButton);
         });
+
         builder.SetNegativeButton((NegativeButton != MessageResult.NONE) ? NegativeButton.ToString() : string.Empty, delegate
         {
             tcs.SetResult(NegativeButton);
         });
+
         builder.SetNeutralButton((NeutralButton != MessageResult.NONE) ? NeutralButton.ToString() : string.Empty, delegate
         {
             tcs.SetResult(NeutralButton);

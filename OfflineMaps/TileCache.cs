@@ -6,6 +6,9 @@ using BruTile.Predefined;
 using BruTile.Web;
 using SQLite;
 using hajk.Models;
+using Android.Content.Res;
+using System.Runtime.CompilerServices;
+using static Java.Util.Jar.Attributes;
 
 //From https://github.com/spaddlewit/MBTilesPersistentCache
 
@@ -21,7 +24,9 @@ namespace hajk
             try
             {
                 if (mbTileCache == null)
+                {
                     mbTileCache = new MbTileCache(cacheFilename, "png");
+                }
 
                 HttpTileSource src = new HttpTileSource(new GlobalSphericalMercator(PrefsActivity.MinZoom, PrefsActivity.MaxZoom),
                     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -42,36 +47,12 @@ namespace hajk
         public class MbTileCache : IPersistentCache<byte[]>, IDisposable
         {
             public static List<MbTileCache> openConnections = new List<MbTileCache>();
-            SQLiteConnection sqlConn = null;
+            public static SQLiteConnection sqlConn = null;
 
             public MbTileCache(string filename, string format)
             {
-                try
-                {
-                    sqlConn = new SQLiteConnection(filename);
-                    openConnections.Add(this);
-                    sqlConn.CreateTable<metadata>();
-                    sqlConn.CreateTable<tiles>();
-
-                    var metaList = new List<metadata>
-                    {
-                        new metadata { name = "name", value = "Offline" },
-                        new metadata { name = "type", value = "baselayer" },
-                        new metadata { name = "version", value = "1" },
-                        new metadata { name = "description", value = "Offline" },
-                        new metadata { name = "format", value = format }
-                    };
-
-                    foreach (var meta in metaList)
-                        sqlConn.InsertOrReplace(meta);
-
-                    double[] originalBounds = new double[4] { double.MaxValue, double.MaxValue, double.MinValue, double.MinValue }; // In WGS1984, the total extent of all bounds
-                    sqlConn.InsertOrReplace(new metadata { name = "bounds", value = string.Join(",", originalBounds) });
-                }
-                catch (Exception ex)
-                {
-                    Serilog.Log.Error(ex, $"TileCache - MBTileCache()");
-                }
+                sqlConn = InitializeTileCache(filename, format);
+                openConnections.Add(this);
             }
 
             /// <summary>
@@ -84,7 +65,7 @@ namespace hajk
             {
                 return (1 << level) - row - 1;
             }
-
+            
             public void Add(TileIndex index, byte[] tile)
             {
                 try
@@ -95,32 +76,38 @@ namespace hajk
                         tile_column = index.Col,
                         tile_row = index.Row,
                         tile_data = tile,
-                        createDate = DateTime.UtcNow
+                        createDate = DateTime.UtcNow,
+                        reference = null, //Blank when browsing
                     };
 
                     mbtile.tile_row = OSMtoTMS(mbtile.zoom_level, mbtile.tile_row);
 
-                    lock (sqlConn)
-                    {
-                        tiles oldTile = sqlConn.Table<tiles>().Where(x => x.zoom_level == mbtile.zoom_level && x.tile_column == mbtile.tile_column && x.tile_row == mbtile.tile_row).FirstOrDefault();
-
-                        if (oldTile == null)
-                        {
-                            sqlConn.Insert(mbtile);
-                            return;
-                        }
-
-                        if ((DateTime.UtcNow - oldTile.createDate).TotalDays >= 30)
-                        {
-                            mbtile.id = oldTile.id;
-                            sqlConn.Update(mbtile);
-                            return;
-                        }
-                    }
+                    AddTile(mbtile);
                 }
                 catch (Exception ex)
                 {
                     Serilog.Log.Error(ex, $"TileCache - Add()");
+                }
+            }
+
+            public void AddTile(tiles mbtile)
+            {
+                lock (sqlConn)
+                {
+                    tiles oldTile = sqlConn.Table<tiles>().Where(x => x.zoom_level == mbtile.zoom_level && x.tile_column == mbtile.tile_column && x.tile_row == mbtile.tile_row).FirstOrDefault();
+
+                    if (oldTile == null)
+                    {
+                        sqlConn.Insert(mbtile);
+                        return;
+                    }
+                    else
+                    {
+                        mbtile.id = oldTile.id;
+                        mbtile.reference = oldTile.reference;
+                        sqlConn.Update(mbtile);
+                        return;
+                    }
                 }
             }
 
@@ -148,16 +135,23 @@ namespace hajk
             {
                 try
                 {
-                    int level = index.Level;
-                    int rowNum = OSMtoTMS(level, index.Row);
+                    int rowNum = OSMtoTMS(index.Level, index.Row);
 
                     lock (sqlConn)
                     {
-                        tiles oldTile = sqlConn.Table<tiles>().Where(x => x.zoom_level == level && x.tile_column == index.Col && x.tile_row == rowNum).FirstOrDefault();
+                        tiles oldTile = sqlConn.Table<tiles>().Where(x => x.zoom_level == index.Level && x.tile_column == index.Col && x.tile_row == rowNum).FirstOrDefault();
 
-                        // You may also want to put a check here to 'age' the tile, i.e., if it is too old, return null so a new one is fetched.
                         if (oldTile != null)
-                            return oldTile.tile_data;
+                        {
+                            if (oldTile.reference == null && (DateTime.UtcNow - oldTile.createDate).TotalDays >= PrefsActivity.OfflineMaxAge)
+                            {
+                                return null;
+                            }
+                            else
+                            {
+                                return oldTile.tile_data;
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -170,8 +164,59 @@ namespace hajk
 
             public void Remove(TileIndex index)
             {
-                // We don't remove
+                /**/ 
+                //Todo
             }
+
+            public SQLiteConnection GetConnection()
+            {
+                return sqlConn;
+            }
+        }
+
+        public static SQLiteConnection InitializeTileCache(string filename, string format)
+        {
+            try
+            {
+                //https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md
+                var sqlConn = new SQLiteConnection(filename, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex, true);
+                sqlConn.CreateTable<metadata>();
+                sqlConn.CreateTable<tiles>();
+                sqlConn.CreateIndex("tile_index", "tiles", new string[] { "zoom_level", "tile_column", "tile_row" }, true);
+
+                var metaList = new List<metadata>
+                {
+                    //MUST 
+                    new metadata { name = "name", value = MainActivity.mContext.Resources.GetString(Resource.String.app_name) },
+                    new metadata { name = "format", value = format },
+                    //SHOULD
+                    new metadata { name = "bounds", value = "-180.0,-90.0,180.0,90.0" },                 //Whole world
+                    new metadata { name = "center", value = "0,0," + PrefsActivity.MinZoom.ToString() }, //Center of world
+                    new metadata { name = "minzoom", value = PrefsActivity.MinZoom.ToString() },
+                    new metadata { name = "maxzoom", value = PrefsActivity.MaxZoom.ToString() },
+                    //MAY
+                    new metadata { name = "attribution", value = "(c) OpenStreetMap contributors https://www.openstreetmap.org/copyright" },
+                    new metadata { name = "description", value = "Offline database for " + MainActivity.mContext.Resources.GetString(Resource.String.app_name) },
+                    new metadata { name = "type", value = "baselayer" },
+                    new metadata { name = "version", value = "1" }
+                };
+
+                foreach (var meta in metaList)
+                {
+                    sqlConn.InsertOrReplace(meta);
+                }
+
+                //Update Pragma(s)
+                sqlConn.Execute("PRAGMA application_id=0x4d504258;");
+
+                return sqlConn;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"TileCache - MBTileCache()");
+            }
+
+            return null;
         }
     }
 }

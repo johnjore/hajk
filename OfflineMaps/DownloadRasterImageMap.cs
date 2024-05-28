@@ -1,17 +1,18 @@
-﻿using System;
+﻿using Android.Views;
+using Dasync.Collections;
+using hajk.Models;
+using Mapsui.Layers;
+using Serilog;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Serilog;
-using Dasync.Collections;
 using SQLite;
-using hajk.Models;
 using Xamarin.Essentials;
-using Mapsui.Layers;
-using Android.Views;
+using static hajk.TileCache;
 
 namespace hajk
 {
@@ -19,42 +20,42 @@ namespace hajk
     {
         static int done = 0;
         static int missingTilesCount = 0;
+        static int totalTilesCount = 0;
 
-        public static async Task DownloadMap(Models.Map map)
+        public static async Task DownloadMap(Models.Map map, bool ShowDialog)
         {
             try 
             { 
-                if (AccessOSMLayerDirect() == false)
-                {
-                    return;
-                }
-
-                //Reset counters for next download
+                //Reset counters for download
                 done = 0;
                 missingTilesCount = 0;
+                totalTilesCount = 0;
 
                 for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
                 {
                     AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
-                    int tilesCount = await CountMissingTiles(tiles, zoom, MainActivity.OfflineDBConn, map.Id);
-                    missingTilesCount += tilesCount;
-                    Log.Information($"Need to download '{tilesCount}' tiles for zoom level '{zoom}', total to download '{missingTilesCount}'");
+                    var tilesCounted = await CountTiles(tiles, zoom);
+                    totalTilesCount += tilesCounted.TotalTiles;
+                    missingTilesCount += tilesCounted.MissingTiles;
+                    Log.Information($"Need to download '{tilesCounted.MissingTiles}' tiles for zoom level '{zoom}', total to download '{missingTilesCount}'");
                 }
 
                 for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
                 {
                     AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
-                    await DownloadTiles(tiles, zoom, MainActivity.OfflineDBConn, map.Id, missingTilesCount);
+                    await DownloadTiles(tiles, zoom, TileCache.MbTileCache.sqlConn, map.Id, missingTilesCount, totalTilesCount);
                 }
 
                 Import.progress = 999;
-                Log.Information($"Done downloading map for {map.Id}");
+                Log.Verbose($"Done downloading map for {map.Id}");
 
-                Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
-                await msg3.ShowDialog($"Done", $"GPX Import Completed", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                if (ShowDialog)
+                {
+                    Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
+                    await msg3.ShowDialog($"Done", $"Map Download Completed", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                }
+
                 Import.progress = 0;
-
-                LoadOSMLayer();
             }
             catch (Exception ex)
             {
@@ -62,20 +63,23 @@ namespace hajk
             }
         }
 
-        private static async Task<int> CountMissingTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id)
+        private static async Task<(int TotalTiles, int MissingTiles)> CountTiles(AwesomeTiles.TileRange range, int zoom)
         {
             int CountMissingTiles = 0;
+            int CountTotalTiles = 0;
 
             await range.ParallelForEachAsync(async tile =>
             {
                 try
                 {
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
-                    tiles dbTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
+                    tiles dbTile = MbTileCache.sqlConn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
                     if ((dbTile == null) || ((DateTime.UtcNow - dbTile.createDate).TotalDays >= PrefsActivity.OfflineMaxAge))
                     {
                         CountMissingTiles++;
                     }
+
+                    CountTotalTiles++;
                 }
                 catch (Exception ex)
                 {
@@ -83,10 +87,10 @@ namespace hajk
                 }
             });
 
-            return CountMissingTiles;
+            return (CountTotalTiles, CountMissingTiles);
         }
 
-        private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id, int intmissingTiles)
+        private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id, int intmissingTiles, int inttotalTiles)
         {
             string OSMServer = Preferences.Get("OSMServer", PrefsActivity.OSMServer_s);
 
@@ -113,15 +117,16 @@ namespace hajk
             {
                 await range.ParallelForEachAsync(async tile =>
                 {
-                    int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
-                    tiles newTile = new tiles();
-
                     //Update Progressbar
-                    Import.progress = (int)Math.Floor((decimal)done * 100 / intmissingTiles);
+                    Import.progress = (int)Math.Floor((decimal)done * 100 / inttotalTiles);
+
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
-                        Import.progressBarText2.Text = $"{done} of {intmissingTiles}";
+                        Import.progressBarText2.Text = $"{done} of {inttotalTiles} - ({intmissingTiles})";
                     });
+
+                    int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
+                    tiles newTile = new tiles();
 
                     for (int i = 0; i < 10; i++)
                     {
@@ -131,7 +136,8 @@ namespace hajk
                             oldTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
                             if ((oldTile != null) && ((DateTime.UtcNow - oldTile.createDate).TotalDays < PrefsActivity.OfflineMaxAge))
                             {
-                                //Tile is upto date. No need to download new blob. Break out of for-loop
+                                //Tile blob is upto date. No need to download. Break out of for-loop. Update reference
+                                newTile = oldTile;
                                 break;
                             }
                         }
@@ -160,24 +166,10 @@ namespace hajk
                                 {
                                     newTile.id = oldTile.id;
                                     newTile.reference = oldTile.reference;
-
-                                    if (oldTile.reference == string.Empty || oldTile.reference == null)
-                                    {
-                                         newTile.reference = id.ToString();
-                                    }
-                                    else if (newTile.reference.Contains(id.ToString()))
-                                    {
-                                        //Do nothing if already added as a reference
-                                    }
-                                    else
-                                    {
-                                        newTile.reference += "," + id.ToString();
-                                    }
                                 }
                                 else
                                 {
                                     newTile.id = 0;
-                                    newTile.reference = id.ToString();
                                 }
                                 
                                 //Break out of loop as we have an updatd blob
@@ -200,7 +192,21 @@ namespace hajk
                         return;
                     }
 
-                    if (MBTilesWriter.WriteTile(conn, newTile) == 0)
+                    //Update Reference field
+                    if (newTile.reference == string.Empty || newTile.reference == null)
+                    {
+                        newTile.reference = id.ToString();
+                    }
+                    else if (newTile.reference.Contains(id.ToString()))
+                    {
+                        //Do nothing if already added as a reference
+                    }
+                    else
+                    {
+                        newTile.reference += "," + id.ToString();
+                    }
+
+                    if (MBTilesWriter.WriteTile(newTile) == 0)
                     {
                         Log.Error($"Failed to add rows to database");
                     } else
@@ -242,54 +248,10 @@ namespace hajk
             return null;
         }
 
-        private static bool AccessOSMLayerDirect()
+       public static void LoadOSMLayer()
         {
             try
             {
-                //Remove
-                var OSMLayer = Fragments.Fragment_map.map.Layers.FindLayer("OSM").FirstOrDefault();
-                if (OSMLayer != null)
-                {
-                    Fragments.Fragment_map.map.Layers.Remove(OSMLayer);
-                }
-
-                //First time
-                if (MainActivity.OfflineDBConn == null)
-                {
-                    MainActivity.OfflineDBConn = MBTilesWriter.CreateDatabaseConnection(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
-                }
-
-                //Empty?
-                if (MainActivity.OfflineDBConn == null)
-                {
-                    return false;
-                }
-
-                //No handle?
-                if (MainActivity.OfflineDBConn.Handle == null)
-                {
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"DownloadRasterIamgeMap - AcessOSMLayerDirect()");
-            }
-
-            //Success
-            return true;
-        }
-
-        public static void LoadOSMLayer()
-        {
-            try
-            {
-                if (MainActivity.OfflineDBConn != null)
-                {
-                    MainActivity.OfflineDBConn.Close();
-                    MainActivity.OfflineDBConn = null;
-                }
-
                 var tileSource = TileCache.GetOSMBasemap(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
                 var tileLayer = new TileLayer(tileSource)
                 {
@@ -303,164 +265,44 @@ namespace hajk
             }
         }
 
-        public static void PurgeMapDB(int Id)
-        {
-            try
-            {
-                if (AccessOSMLayerDirect() == false)
-                {
-                    return;
-                }
-
-                string id = Id.ToString();
-                Log.Debug($"Remove Id: {id}");
-
-                //Remove single reference tiles
-                var query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference == id);
-                Log.Debug($"Query Count: " + query.Count().ToString());
-                foreach (tiles maptile in query)
-                {
-                    Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
-                    MainActivity.OfflineDBConn.Delete(maptile);
-                }
-
-                //Remove reference
-                query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference.Contains(id));
-                Log.Debug($"Query Count: " + query.Count().ToString());
-                foreach (tiles maptile in query)
-                {
-                    Log.Debug($"Tile Id: {maptile.id}, Before: {maptile.reference}");
-
-                    maptile.reference = maptile.reference.Replace("," + id, "");
-                    maptile.reference = maptile.reference.Replace(id + ",", "");
-
-                    Log.Debug($"Tile Id: {maptile.id}, After: {maptile.reference}");
-                    MainActivity.OfflineDBConn.Update(maptile);
-                }
-
-                LoadOSMLayer();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"DownloadRasterIamgeMap - AcessOSMLayerDirect()");
-            }            
-        }
-
         public static void ExportMapTiles(int Id, string strFileName)
         {
             try
             {
-                if (AccessOSMLayerDirect() == false)
-                {
-                    return;
-                }
-
                 //Save tiles here
-                var ExportDB = MBTilesWriter.CreateDatabaseConnection(strFileName);
-
+                SQLiteConnection ExportDB = InitializeTileCache(strFileName, "png");
+                
                 //Get tiles
                 string id = Id.ToString();
-                var query = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.reference.Contains(id));
-                Log.Debug($"Query Count: " + query.Count().ToString());
-                foreach (tiles maptile in query)
+                lock (MbTileCache.sqlConn)
                 {
-                    Log.Debug($"Tile Id: {maptile.id}");
+                    var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(id));
 
-                    //Fix the id, and clear the reference, so insert, not update is used
-                    maptile.id = 0;
-                    maptile.reference = "";
+                    Log.Debug($"Query Count: " + query.Count().ToString());
+                    foreach (tiles maptile in query)
+                    {
+                        Log.Debug($"Tile Id: {maptile.id}");
 
-                    MBTilesWriter.WriteTile(ExportDB, maptile);
+                        //Clear the ID and reference
+                        maptile.id = 0;
+                        maptile.reference = null;
+
+                        //Add to DB
+                        ExportDB.Insert(maptile);
+                    }
                 }
                 ExportDB.Close();
+                ExportDB.Dispose();
                 ExportDB = null;
 
                 var m = MainActivity.mContext;
                 Show_Dialog msg = new Show_Dialog(m);
                 msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapExportCompleted), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
-
-                LoadOSMLayer();
             }
             catch (Exception ex)
             {
                 Log.Error(ex, $"DownloadRasterIamgeMap - ExportMapTiles()");
             }
-        }
-
-        public static void ImportMapTiles()
-        {            
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                try
-                {
-                    var options = new PickOptions
-                    {
-                        PickerTitle = "Please select a map file",
-                        FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                        {
-                            /**///What is mime type for mbtiles ?!?
-                            //{ DevicePlatform.Android, new string[] { "mbtiles"} },
-                            { DevicePlatform.Android, null },
-                        })
-                    };
-
-                    var sourceFile = await FilePicker.PickAsync(options);
-                    if (sourceFile != null)
-                    {
-                        if (AccessOSMLayerDirect() == false)
-                        {
-                            return;
-                        }
-                      
-                        var ImportDB = MBTilesWriter.CreateDatabaseConnection(sourceFile.FullPath);
-                        var tiles = ImportDB.Table<tiles>();
-
-                        Log.Debug($"Tiles to import: " + tiles.Count().ToString());
-                        tiles oldTile = new tiles();
-                        foreach (tiles newTile in tiles)
-                        {
-                            //Do we already have the tile?
-                            try
-                            {
-                                oldTile = MainActivity.OfflineDBConn.Table<tiles>().Where(x => x.zoom_level == newTile.zoom_level && x.tile_column == newTile.tile_column && x.tile_row == newTile.tile_row).FirstOrDefault();
-                                if ((oldTile != null) && ((DateTime.UtcNow - oldTile.createDate).TotalDays < PrefsActivity.OfflineMaxAge))
-                                {
-                                    continue;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error($"Crashed: {ex}");
-                            }
-
-                            //For Insert
-                            newTile.id = 0;
-                            newTile.reference = null;
-
-                            //Use reference from oldTile for update
-                            if (oldTile != null)
-                            {
-                                newTile.reference = oldTile.reference;
-                                newTile.id = 0;
-                            }
-                            
-                            MBTilesWriter.WriteTile(MainActivity.OfflineDBConn, newTile);
-                        }
-                        ImportDB.Close();
-                        ImportDB = null;
-
-                        LoadOSMLayer();
-
-                        var m = MainActivity.mContext;
-                        Show_Dialog msg = new Show_Dialog(m);
-                        await msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapTilesImported), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error($"Failed to import map file: '{ex}'");
-                }
-            });
         }
     }
 }

@@ -13,6 +13,7 @@ using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using Serilog;
 using GPXUtils;
+using System.Threading.Tasks;
 
 
 namespace hajk.Fragments
@@ -73,13 +74,13 @@ namespace hajk.Fragments
                 Log.Debug($"Import POIs");
                 if (Preferences.Get("DrawPOIOnGui", PrefsActivity.DrawPOIonGui_b))
                 {
-                    Import.AddPOIToMap();
+                    Task.Run(() => Import.AddPOIToMap());
                 }
 
                 Log.Debug($"Show All Tracks on Map");
                 if (Preferences.Get("DrawTracksOnGui", PrefsActivity.DrawTracksOnGui_b))
                 {
-                    Import.AddTracksToMap();
+                    Task.Run(() => Import.AddTracksToMap());
                 }
 
                 Log.Debug($"Set Zoom");

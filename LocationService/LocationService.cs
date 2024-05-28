@@ -24,7 +24,7 @@ namespace hajk
 			Serilog.Log.Information($"OnCreate: the location service is initializing.");
 
 			gpslocation = new GPSLocation();
-			handler = new Handler();
+			handler = new Handler(MainLooper);
 
 			runnable = new Action(() =>
 			{
@@ -79,8 +79,8 @@ namespace hajk
 			{
 				Serilog.Log.Information($"OnStartCommand: The location service is stopping.");
 				gpslocation = null;
-				StopForeground(true);
-				StopSelf();
+                StopForeground(true);
+                StopSelf();
 				isStarted = false;
 			}
 			

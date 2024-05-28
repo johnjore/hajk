@@ -1,10 +1,13 @@
-﻿using System;
+﻿using Serilog;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using SQLite;
 using hajk.Models;
-using Serilog;
+using static hajk.TileCache;
+using Xamarin.Essentials;
 
-//This is a rewrite of https://github.com/bertt/MBTiles
+//This is a partial rewrite of https://github.com/bertt/MBTiles
 
 namespace hajk
 {
@@ -14,25 +17,8 @@ namespace hajk
         {
             if (!File.Exists(db))
             {
-                //Create
-                try
-                {
-                    metadataValues metadata = new metadataValues
-                    {
-                        name = "OfflineDB",
-                        description = "Created by hajk",
-                        version = "1",
-                        format = "png",
-                    };
-
-                    var sqliteConnection = CreateDatabase(db);
-                    InsertMetadata(sqliteConnection, metadata);
-                    return sqliteConnection;
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, $"MBTilesWriter - CreateDatabaseConnection() - Create");
-                }
+                //How can it not exist if used as cache?
+                Log.Error($"MBTilesWriter - CreateDatabaseConnection() - Open");
             }
             else
             {
@@ -51,75 +37,157 @@ namespace hajk
             return null;
         }
 
-        public static int WriteTile(SQLiteConnection sqliteConnection, tiles mbtile)
+        public static int WriteTile(SQLiteConnection sqlConnection, tiles mbtile)
         {
-            if (sqliteConnection == null)
-            {
-                return 0;
-            }
-
             if (mbtile.tile_data == null)
             {
                 return 0;
             }
 
-            try
+            lock (sqlConnection)
             {
-                if (mbtile.id == 0)
+                try
                 {
-                    return sqliteConnection.Insert(mbtile);
+                    if (mbtile.id == 0)
+                    {
+                        return sqlConnection.Insert(mbtile);
+                    }
+                    else
+                    {
+                        return sqlConnection.Update(mbtile);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return sqliteConnection.Update(mbtile); ;
+                    Log.Error(ex, $"MBTilesWriter - WriteTile()");
+                    return 0;
                 }
             }
-            catch (Exception ex)
+        }
+
+        public static int WriteTile(tiles mbtile)
+        {
+            if (TileCache.MbTileCache.sqlConn == null)
             {
-                Log.Error(ex, $"MBTilesWriter - WriteTile()");
                 return 0;
             }
+
+            return (WriteTile(TileCache.MbTileCache.sqlConn, mbtile));
         }
 
-        private static SQLiteConnection CreateDatabase(string name)
+        public static void PurgeMapDB(int Id)
         {
             try
             {
-                //Open database
-                var sqliteConnection = new SQLiteConnection(name, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex, true);
+                string id = Id.ToString();
+                Log.Debug($"Remove Id: {id}");
 
-                //Create tables
-                sqliteConnection.CreateTable<metadata>();
-                sqliteConnection.CreateTable<tiles>();
+                lock (MbTileCache.sqlConn)
+                {
+                    //Remove single reference tiles
+                    var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference == id);
+                    Log.Debug($"Query Count: " + query.Count().ToString());
+                    foreach (tiles maptile in query)
+                    {
+                        Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+                        MbTileCache.sqlConn.Delete(maptile);
+                    }
 
-                //Create indexes
-                string[] a = { "zoom_level", "tile_column", "tile_row" };
-                sqliteConnection.CreateIndex("tile_index", "tiles", a, true);
-                sqliteConnection.CreateIndex("name", "metadata", "name", true);
+                    //Remove reference
+                    query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(id));
+                    Log.Debug($"Query Count: " + query.Count().ToString());
+                    foreach (tiles maptile in query)
+                    {
+                        Log.Debug($"Tile Id: {maptile.id}, Before: {maptile.reference}");
 
-                return sqliteConnection;
+                        maptile.reference = maptile.reference.Replace("," + id, "");
+                        maptile.reference = maptile.reference.Replace(id + ",", "");
+
+                        Log.Debug($"Tile Id: {maptile.id}, After: {maptile.reference}");
+                        MbTileCache.sqlConn.Update(maptile);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"MBTilesWriter - CreateDatabase()");
+                Log.Error(ex, "PurgeMapDb()");
             }
-
-            return null;
         }
 
-        private static void InsertMetadata(SQLiteConnection conn, metadataValues metadata)
+        public static void ImportMapTiles()
         {
-            try
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
-                conn.Execute($"INSERT INTO metadata (name, value) VALUES ('name', '{metadata.name}');");
-                conn.Execute($"INSERT INTO metadata (name, value) VALUES ('description', '{metadata.description}');");
-                conn.Execute($"INSERT INTO metadata (name, value) VALUES ('version', '{metadata.version}');");
-                conn.Execute($"INSERT INTO metadata (name, value) VALUES ('format', 'pbf');");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"MBTilesWriter - InsertMetadata()");
-            }
-        }            
+                try
+                {
+                    var options = new PickOptions
+                    {
+                        PickerTitle = "Please select a map file",
+                        FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                        {
+                            /**///What is mime type for mbtiles ?!?
+                            //{ DevicePlatform.Android, new string[] { "mbtiles"} },
+                            { DevicePlatform.Android, null },
+                        })
+                    };
+
+                    var sourceFile = await FilePicker.PickAsync(options);
+                    if (sourceFile != null)
+                    {
+                        var ImportDB = new SQLiteConnection(sourceFile.FullPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
+                        var tiles = ImportDB.Table<tiles>();
+
+                        Log.Debug($"Tiles to import: " + tiles.Count().ToString());
+                        lock (MbTileCache.sqlConn)
+                        {
+                            foreach (tiles newTile in tiles)
+                            {
+                                //Do we already have the tile?
+                                try
+                                {
+                                    tiles oldTile = MbTileCache.sqlConn.Table<tiles>().Where(x => x.zoom_level == newTile.zoom_level && x.tile_column == newTile.tile_column && x.tile_row == newTile.tile_row).FirstOrDefault();
+                                    if ((oldTile != null) && (oldTile.createDate >= newTile.createDate))
+                                    {
+                                        continue;
+                                    }
+
+                                    if (oldTile != null)
+                                    {
+                                        //Update existing tile
+                                        newTile.reference = oldTile.reference;
+                                        newTile.id = oldTile.id;
+                                    }
+                                    else
+                                    {
+                                        //Insert new tile
+                                        newTile.reference = null;
+                                        newTile.id = 0;
+                                    }
+
+                                    newTile.createDate = DateTime.UtcNow;
+                                    MBTilesWriter.WriteTile(newTile);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Error($"Crashed: {ex}");
+                                }
+                            }
+                        }
+
+                        ImportDB.Close();
+                        ImportDB.Dispose();
+                        ImportDB = null;
+
+                        var m = MainActivity.mContext;
+                        Show_Dialog msg = new Show_Dialog(m);
+                        await msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapTilesImported), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Failed to import map file: '{ex}'");
+                }
+            });
+        }
     }
 }
