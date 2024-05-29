@@ -45,7 +45,6 @@ namespace hajk
         bool isLocationServiceStarted = false;
 
 #if DEBUG
-        //public static string rootPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
         public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
 #else
         public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
@@ -492,8 +491,7 @@ namespace hajk
                 SQLiteConnection DBBackupConnection = TileCache.MbTileCache.sqlConn;
                 string backupFileName = DownLoadFolder + "/Backup-" + Resources.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".mbtiles";
                 DBBackupConnection.Backup(backupFileName);
-                DBBackupConnection.Close();
-
+                
                 //Route DB
                 string dbPath = Path.Combine(rootPath, Preferences.Get("RouteDB", PrefsActivity.RouteDB));
                 DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
@@ -517,6 +515,9 @@ namespace hajk
 
                     lock (DBMaintenanceConnection)
                     {
+                        //MBTilesWriter.PurgeOldTiles();
+                        //MBTilesWriter.RefreshOldTiles();
+
                         int totalRecordsBefore = DBMaintenanceConnection.Table<tiles>().Count();
                         Log.Debug($"Total Records: {totalRecordsBefore}");
 

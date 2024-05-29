@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using SQLite;
 using hajk.Models;
 using static hajk.TileCache;
@@ -79,32 +80,41 @@ namespace hajk
         {
             try
             {
-                string id = Id.ToString();
-                Log.Debug($"Remove Id: {id}");
+                Log.Debug($"Remove Id: {Id}");
 
                 lock (MbTileCache.sqlConn)
                 {
-                    //Remove single reference tiles
-                    var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference == id);
+                    //When single entry, delete tile
+                    var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference == Id.ToString());
                     Log.Debug($"Query Count: " + query.Count().ToString());
                     foreach (tiles maptile in query)
                     {
-                        Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
-                        MbTileCache.sqlConn.Delete(maptile);
+                        //Is this the tile we are looking for?
+                        var r = JsonSerializer.Deserialize<List<int>>(maptile.reference);
+                        if (r.Equals(Id))
+                        {
+                            Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+                            MbTileCache.sqlConn.Delete(maptile);
+                        }
                     }
 
-                    //Remove reference
-                    query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(id));
+                    //When multiple entries in reference field, remove reference, but do not delete tile
+                    //Carefull: Captures variants of 1151 15 and 5 when looking for '5'
+                    query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(Id.ToString())); 
                     Log.Debug($"Query Count: " + query.Count().ToString());
                     foreach (tiles maptile in query)
                     {
-                        Log.Debug($"Tile Id: {maptile.id}, Before: {maptile.reference}");
+                        //Is this the tile we are looking for?
+                        var r = JsonSerializer.Deserialize<List<int>>(maptile.reference);
+                        if (r.Contains(Id))
+                        {
+                            Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
 
-                        maptile.reference = maptile.reference.Replace("," + id, "");
-                        maptile.reference = maptile.reference.Replace(id + ",", "");
-
-                        Log.Debug($"Tile Id: {maptile.id}, After: {maptile.reference}");
-                        MbTileCache.sqlConn.Update(maptile);
+                            r.Remove(Id);
+                            maptile.reference = JsonSerializer.Serialize(r);
+                            Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+                            MbTileCache.sqlConn.Update(maptile);                            
+                        }
                     }
                 }
             }
@@ -160,7 +170,7 @@ namespace hajk
                                     else
                                     {
                                         //Insert new tile
-                                        newTile.reference = null;
+                                        newTile.reference = string.Empty;
                                         newTile.id = 0;
                                     }
 
@@ -188,6 +198,41 @@ namespace hajk
                     Log.Error($"Failed to import map file: '{ex}'");
                 }
             });
+        }
+
+        public static void PurgeOldTiles()
+        {
+            lock (MbTileCache.sqlConn)
+            {
+                var query = MbTileCache.sqlConn.Table<tiles>().Where(x => (DateTime.UtcNow - x.createDate).TotalDays > PrefsActivity.OfflineMaxAge);
+                Log.Debug($"Query Count: " + query.Count().ToString());
+                foreach (tiles maptile in query)
+                {
+                    Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+                    //MbTileCache.sqlConn.Delete(maptile);
+                }
+            }
+        }
+
+        public static async void RefreshOldTiles()
+        {
+            string OSMServer = Preferences.Get("OSMServer", PrefsActivity.OSMServer_s);
+
+            var query = MbTileCache.sqlConn.Table<tiles>().Where(x => (DateTime.UtcNow - x.createDate).TotalDays > PrefsActivity.OfflineMaxAge);
+            Log.Debug($"Query Count: " + query.Count().ToString());
+
+            foreach (tiles maptile in query)
+            {
+                var url = OSMServer + $"{maptile.zoom_level}/{maptile.tile_column}/{maptile.tile_row}.png";
+                var data = await DownloadRasterImageMap.DownloadImageAsync(url);
+
+                if (data != null)
+                {
+                    //Update
+                    maptile.tile_data = data;
+                    MbTileCache.sqlConn.Update(maptile);
+                }
+            }
         }
     }
 }

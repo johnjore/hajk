@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using SQLite;
@@ -34,16 +35,24 @@ namespace hajk
                 for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
                 {
                     AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
-                    var tilesCounted = await CountTiles(tiles, zoom);
-                    totalTilesCount += tilesCounted.TotalTiles;
-                    missingTilesCount += tilesCounted.MissingTiles;
-                    Log.Information($"Need to download '{tilesCounted.MissingTiles}' tiles for zoom level '{zoom}', total to download '{missingTilesCount}'");
+                    var (TotalTiles, MissingTiles) = await CountTiles(tiles, zoom);
+                    totalTilesCount += TotalTiles;
+                    missingTilesCount += MissingTiles;
+                    Log.Information($"Need to download '{MissingTiles}' tiles for zoom level '{zoom}', total to download '{missingTilesCount}'");
                 }
 
                 for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
                 {
                     AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
-                    await DownloadTiles(tiles, zoom, TileCache.MbTileCache.sqlConn, map.Id, missingTilesCount, totalTilesCount);
+                    if (totalTilesCount > 0 && tiles != null)
+                    {
+                        await DownloadTiles(tiles, zoom, TileCache.MbTileCache.sqlConn, map.Id, missingTilesCount, totalTilesCount);
+                    }
+                    else
+                    {
+                        throw new Exception("How can this be?!?");
+                    }
+                    
                 }
 
                 Import.progress = 999;
@@ -74,7 +83,7 @@ namespace hajk
                 {
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
                     tiles dbTile = MbTileCache.sqlConn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
-                    if ((dbTile == null) || ((DateTime.UtcNow - dbTile.createDate).TotalDays >= PrefsActivity.OfflineMaxAge))
+                    if ((dbTile == null) || ((DateTime.UtcNow - dbTile.createDate).TotalDays > PrefsActivity.OfflineMaxAge))
                     {
                         CountMissingTiles++;
                     }
@@ -138,6 +147,7 @@ namespace hajk
                             {
                                 //Tile blob is upto date. No need to download. Break out of for-loop. Update reference
                                 newTile = oldTile;
+
                                 break;
                             }
                         }
@@ -162,14 +172,17 @@ namespace hajk
                                 newTile.createDate = DateTime.UtcNow;
 
                                 //Old data to keep?
-                                if (oldTile != null)
+                                if (oldTile == null)
                                 {
-                                    newTile.id = oldTile.id;
-                                    newTile.reference = oldTile.reference;
+                                    newTile.id = 0;
+                                    newTile.reference = string.Empty;
+
+                                    intmissingTiles--;
                                 }
                                 else
                                 {
-                                    newTile.id = 0;
+                                    newTile.id = oldTile.id;
+                                    newTile.reference = oldTile.reference;
                                 }
                                 
                                 //Break out of loop as we have an updatd blob
@@ -178,7 +191,7 @@ namespace hajk
                         }
                         catch (Exception ex)
                         {
-                            Log.Error($"Crashed: {ex}");
+                            Log.Error(ex, $"Crashed: {ex}");
                             break;
                         }
                     }
@@ -193,23 +206,31 @@ namespace hajk
                     }
 
                     //Update Reference field
-                    if (newTile.reference == string.Empty || newTile.reference == null)
+                    List<int> r = new List<int>();
+                    if (newTile.reference != null && newTile.reference != string.Empty)
                     {
-                        newTile.reference = id.ToString();
+                        try
+                        {
+                            r = JsonSerializer.Deserialize<List<int>>(newTile.reference);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, $"Crashed. Clear reference: {ex}");
+                            r.Clear();
+                        }                        
                     }
-                    else if (newTile.reference.Contains(id.ToString()))
+
+                    if (r.Contains(id) == false)
                     {
-                        //Do nothing if already added as a reference
-                    }
-                    else
-                    {
-                        newTile.reference += "," + id.ToString();
+                        r.Add(id);
+                        newTile.reference = JsonSerializer.Serialize(r);
                     }
 
                     if (MBTilesWriter.WriteTile(newTile) == 0)
                     {
                         Log.Error($"Failed to add rows to database");
-                    } else
+                    }
+                    else
                     {
                         Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{done}/{missingTilesCount}");
                     }
@@ -221,7 +242,7 @@ namespace hajk
             }
         }
 
-        private static async Task<byte[]> DownloadImageAsync(string imageUrl)
+        public static async Task<byte[]> DownloadImageAsync(string imageUrl)
         {
             HttpClientHandler clientHandler = new HttpClientHandler
             {
@@ -273,22 +294,27 @@ namespace hajk
                 SQLiteConnection ExportDB = InitializeTileCache(strFileName, "png");
                 
                 //Get tiles
-                string id = Id.ToString();
                 lock (MbTileCache.sqlConn)
                 {
-                    var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(id));
+                    //Carefull: Captures variants of 1151 15 and 5 when looking for '5'
+                    var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(Id.ToString()));
 
                     Log.Debug($"Query Count: " + query.Count().ToString());
                     foreach (tiles maptile in query)
                     {
-                        Log.Debug($"Tile Id: {maptile.id}");
+                        //Is this the tile we are looking for?
+                        var r = JsonSerializer.Deserialize<List<int>>(maptile.reference);
+                        if (r.Contains(Id))
+                        {
+                            Log.Debug($"Tile Id: {maptile.id}");
 
-                        //Clear the ID and reference
-                        maptile.id = 0;
-                        maptile.reference = null;
+                            //Clear the ID and reference
+                            maptile.id = 0;
+                            maptile.reference = string.Empty;
 
-                        //Add to DB
-                        ExportDB.Insert(maptile);
+                            //Add to DB
+                            ExportDB.Insert(maptile);
+                        }
                     }
                 }
                 ExportDB.Close();

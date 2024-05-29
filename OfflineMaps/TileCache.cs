@@ -6,9 +6,6 @@ using BruTile.Predefined;
 using BruTile.Web;
 using SQLite;
 using hajk.Models;
-using Android.Content.Res;
-using System.Runtime.CompilerServices;
-using static Java.Util.Jar.Attributes;
 
 //From https://github.com/spaddlewit/MBTilesPersistentCache
 
@@ -74,13 +71,11 @@ namespace hajk
                     {
                         zoom_level = index.Level,
                         tile_column = index.Col,
-                        tile_row = index.Row,
+                        tile_row = OSMtoTMS(index.Level, index.Row),
                         tile_data = tile,
                         createDate = DateTime.UtcNow,
-                        reference = null, //Blank when browsing
+                        reference = string.Empty, //Blank when browsing
                     };
-
-                    mbtile.tile_row = OSMtoTMS(mbtile.zoom_level, mbtile.tile_row);
 
                     AddTile(mbtile);
                 }
@@ -143,7 +138,7 @@ namespace hajk
 
                         if (oldTile != null)
                         {
-                            if (oldTile.reference == null && (DateTime.UtcNow - oldTile.createDate).TotalDays >= PrefsActivity.OfflineMaxAge)
+                            if ((oldTile.reference == null || oldTile.reference == string.Empty) && (DateTime.UtcNow - oldTile.createDate).TotalDays >= PrefsActivity.OfflineMaxAge)
                             {
                                 return null;
                             }

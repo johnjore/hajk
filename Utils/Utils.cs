@@ -28,6 +28,10 @@ namespace Utils
                         activity.Assets.Open(PrefsActivity.CacheDB).CopyTo(writeStream);
                     }
                 }
+                else
+                {
+                    Serilog.Log.Verbose($"Embedded world map already exists");
+                }
             }
             catch (Exception ex)
             {
