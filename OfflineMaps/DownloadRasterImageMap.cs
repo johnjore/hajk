@@ -32,14 +32,17 @@ namespace hajk
                 missingTilesCount = 0;
                 totalTilesCount = 0;
 
-                for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
+                await Task.Run(() =>
                 {
-                    AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
-                    var (TotalTiles, MissingTiles) = await CountTiles(tiles, zoom);
-                    totalTilesCount += TotalTiles;
-                    missingTilesCount += MissingTiles;
-                    Log.Information($"Need to download '{MissingTiles}' tiles for zoom level '{zoom}', total to download '{missingTilesCount}'");
-                }
+                    for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
+                    {
+                        AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
+                        (int TotalTiles, int MissingTiles) = CountTiles(tiles, zoom);
+                        totalTilesCount += TotalTiles;
+                        missingTilesCount += MissingTiles;
+                        Log.Information($"Need to download '{MissingTiles}' tiles for zoom level '{zoom}', total to download '{missingTilesCount}'");
+                    }
+                });
 
                 for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
                 {
@@ -72,14 +75,14 @@ namespace hajk
             }
         }
 
-        private static async Task<(int TotalTiles, int MissingTiles)> CountTiles(AwesomeTiles.TileRange range, int zoom)
+        private static (int TotalTiles, int MissingTiles) CountTiles(AwesomeTiles.TileRange range, int zoom)
         {
             int CountMissingTiles = 0;
             int CountTotalTiles = 0;
 
-            await range.ParallelForEachAsync(async tile =>
+            try
             {
-                try
+                foreach (var tile in range)
                 {
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
                     tiles dbTile = MbTileCache.sqlConn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
@@ -90,11 +93,11 @@ namespace hajk
 
                     CountTotalTiles++;
                 }
-                catch (Exception ex)
-                {
-                    Log.Error($"Crashed: {ex}");
-                }
-            });
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Crashed CountTiles");
+            }
 
             return (CountTotalTiles, CountMissingTiles);
         }
@@ -103,25 +106,6 @@ namespace hajk
         {
             string OSMServer = Preferences.Get("OSMServer", PrefsActivity.OSMServer_s);
 
-            //Same, but without parallell processing
-            /*            
-            foreach (var tile in range)
-            {
-                byte[] data = null;
-                for (int i = 0; i < 10; i++)
-                {
-                    var url = OSMServer + $"{zoom}/{tile.X}/{tile.Y}.png";
-                    data = await DownloadImageAsync(url);
-                    if (data != null)
-                        break;
-
-                    Thread.Sleep(10000);
-                }
-
-                Log.Information($"Zoomindex: {zoom}, x/y: {tile.X}/{tile.Y}, ID: {tile.Id}. Done:{++done}/{totalTilesCount}");
-                WriteOsmSQlite(data, zoom, tile.X, tile.Y);
-            };
-            */
             try
             {
                 await range.ParallelForEachAsync(async tile =>
