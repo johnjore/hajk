@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
+using static Xamarin.Essentials.Permissions;
 
 //Location service: https://github.com/shernandezp/XamarinForms.LocationService
 
@@ -43,43 +44,14 @@ namespace hajk
         //Location Service
         Intent startLocationServiceIntent;
         bool isLocationServiceStarted = false;
-
-#if DEBUG
         public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
-#else
-        public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
-#endif
 
-        readonly string[] permissions =
-        {
-            Android.Manifest.Permission.AccessCoarseLocation,
-            Android.Manifest.Permission.AccessFineLocation,
-            Android.Manifest.Permission.ReadExternalStorage,
-            Android.Manifest.Permission.WriteExternalStorage,
-            Android.Manifest.Permission.Internet,
-            Android.Manifest.Permission.AccessNetworkState,
-            Android.Manifest.Permission.RequestIgnoreBatteryOptimizations,
-            Android.Manifest.Permission.Vibrate,
-        };
-
-        protected override void OnCreate(Bundle savedInstanceState)
+        protected override async void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
             //Init
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
-
-            //Permissions
-            while (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.AccessFineLocation) != (int)Android.Content.PM.Permission.Granted ||
-                   AndroidX.Core.Content.ContextCompat.CheckSelfPermission(this, Android.Manifest.Permission.WriteExternalStorage) != (int)Android.Content.PM.Permission.Granted)
-            {
-                RequestPermissions(permissions, 0);
-            }
-
-            //In debug mode, we use the Downloads folder for easy access, but app will only see files it creates. Uninstalling and re-installing same app, will not provide access to the old database files
-#if DEBUG
-            RequestPermissions(new string[] { Android.Manifest.Permission.ManageExternalStorage }, 0);
-#endif
 
             ServicePointManager.ServerCertificateValidationCallback = (message, certificate, chain, sslPolicyErrors) => true;
 
@@ -119,6 +91,29 @@ namespace hajk
 
                 NavigationView navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
                 navigationView.SetNavigationItemSelectedListener(this);
+
+
+                //Request Permissions
+                PermissionStatus status = PermissionStatus.Unknown;
+
+                //First round of location permissions
+                status = await CheckStatusAsync<LocationWhenInUse>();
+                if (status != PermissionStatus.Granted)
+                {
+                    status = await RequestAsync<LocationWhenInUse>();
+                    if (status != PermissionStatus.Granted)
+                    {
+                        mContext.FinishAffinity();
+                    }
+                }
+
+                //Request AlwaysOn Permission
+                status = await CheckStatusAsync<LocationAlways>();
+                if (status != PermissionStatus.Granted)
+                {
+                    status = await Permissions.RequestAsync<Permissions.LocationAlways>();
+                }
+
 
                 //Sanity
                 Log.Debug($"Set RecordingTrack to false - sanity check");
@@ -171,7 +166,7 @@ namespace hajk
                 Utils.Misc.BatterySaveModeNotification();
 
                 Log.Debug($"Notify user if location permission does not allow background collection");
-                Utils.Misc.LocationPermissionNotification();
+                Utils.Misc.LocationPermissionNotification();                
             }
             catch (Exception ex)
             {
@@ -191,7 +186,7 @@ namespace hajk
                 else
                 {
                     //base.OnBackPressed();
-                    Utils.Misc.PromptToConfirmExit();                    
+                    Utils.Misc.PromptToConfirmExit();
                 }
             }
             else
@@ -632,7 +627,6 @@ namespace hajk
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
-
         public void SetDozeOptimization()
         {
             //https://social.msdn.microsoft.com/Forums/en-US/895f0759-e05d-4747-b72b-e16a2e8dbcf9/developing-a-location-background-service?forum=xamarinforms

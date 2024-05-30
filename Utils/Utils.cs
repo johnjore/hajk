@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Mapsui.Layers;
+using System.Threading.Tasks;
+using Android.App;
 using Android.Graphics;
 using Android.Util;
-using AndroidX.AppCompat.App;
 using Xamarin.Essentials;
+using Mapsui.Layers;
 using hajk;
 
 namespace Utils
@@ -70,16 +71,17 @@ namespace Utils
 
         public static void LocationPermissionNotification()
         {
-            if (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(hajk.MainActivity.mContext, Android.Manifest.Permission.AccessBackgroundLocation) != (int) Android.Content.PM.Permission.Granted)
+            //Not required
+            /*if (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(MainActivity.mContext, Android.Manifest.Permission.AccessBackgroundLocation) != (int) Android.Content.PM.Permission.Granted)
             {
-                hajk.MainActivity.mContext.RequestPermissions( new string[] { Android.Manifest.Permission.AccessBackgroundLocation }, 0);
-            }
+                MainActivity.mContext.RequestPermissions( new string[] { Android.Manifest.Permission.AccessBackgroundLocation }, 0);
+            }*/
 
-            if (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(hajk.MainActivity.mContext, Android.Manifest.Permission.AccessBackgroundLocation) != (int)Android.Content.PM.Permission.Granted)
+            if (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(MainActivity.mContext, Android.Manifest.Permission.AccessBackgroundLocation) != (int)Android.Content.PM.Permission.Granted)
             {
-                using var alert = new Android.App.AlertDialog.Builder(hajk.MainActivity.mContext);
-                alert.SetTitle(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.LocationPermissionTitle));
-                alert.SetMessage(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.LocationPermissionDescription));
+                using var alert = new Android.App.AlertDialog.Builder(MainActivity.mContext);
+                alert.SetTitle(MainActivity.mContext.Resources.GetString(hajk.Resource.String.LocationPermissionTitle));
+                alert.SetMessage(MainActivity.mContext.Resources.GetString(hajk.Resource.String.LocationPermissionDescription));
                 alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
                 var dialog = alert.Create();
                 dialog.SetCancelable(false);
