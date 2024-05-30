@@ -14,17 +14,18 @@ using System.Threading;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
-using Android.Support.V7.Widget;
 using Android.Content.Res;
 using AndroidX.AppCompat.App;
 using AndroidX.AppCompat.Widget;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
+using AndroidX.RecyclerView;
 using Serilog;
 using Xamarin.Essentials;
 using hajk.Data;
 using hajk.Adapter;
 using hajk.Fragments;
+using AndroidX.RecyclerView.Widget;
 
 namespace hajk.Fragments
 {

@@ -1,9 +1,9 @@
 ﻿using Android.Content;
-using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
 using AndroidX.Fragment;
 using AndroidX.Fragment.App;
+using AndroidX.RecyclerView.Widget;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,6 +23,7 @@ using Serilog;
 using Google.Android.Material.Navigation;
 using SharpGPX;
 
+
 namespace hajk.Adapter
 {
     public class GpxAdapter : RecyclerView.Adapter
@@ -40,7 +41,7 @@ namespace hajk.Adapter
             get { return mGpxData.NumGpx; }
         }
 
-        public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
+        public override void OnBindViewHolder(AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder holder, int position)
         {
             try
             {
@@ -90,7 +91,7 @@ namespace hajk.Adapter
 
                 vh.Img_more.Click += (o, e) =>
                 {
-                    Android.Support.V7.Widget.PopupMenu popup = new Android.Support.V7.Widget.PopupMenu(parent.Context, vh.Img_more);
+                    PopupMenu popup = new PopupMenu(parent.Context, vh.Img_more);
                     popup.Inflate(Resource.Menu.menu_gpx);
 
                     //Fix menu text
@@ -248,7 +249,7 @@ namespace hajk.Adapter
                                 Log.Information($"Export route '{vh.Name.Text}'");
 
                                 View view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
-                                Android.Support.V7.App.AlertDialog.Builder alertbuilder = new Android.Support.V7.App.AlertDialog.Builder(parent.Context);
+                                AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder = new AndroidX.AppCompat.App.AlertDialog.Builder(parent.Context);
                                 alertbuilder.SetView(view);
                                 var userdata = view.FindViewById<EditText>(Resource.Id.editText);
                                 userdata.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".gpx";
@@ -267,7 +268,7 @@ namespace hajk.Adapter
                                 {
                                     alertbuilder.Dispose();
                                 });
-                                Android.Support.V7.App.AlertDialog dialog = alertbuilder.Create();
+                                AndroidX.AppCompat.App.AlertDialog dialog = alertbuilder.Create();
                                 dialog.Show();
 
                                 break;
@@ -275,7 +276,7 @@ namespace hajk.Adapter
                                 Log.Information($"Export Map '{vh.Name.Text}'");
 
                                 View view2 = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
-                                Android.Support.V7.App.AlertDialog.Builder alertbuilder2 = new Android.Support.V7.App.AlertDialog.Builder(parent.Context);
+                                AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder2 = new AndroidX.AppCompat.App.AlertDialog.Builder(parent.Context);
                                 alertbuilder2.SetView(view2);
                                 var userdata2 = view2.FindViewById<EditText>(Resource.Id.editText);
                                 userdata2.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".mbtiles";
@@ -303,7 +304,7 @@ namespace hajk.Adapter
                                 {
                                     alertbuilder2.Dispose();
                                 });
-                                Android.Support.V7.App.AlertDialog dialog2 = alertbuilder2.Create();
+                                AndroidX.AppCompat.App.AlertDialog dialog2 = alertbuilder2.Create();
                                 dialog2.Show();
 
                                 break;

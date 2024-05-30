@@ -23,23 +23,23 @@
 			android:digits="0123456789"
 			android:defaultValue="5" />
 
-		  <SwitchPreference
+		<SwitchPreference
 		  android:title="@string/DisplayPOI"
 		  android:summary="@string/DisplayPOIDescription"
 		  android:key="DrawPOIOnGui"
 		  android:defaultValue="true" />
 
-		  <SwitchPreference
-			  android:title="@string/DisplayTracks"
-			  android:summary="@string/DisplayTracksDescription"
-			  android:key="DrawTracksOnGui"
-			  android:defaultValue="true" />
+		<SwitchPreference
+			android:title="@string/DisplayTracks"
+			android:summary="@string/DisplayTracksDescription"
+			android:key="DrawTracksOnGui"
+			android:defaultValue="true" />
 
-		  <SwitchPreference
-			  android:title="@string/MapLockNorthTitle"
-			  android:summary="@string/MapLockNorthDescription"
-			  android:key="MapLockNorth"
-			  android:defaultValue="false" />
+		<SwitchPreference
+			android:title="@string/MapLockNorthTitle"
+			android:summary="@string/MapLockNorthDescription"
+			android:key="MapLockNorth"
+			android:defaultValue="false" />
 	</PreferenceCategory>
 	
 	<PreferenceCategory android:title="Off-Route">

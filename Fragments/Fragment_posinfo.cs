@@ -15,7 +15,6 @@ using System.Threading;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
-using Android.Support.V7.Widget;
 using Android.Content.Res;
 using AndroidX.AppCompat.App;
 using AndroidX.AppCompat.Widget;

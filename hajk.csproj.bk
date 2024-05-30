@@ -235,10 +235,16 @@
     <PackageReference Include="Xamarin.Android.Support.v7.CardView">
       <Version>28.0.0.3</Version>
     </PackageReference>
+    <PackageReference Include="Xamarin.Android.Support.v7.Preference">
+      <Version>28.0.0.3</Version>
+    </PackageReference>
     <PackageReference Include="Xamarin.Android.Support.v7.RecyclerView">
       <Version>28.0.0.3</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.6.1.7" />
+    <PackageReference Include="Xamarin.AndroidX.Preference">
+      <Version>1.2.1.4</Version>
+    </PackageReference>
     <PackageReference Include="Xamarin.Essentials">
       <Version>1.8.1</Version>
     </PackageReference>

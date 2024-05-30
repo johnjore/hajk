@@ -16,15 +16,15 @@
             android:id="@+id/nav_recordtrack"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/Record_Track" />
-		<item
+		    <item
             android:id="@+id/nav_PauseResumeRecordTrack"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/PauseRecord_Track"
-			android:visible="false"
-			android:enabled="false"/>
-	</group>
+			      android:visible="false"
+			      android:enabled="false"/>
+	  </group>
 
-	<item android:title="@string/Routes_Tracks">
+	  <item android:title="@string/Routes_Tracks">
 	    <menu>
 		    <item
                 android:id="@+id/nav_routes"

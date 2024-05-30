@@ -1,6 +1,6 @@
-﻿using Android.Support.V7.Widget;
-using Android.Views;
+﻿using Android.Views;
 using Android.Widget;
+using AndroidX.RecyclerView;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -61,7 +61,7 @@ namespace hajk
 
     }
 
-    public class GPXViewHolder : RecyclerView.ViewHolder
+    public class GPXViewHolder : AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder
     {
         public int Id { get; set; }
         public GPXType GPXType { get; set; }
