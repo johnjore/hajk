@@ -79,7 +79,15 @@ namespace hajk
 			{
 				Serilog.Log.Information($"OnStartCommand: The location service is stopping.");
 				gpslocation = null;
-                StopForeground(true);
+                if (OperatingSystem.IsAndroidVersionAtLeast(24))
+                {
+                    StopForeground(StopForegroundFlags.Remove);
+                }
+                else
+                {
+                    StopForeground(true);
+                }
+
                 StopSelf();
 				isStarted = false;
 			}

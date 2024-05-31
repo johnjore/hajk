@@ -25,7 +25,7 @@ namespace hajk
                     mbTileCache = new MbTileCache(cacheFilename, "png");
                 }
 
-                HttpTileSource src = new HttpTileSource(new GlobalSphericalMercator(PrefsActivity.MinZoom, PrefsActivity.MaxZoom),
+                HttpTileSource src = new (new GlobalSphericalMercator(PrefsActivity.MinZoom, PrefsActivity.MaxZoom),
                     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                     new[] { "a", "b", "c" }, name: "OpenStreetMap",
                     persistentCache: mbTileCache,
@@ -85,7 +85,7 @@ namespace hajk
                 }
             }
 
-            public void AddTile(tiles mbtile)
+            public static void AddTile(tiles mbtile)
             {
                 lock (sqlConn)
                 {
@@ -163,7 +163,7 @@ namespace hajk
                 //Todo
             }
 
-            public SQLiteConnection GetConnection()
+            public static SQLiteConnection GetConnection()
             {
                 return sqlConn;
             }

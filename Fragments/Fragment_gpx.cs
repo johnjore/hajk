@@ -29,7 +29,7 @@ using AndroidX.RecyclerView.Widget;
 
 namespace hajk.Fragments
 {
-    public class Fragment_gpx : Fragment
+    public class Fragment_gpx : AndroidX.Fragment.App.Fragment
     {
         RecyclerView mRecycleView;
         RecyclerView.LayoutManager mLayoutManager;

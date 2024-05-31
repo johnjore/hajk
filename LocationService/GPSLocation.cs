@@ -5,16 +5,16 @@ using Xamarin.Essentials;
 
 namespace hajk
 {
-	public class GPSLocation
-	{
+    public class GPSLocation
+    {
         public static Xamarin.Essentials.Location location = null;
 
         public GPSLocation()
-		{
-		}
+        {
+        }
 
-		public Xamarin.Essentials.Location GetGPSLocationData()
-		{
+        public Xamarin.Essentials.Location GetGPSLocationData()
+        {
             try
             {
                 var task = Task.Run(async () =>
@@ -42,6 +42,6 @@ namespace hajk
             }
 
             return location;
-		}
-	}
+        }
+    }
 }

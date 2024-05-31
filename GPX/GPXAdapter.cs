@@ -23,7 +23,6 @@ using Serilog;
 using Google.Android.Material.Navigation;
 using SharpGPX;
 
-
 namespace hajk.Adapter
 {
     public class GpxAdapter : RecyclerView.Adapter
@@ -87,11 +86,11 @@ namespace hajk.Adapter
             try
             {
                 View itemView = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.activity_gpx, parent, false);
-                GPXViewHolder vh = new GPXViewHolder(itemView, OnClick);
+                GPXViewHolder vh = new(itemView, OnClick);
 
                 vh.Img_more.Click += (o, e) =>
                 {
-                    PopupMenu popup = new PopupMenu(parent.Context, vh.Img_more);
+                    PopupMenu popup = new(parent.Context, vh.Img_more);
                     popup.Inflate(Resource.Menu.menu_gpx);
 
                     //Fix menu text
@@ -106,7 +105,7 @@ namespace hajk.Adapter
                     {
                         switch (args.Item.ItemId)
                         {
-                            case Resource.Id.gpx_menu_followroute:
+                            case var value when value == Resource.Id.gpx_menu_followroute:
                                 Log.Information($"Follow route or track '{vh.Name.Text}'");
 
                                 //Get the route or track
@@ -159,7 +158,7 @@ namespace hajk.Adapter
                                 nav.Invalidate();
 
                                 break;
-                            case Resource.Id.gpx_menu_showonmap:
+                            case var value when value == Resource.Id.gpx_menu_showonmap:
                                 Log.Information($"Show route on map '{vh.Name.Text}'");
 
                                 //Get the route
@@ -193,10 +192,10 @@ namespace hajk.Adapter
                                 MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
 
                                 break;
-                            case Resource.Id.gpx_menu_deleteroute:
+                            case var value when value == Resource.Id.gpx_menu_deleteroute:
                                 Log.Information($"Delete route '{vh.Name.Text}'");
 
-                                Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                                Show_Dialog msg1 = new(MainActivity.mContext);
                                 if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}' ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                                 {
                                     //Remove map tiles
@@ -211,7 +210,7 @@ namespace hajk.Adapter
                                 }
 
                                 break;
-                            case Resource.Id.gpx_menu_reverseroute:
+                            case var value when value == Resource.Id.gpx_menu_reverseroute:
                                 Log.Information($"Reverse route '{vh.Name.Text}'");
 
                                 //Get the route
@@ -245,11 +244,11 @@ namespace hajk.Adapter
                                 Fragment_gpx.mAdapter.NotifyDataSetChanged();
 
                                 break;
-                            case Resource.Id.gpx_menu_exportgpx:
+                            case var value when value == Resource.Id.gpx_menu_exportgpx:
                                 Log.Information($"Export route '{vh.Name.Text}'");
 
                                 View view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
-                                AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder = new AndroidX.AppCompat.App.AlertDialog.Builder(parent.Context);
+                                AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder = new(parent.Context);
                                 alertbuilder.SetView(view);
                                 var userdata = view.FindViewById<EditText>(Resource.Id.editText);
                                 userdata.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".gpx";
@@ -272,11 +271,11 @@ namespace hajk.Adapter
                                 dialog.Show();
 
                                 break;
-                            case Resource.Id.gpx_menu_exportmap:
+                            case var value when value == Resource.Id.gpx_menu_exportmap:
                                 Log.Information($"Export Map '{vh.Name.Text}'");
 
                                 View view2 = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
-                                AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder2 = new AndroidX.AppCompat.App.AlertDialog.Builder(parent.Context);
+                                AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder2 = new(parent.Context);
                                 alertbuilder2.SetView(view2);
                                 var userdata2 = view2.FindViewById<EditText>(Resource.Id.editText);
                                 userdata2.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".mbtiles";
@@ -308,7 +307,7 @@ namespace hajk.Adapter
                                 dialog2.Show();
 
                                 break;
-                            case Resource.Id.gpx_menu_saveofflinemap:
+                            case var value when value == Resource.Id.gpx_menu_saveofflinemap:
                                 Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text} / {vh.Id}'");
                                 //Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
 

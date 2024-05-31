@@ -29,7 +29,7 @@ namespace hajk
     class RecordTrack
     {
         private static bool NotificationDialogActive = false; //Is notification dialog active or not when XTE
-        public static GpxClass trackGpx = new GpxClass();
+        public static GpxClass trackGpx = new();
         public static Timer Timer_Order;
         private static Timer Timer_WarnIfOffRoute;
 
@@ -80,14 +80,14 @@ namespace hajk
                 //Update location marker with correct colour
                 Location.UpdateLocationFeature();
 
-                Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                Show_Dialog msg1 = new(MainActivity.mContext);
                 if (await msg1.ShowDialog($"Track", $"Save Track ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.NO)
                 {
                     return;
                 }
 
                 string name = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-                GpxClass track = new GpxClass()
+                GpxClass track = new()
                 {
                     Metadata = new metadataType()
                     {
@@ -240,7 +240,7 @@ namespace hajk
                         var b = MainActivity.mContext.Resources.GetString(Resource.String.IgnoreAlarmFor);
                         var c = MainActivity.mContext.Resources.GetString(Resource.String.Minutes);
 
-                        Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                        Show_Dialog msg1 = new(MainActivity.mContext);
                         if (await msg1.ShowDialog(a, b + " " + OffTrackRouteSnooze_m.ToString() + " " + c, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                         {
                             int freq_s = int.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
@@ -360,7 +360,7 @@ namespace hajk
 
             try
             {
-                wptType waypoint = new wptType()
+                wptType waypoint = new()
                 {
                     lat = (decimal)location.Latitude,
                     lon = (decimal)location.Longitude,

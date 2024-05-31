@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace hajk.Fragments
 {
-    public class Fragment_map : Fragment
+    public class Fragment_map : AndroidX.Fragment.App.Fragment
     {
         public static MapControl mapControl;
         public static Mapsui.Map map = new Mapsui.Map();

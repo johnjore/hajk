@@ -48,7 +48,15 @@ namespace hajk
         {
             base.OnCreate(savedInstanceState);
 
-            AddPreferencesFromResource(Resource.Xml.Preferences);
+            if (OperatingSystem.IsAndroidVersionAtLeast(29))
+            {
+                /**///Fix me
+                AddPreferencesFromResource(Resource.Xml.Preferences);
+            }
+            else
+            {
+                AddPreferencesFromResource(Resource.Xml.Preferences);
+            }
         }
     }
 }

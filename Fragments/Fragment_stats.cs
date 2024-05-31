@@ -27,7 +27,7 @@ using hajk.Fragments;
 
 namespace hajk.Fragments
 {
-    public class Fragment_stats : Fragment
+    public class Fragment_stats : AndroidX.Fragment.App.Fragment
     {
         public override void OnCreate(Bundle savedInstanceState)
         {

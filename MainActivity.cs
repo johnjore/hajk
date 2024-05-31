@@ -1,6 +1,10 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Net;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.IO;
 using Android.App;
 using Android.OS;
 using Android.Runtime;
@@ -16,17 +20,13 @@ using Google.Android.Material.Navigation;
 using Google.Android.Material.Snackbar;
 using Serilog;
 using Xamarin.Essentials;
+using static Xamarin.Essentials.Permissions;
 using hajk.Data;
 using hajk.Fragments;
+using hajk.Models;
 using SQLite;
 using SharpGPX;
-using hajk.Models;
 using GeoTiffCOG.Struture;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.IO;
-using static Xamarin.Essentials.Permissions;
 
 //Location service: https://github.com/shernandezp/XamarinForms.LocationService
 
@@ -35,14 +35,14 @@ namespace hajk
     [Activity(Name = "no.johnjore.hajk.MainActivity", Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
     public class MainActivity : AppCompatActivity, NavigationView.IOnNavigationItemSelectedListener
     {
-        public static Activity mContext;
-        public static RouteDatabase routedatabase;
-        private Intent BatteryOptimizationsIntent;
+        public static Android.App.Activity? mContext;
+        public static RouteDatabase? routedatabase;
+        private Intent? BatteryOptimizationsIntent;
         public static int wTrackRouteMap = 0;
-        public static GpxClass ActiveRoute = null;                  // Active Route / Track for calculations, inc Off-Route detection
+        public static GpxClass? ActiveRoute = null;                  // Active Route / Track for calculations, inc Off-Route detection
 
         //Location Service
-        Intent startLocationServiceIntent;
+        Intent? startLocationServiceIntent;
         bool isLocationServiceStarted = false;
         public static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
 
@@ -78,19 +78,28 @@ namespace hajk
                 Utils.Misc.ExtractInitialMap(mContext, rootPath + "/" + PrefsActivity.CacheDB);
 
                 SetContentView(Resource.Layout.activity_main);
-                AndroidX.AppCompat.Widget.Toolbar toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
-                SetSupportActionBar(toolbar);
+                AndroidX.AppCompat.Widget.Toolbar? toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
+                if (toolbar != null)
+                {
+                    SetSupportActionBar(toolbar);
+                }
 
-                FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
-                fab.Click += FabOnClick;
+                FloatingActionButton? fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
+                if (fab != null)
+                {
+                    fab.Click += FabOnClick;
+                }
 
-                DrawerLayout drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
-                ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
-                drawer.AddDrawerListener(toggle);
-                toggle.SyncState();
+                DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
+                ActionBarDrawerToggle toggle = new (this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
+                if (drawer != null && toggle != null)
+                {
+                    drawer.AddDrawerListener(toggle);
+                    toggle.SyncState();
+                }
 
-                NavigationView navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
-                navigationView.SetNavigationItemSelectedListener(this);
+                NavigationView? navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
+                navigationView?.SetNavigationItemSelectedListener(this);
 
 
                 //Request Permissions
@@ -130,7 +139,7 @@ namespace hajk
                 startLocationServiceIntent = new Intent(this, typeof(LocationService));
                 startLocationServiceIntent.SetAction(PrefsActivity.ACTION_START_SERVICE);
 
-                if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
+                if (OperatingSystem.IsAndroidVersionAtLeast(26))
                 {
                     Log.Debug($"Start Foreground Service");
                     StartForegroundService(startLocationServiceIntent);
@@ -166,7 +175,7 @@ namespace hajk
                 Utils.Misc.BatterySaveModeNotification();
 
                 Log.Debug($"Notify user if location permission does not allow background collection");
-                Utils.Misc.LocationPermissionNotification();                
+                Utils.Misc.LocationPermissionNotification();
             }
             catch (Exception ex)
             {
@@ -399,7 +408,7 @@ namespace hajk
                             .Commit();
                         SupportFragmentManager.ExecutePendingTransactions();
 
-                        nav.Menu.FindItem(Resource.Id.nav_tracks).SetTitle(Resource.String.Tracks);
+                        nav.Menu.FindItem(Resource.Id.nav_tracks).SetTitle(Resource.String.Track);
                         Fragment_gpx.GPXDisplay = Models.GPXType.Route;
 
                         SupportFragmentManager.BeginTransaction()
@@ -486,7 +495,7 @@ namespace hajk
                 SQLiteConnection DBBackupConnection = TileCache.MbTileCache.sqlConn;
                 string backupFileName = DownLoadFolder + "/Backup-" + Resources.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".mbtiles";
                 DBBackupConnection.Backup(backupFileName);
-                
+
                 //Route DB
                 string dbPath = Path.Combine(rootPath, Preferences.Get("RouteDB", PrefsActivity.RouteDB));
                 DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);

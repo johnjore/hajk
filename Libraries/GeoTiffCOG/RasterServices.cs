@@ -77,7 +77,7 @@ namespace GeoTiffCOG
                 output.SetField(TiffTag.IMAGELENGTH, metaDataRaster.Height);
                 output.SetField(TiffTag.SAMPLESPERPIXEL, metaDataRaster.SamplesPerPixel);
                 output.SetField(TiffTag.BITSPERSAMPLE, metaDataRaster.BitsPerSample);
-                output.SetField(TiffTag.ORIENTATION, Orientation.RIGHTBOT);
+                output.SetField(TiffTag.ORIENTATION, BitMiracle.LibTiff.Classic.Orientation.RIGHTBOT);
 
                 output.SetField(TiffTag.ROWSPERSTRIP, output.DefaultStripSize(0));
                 output.SetField(TiffTag.XRESOLUTION, metaDataRaster.Height);

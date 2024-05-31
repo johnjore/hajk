@@ -33,7 +33,7 @@ using SkiaSharp;
 
 namespace hajk.Fragments
 {
-    public class Fragment_posinfo : Fragment
+    public class Fragment_posinfo : AndroidX.Fragment.App.Fragment
     {
         public override void OnCreate(Bundle savedInstanceState)
         {
@@ -191,7 +191,7 @@ namespace hajk.Fragments
                         var a = GPXUtils.GPXUtils.CalculateElevationDistanceData(RecordTrack.trackGpx.Waypoints, 0, RecordTrack.trackGpx.Waypoints.Count);
                         int TrackAscentFromStart_m = a.Item1;
                         int TrackDescentFromStart_m = a.Item2;
-                        int TrackDistanceFromStart_m = a.Item3;                        
+                        int TrackDistanceFromStart_m = a.Item3;
                         string v = Utils.Misc.KMvsM(TrackDistanceFromStart_m);
                         Serilog.Log.Debug("Item3: '" + a.Item3.ToString() + "', TrackDistanceFromStart_m: '" + TrackDistanceFromStart_m.ToString() + "', v: '" + v + "'");
 
@@ -232,8 +232,8 @@ namespace hajk.Fragments
             }
 
             return null;
-        }                
-    
+        }
+
         private void ConfigureGraph(View view, Xamarin.Essentials.Location GpsLocation, GPXUtils.Position MapPosition)
         {
             try
@@ -300,7 +300,7 @@ namespace hajk.Fragments
                     if (i == route.rtept.Count - 1)
                     {
                         var t = Import.GPXtoRoute(route, false);
-                        entry.Label =  (t.Item2 / 1000).ToString("N1");
+                        entry.Label = (t.Item2 / 1000).ToString("N1");
                         entry.TextColor = SKColor.Parse("#000000"); //Purple
                     }
 

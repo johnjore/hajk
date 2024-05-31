@@ -413,7 +413,7 @@ namespace hajk
             //Progress bar
             LayoutInflater layoutInflater = LayoutInflater.From(MainActivity.mContext);
             View progressDialogBox = layoutInflater.Inflate(Resource.Layout.progressbardialog, null);
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.mContext);
+            AndroidX.AppCompat.App.AlertDialog.Builder alertDialogBuilder = new AndroidX.AppCompat.App.AlertDialog.Builder(MainActivity.mContext);
             alertDialogBuilder.SetView(progressDialogBox);
             var progressBar = progressDialogBox.FindViewById<ProgressBar>(Resource.Id.progressBar);
             progressBar.Max = 100;

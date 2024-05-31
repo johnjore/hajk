@@ -63,7 +63,7 @@ namespace hajk
 
                 if (ShowDialog)
                 {
-                    Show_Dialog msg3 = new Show_Dialog(MainActivity.mContext);
+                    Show_Dialog msg3 = new (MainActivity.mContext);
                     await msg3.ShowDialog($"Done", $"Map Download Completed", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
                 }
 
@@ -119,11 +119,11 @@ namespace hajk
                     });
 
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
-                    tiles newTile = new tiles();
+                    tiles newTile = new();
 
                     for (int i = 0; i < 10; i++)
                     {
-                        tiles oldTile = null;
+                        tiles oldTile;
                         try
                         {
                             oldTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
@@ -190,7 +190,7 @@ namespace hajk
                     }
 
                     //Update Reference field
-                    List<int> r = new List<int>();
+                    List<int> r = new();
                     if (newTile.reference != null && newTile.reference != string.Empty)
                     {
                         try
@@ -232,7 +232,7 @@ namespace hajk
             {
                 ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }  
             };
-            var _httpClient = new HttpClient(clientHandler)
+            HttpClient _httpClient = new (clientHandler)
             {
                 Timeout = TimeSpan.FromSeconds(60)
             };
@@ -303,10 +303,9 @@ namespace hajk
                 }
                 ExportDB.Close();
                 ExportDB.Dispose();
-                ExportDB = null;
 
                 var m = MainActivity.mContext;
-                Show_Dialog msg = new Show_Dialog(m);
+                Show_Dialog msg = new(m);
                 msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapExportCompleted), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
             }
             catch (Exception ex)

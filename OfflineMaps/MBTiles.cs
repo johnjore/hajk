@@ -189,7 +189,7 @@ namespace hajk
                         ImportDB = null;
 
                         var m = MainActivity.mContext;
-                        Show_Dialog msg = new Show_Dialog(m);
+                        Show_Dialog msg = new(m);
                         await msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapTilesImported), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
                     }
                 }
