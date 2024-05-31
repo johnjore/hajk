@@ -205,13 +205,13 @@ namespace hajk
             }
         }
 
-        public override bool OnCreateOptionsMenu(IMenu menu)
+        public override bool OnCreateOptionsMenu(IMenu? menu)
         {
             MenuInflater.Inflate(Resource.Menu.menu_main, menu);
 
             //Disable menu item until a GPX file has been overlayed map
-            var item = menu.FindItem(Resource.Id.action_clearmap);
-            item.SetEnabled(false);
+            var item = menu?.FindItem(Resource.Id.action_clearmap);
+            item?.SetEnabled(false);
 
             return true;
         }
@@ -297,18 +297,23 @@ namespace hajk
             Preferences.Set("TrackLocation", !currentStatus);
 
             //Floating Button
-            FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
+            FloatingActionButton? fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
+
+            if (fab == null)
+            {
+                return;
+            }
 
             //Inverse as pref has been updated
             if (Preferences.Get("TrackLocation", true) == false)
             {
-                fab.Background.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.Red));
+                fab.Background?.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.Red));
                 Location.UpdateLocationMarker(true);
                 Fragment_map.mapControl.Map.PanLock = true;
             }
             else
             {
-                fab.Background.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.LightBlue));
+                fab.Background?.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.LightBlue));
                 Fragment_map.mapControl.Map.PanLock = false;
             }
 
@@ -510,6 +515,79 @@ namespace hajk
                 alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
                 var dialog = alert.Create();
                 dialog.Show();
+            }
+            else if (id == Resource.Id.activity_restore)
+            {
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    try
+                    {
+                        var options = new PickOptions
+                        {
+                            PickerTitle = "Please select an activities file",
+                            FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                            {
+                                /**///What is mime type for db3 files?!?
+                                //{ DevicePlatform.Android, new string[] { "mbtiles"} },
+                                { DevicePlatform.Android, null },
+                            })
+                        };
+
+                        var sourceFile = await FilePicker.PickAsync(options);
+                        if (sourceFile != null)
+                        {
+                            var ImportDB = new SQLiteConnection(sourceFile.FullPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
+                            var TrackRoutesToImport = ImportDB.Table<GPXDataRouteTrack>();
+                            Log.Debug($"Activities to import: " + TrackRoutesToImport.Count().ToString());
+
+                            if (TrackRoutesToImport == null || TrackRoutesToImport.Count() == 0)
+                            {
+                                //Nothing to Import
+                                return;
+                            }
+
+                            //All Existing routes and tracks
+                            List<GPXDataRouteTrack> allTracksRoutes = RouteDatabase.GetRoutesAsync().Result;
+                            allTracksRoutes.AddRange(RouteDatabase.GetTracksAsync().Result);
+
+                            foreach (GPXDataRouteTrack newActivity in TrackRoutesToImport)
+                            {
+                                GPXDataRouteTrack? oldActivity = allTracksRoutes.Where(x =>
+                                    x.GPXType == newActivity.GPXType &&
+                                    x.Name == newActivity.Name &&
+                                    x.Distance == newActivity.Distance &&
+                                    x.Ascent == newActivity.Ascent &&
+                                    x.Descent == newActivity.Descent &&
+                                    x.Description == newActivity.Description &&
+                                    x.GPX == newActivity.GPX
+                                ).FirstOrDefault();
+
+                                if (oldActivity == null)
+                                {
+                                    newActivity.Id = 0;
+                                    RouteDatabase.SaveRoute(newActivity);
+                                }
+
+                                //else its a duplicate, do not import                           
+                            }
+
+                            ImportDB.Close();
+                            ImportDB.Dispose();
+                            ImportDB = null;
+
+                            var m = MainActivity.mContext;
+                            if (m != null)
+                            {
+                                Show_Dialog msg = new(m);
+                                await msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.ActivitiesImported), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"Failed to import map file: '{ex}'");
+                    }
+                });
             }
             else if (id == Resource.Id.db_maintenance)
             {

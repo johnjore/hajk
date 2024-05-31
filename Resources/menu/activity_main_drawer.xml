@@ -11,7 +11,7 @@
         <item
             android:id="@+id/nav_offlinemap"
             android:icon="@android:drawable/ic_menu_mapmode"
-            android:title="@string/Import_Map" />		
+            android:title="@string/Import_Map" />
         <item
             android:id="@+id/nav_recordtrack"
             android:icon="@drawable/ic_menu_slideshow"
@@ -27,30 +27,35 @@
 	  <item android:title="@string/Routes_Tracks">
 	    <menu>
 		    <item
-                android:id="@+id/nav_routes"
-                android:icon="@drawable/route"
-                android:title="@string/Routes" />
+            android:id="@+id/nav_routes"
+            android:icon="@drawable/route"
+            android:title="@string/Routes" />
 		    <item
-                android:id="@+id/nav_tracks"
-                android:icon="@drawable/track"
-                android:title="@string/Tracks" />
+            android:id="@+id/nav_tracks"
+            android:icon="@drawable/track"
+            android:title="@string/Tracks" />
 		</menu>
 	</item>
 	
 	<item android:title="@string/Misc">
 		<menu>
       <item
-                android:id="@+id/backup"
-                android:icon="@android:drawable/ic_dialog_info"
-                android:title="@string/Backup" />
+            android:id="@+id/backup"
+            android:icon="@android:drawable/ic_dialog_info"
+            android:title="@string/Backup" />
       <item
-                android:id="@+id/db_maintenance"
-                android:icon="@android:drawable/ic_dialog_info"
-                android:title="@string/DBMaintenance" />
+            android:id="@+id/activity_restore"
+            android:icon="@android:drawable/ic_dialog_info"
+            android:title="@string/RestoreActivitys" />
+
       <item
-                android:id="@+id/about"
-                android:icon="@android:drawable/ic_dialog_info"
-                android:title="@string/About" />
+            android:id="@+id/db_maintenance"
+            android:icon="@android:drawable/ic_dialog_info"
+            android:title="@string/DBMaintenance" />
+      <item
+            android:id="@+id/about"
+            android:icon="@android:drawable/ic_dialog_info"
+            android:title="@string/About" />
 	    </menu>
     </item>
 </menu>
