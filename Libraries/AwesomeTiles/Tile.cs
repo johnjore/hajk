@@ -121,7 +121,7 @@ namespace AwesomeTiles
         /// <summary>
         /// Gets the parent tile.
         /// </summary>
-        public Tile Parent => new Tile(this.X / 2, this.Y / 2, this.Zoom - 1);
+        public Tile Parent => new (this.X / 2, this.Y / 2, this.Zoom - 1);
 
         /// <summary>
         /// Returns a hashcode for this tile position.
@@ -139,7 +139,7 @@ namespace AwesomeTiles
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             var other = (obj as Tile);
             if (other != null)
@@ -282,7 +282,7 @@ namespace AwesomeTiles
         /// <summary>
         /// Returns the tile at the given location at the given zoom.
         /// </summary>
-        public static Tile CreateAroundLocation(double lat, double lon, int zoom)
+        public static Tile? CreateAroundLocation(double lat, double lon, int zoom)
         {
             if (!Tile.CreateAroundLocation(lat, lon, zoom, out int x, out int y))
             {
