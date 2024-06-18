@@ -13,10 +13,10 @@ namespace hajk
     [Service(ForegroundServiceType = Android.Content.PM.ForegroundService.TypeLocation)]
     public class LocationService : Service
     {
-		GPSLocation gpslocation;
+		GPSLocation? gpslocation;
 		bool isStarted;
-		Handler handler;
-		Action runnable;
+		Handler? handler;
+		Action? runnable;
 
 		public override void OnCreate()
 		{
@@ -58,9 +58,13 @@ namespace hajk
 			});
 		}
 
-		public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
+		public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
 		{
-			if (intent.Action.Equals(PrefsActivity.ACTION_START_SERVICE))
+			if (intent == null || intent.Action == null)
+                return StartCommandResult.Sticky;
+
+
+            if (intent.Action.Equals(PrefsActivity.ACTION_START_SERVICE))
 			{
 				if (isStarted)
 				{
@@ -71,7 +75,7 @@ namespace hajk
 					Serilog.Log.Information($"OnStartCommand: The location service is starting.");
 					RegisterForegroundService();
 					int UpdateGPSLocation_s = Int32.Parse(Preferences.Get("UpdateGPSLocation", PrefsActivity.UpdateGPSLocation_s.ToString()));
-					handler.PostDelayed(runnable, UpdateGPSLocation_s * 1000);
+					handler?.PostDelayed(runnable, UpdateGPSLocation_s * 1000);
 					isStarted = true;
 				}
 			}
@@ -96,7 +100,7 @@ namespace hajk
 		}
 
 
-		public override IBinder OnBind(Intent intent)
+		public override IBinder? OnBind(Intent? intent)
 		{
 			// Return null because this is a pure started service. A hybrid service would return a binder that would allow access to the GetFormattedStamp() method.
 			return null;
@@ -109,11 +113,11 @@ namespace hajk
 			Serilog.Log.Information($"OnDestroy: The location service is shutting down.");
 
 			// Stop the handler.
-			handler.RemoveCallbacks(runnable);
+			handler?.RemoveCallbacks(runnable);
 
 			// Remove the notification from the status bar.
-			var notificationManager = (NotificationManager)GetSystemService(NotificationService);
-			notificationManager.Cancel(PrefsActivity.SERVICE_RUNNING_NOTIFICATION_ID);
+			var notificationManager = (NotificationManager?)GetSystemService(NotificationService);
+			notificationManager?.Cancel(PrefsActivity.SERVICE_RUNNING_NOTIFICATION_ID);
 
 			gpslocation = null;
 			isStarted = false;
@@ -122,18 +126,21 @@ namespace hajk
 
 		void RegisterForegroundService()
 		{
-            NotificationChannel chan = new NotificationChannel(PrefsActivity.NOTIFICATION_CHANNEL_ID, PrefsActivity.channelName, NotificationImportance.None)
-            {
-                LockscreenVisibility = NotificationVisibility.Private
-            };
-            NotificationManager manager = (NotificationManager)GetSystemService(Context.NotificationService);
-			manager.CreateNotificationChannel(chan);
+			if (OperatingSystem.IsAndroidVersionAtLeast(26))
+			{
+				NotificationChannel chan = new NotificationChannel(PrefsActivity.NOTIFICATION_CHANNEL_ID, PrefsActivity.channelName, NotificationImportance.None)
+				{
+					LockscreenVisibility = NotificationVisibility.Private
+				};
+				NotificationManager manager = (NotificationManager)GetSystemService(Context.NotificationService);
+				manager?.CreateNotificationChannel(chan);
+			}
 
 			NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, PrefsActivity.NOTIFICATION_CHANNEL_ID);
 			Notification notification = notificationBuilder
 				.SetOngoing(true)
 				.SetSmallIcon(Resource.Drawable.track)
-				.SetContentText(Resources.GetString(Resource.String.notification_text))
+				.SetContentText(Resources?.GetString(Resource.String.notification_text))
 				.SetPriority(1)
 				.SetCategory(Notification.CategoryService)				
 				.SetContentIntent(BuildIntentToShowMainActivity())
