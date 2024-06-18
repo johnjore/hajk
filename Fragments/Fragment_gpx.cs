@@ -31,33 +31,35 @@ namespace hajk.Fragments
 {
     public class Fragment_gpx : AndroidX.Fragment.App.Fragment
     {
-        RecyclerView mRecycleView;
-        RecyclerView.LayoutManager mLayoutManager;
-        static GpxData mGpxData;
-        public static GpxAdapter mAdapter;
+        RecyclerView? mRecycleView;
+        RecyclerView.LayoutManager? mLayoutManager;
+        static GpxData? mGpxData;
+        public static GpxAdapter? mAdapter;
         public static Models.GPXType GPXDisplay = Models.GPXType.Route;
 
-        public override void OnCreate(Bundle savedInstanceState)
+        public override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
         }
 
-        public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+        public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
         {
             try
             {
                 var view = inflater.Inflate(Resource.Layout.fragment_gpx, container, false);
-                view.SetBackgroundColor(Android.Graphics.Color.White);
+                view?.SetBackgroundColor(Android.Graphics.Color.White);
 
                 mGpxData = new GpxData(GPXDisplay);
-                mRecycleView = view.FindViewById<RecyclerView>(Resource.Id.recyclerView);
-                mRecycleView.Visibility = ViewStates.Visible;
-
-                mLayoutManager = new LinearLayoutManager(view.Context);
-                mRecycleView.SetLayoutManager(mLayoutManager);
-                mAdapter = new GpxAdapter(mGpxData);
-                //mAdapter.ItemClick += GpxAdapter.MAdapter_ItemClick;
-                mRecycleView.SetAdapter(mAdapter);
+                mRecycleView = view?.FindViewById<RecyclerView>(Resource.Id.recyclerView);
+                if (mRecycleView != null)
+                {
+                    mRecycleView.Visibility = ViewStates.Visible;
+                    mLayoutManager = new LinearLayoutManager(view?.Context);
+                    mRecycleView.SetLayoutManager(mLayoutManager);
+                    mAdapter = new GpxAdapter(mGpxData);
+                    //mAdapter.ItemClick += GpxAdapter.MAdapter_ItemClick;
+                    mRecycleView.SetAdapter(mAdapter);
+                }
 
                 return view;
             }

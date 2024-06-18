@@ -171,7 +171,7 @@ namespace hajk.Fragments
                     if (fragment != null)
                     {
                         activity?.SupportFragmentManager.BeginTransaction()
-                            .Remove((AndroidX.Fragment.App.Fragment)activity?.SupportFragmentManager?.FindFragmentByTag("Fragment_posinfo"))
+                            .Remove((AndroidX.Fragment.App.Fragment?)activity?.SupportFragmentManager?.FindFragmentByTag("Fragment_posinfo"))
                             .Commit();
                         activity?.SupportFragmentManager.ExecutePendingTransactions();
                     }
