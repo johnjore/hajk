@@ -20,13 +20,13 @@ namespace Utils
             try
             {
                 Serilog.Log.Verbose($"Checking if '{dbFile}' exists");
-                // Only if file does not exist
-                if (!File.Exists(dbFile))
+
+                if (File.Exists(dbFile) == false)
                 {
                     Serilog.Log.Verbose($"Extracting embedded world map");
-                    using (FileStream writeStream = new FileStream(dbFile, FileMode.OpenOrCreate, FileAccess.Write))
+                    using (var writeStream = new FileStream(dbFile, FileMode.OpenOrCreate, FileAccess.Write))
                     {
-                        activity.Assets.Open(PrefsActivity.CacheDB).CopyTo(writeStream);
+                        activity?.Assets?.Open(PrefsActivity.CacheDB).CopyTo(writeStream);
                     }
                 }
                 else
@@ -61,12 +61,12 @@ namespace Utils
             if (Battery.EnergySaverStatus == EnergySaverStatus.Off)
                 return;
 
-            using var alert = new AlertDialog.Builder(hajk.MainActivity.mContext);
-            alert.SetTitle(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledTitle));
-            alert.SetMessage(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledDescription));
+            using var alert = new AlertDialog.Builder(MainActivity.mContext);
+            alert.SetTitle(MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledTitle));
+            alert.SetMessage(MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledDescription));
             alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
             var dialog = alert.Create();
-            dialog.Show();
+            dialog?.Show();
         }
 
         public static void LocationPermissionNotification()
@@ -84,55 +84,55 @@ namespace Utils
                 alert.SetMessage(MainActivity.mContext.Resources.GetString(hajk.Resource.String.LocationPermissionDescription));
                 alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
                 var dialog = alert.Create();
-                dialog.SetCancelable(false);
-                dialog.Show();
+                dialog?.SetCancelable(false);
+                dialog?.Show();
             }
         }
 
-        public static string ConvertBitMapToString(Bitmap bitmap)
+        public static string? ConvertBitMapToString(Bitmap bitmap)
         {
             try
             {
                 byte[] bitmapData;
-                using (MemoryStream stream = new MemoryStream())
+                using (var stream = new MemoryStream())
                 {
                     bitmap.Compress(Bitmap.CompressFormat.Jpeg, 50, stream);
                     bitmapData = stream.ToArray();
                 }
 
-                string ImageBase64 = Convert.ToBase64String(bitmapData);
-
-                return ImageBase64;
+                return Convert.ToBase64String(bitmapData);
             }
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, $"Utils - ConverBitMapToString()");
-                return null;
             }
+
+            return null;
         }
 
-        public static Bitmap ConvertStringToBitmap(string mystr)
+        public static Bitmap? ConvertStringToBitmap(string mystr)
         {
-            if (mystr == null)
-            {
-                return null;
-            }
-
-            if (mystr == string.Empty)
+            if (mystr == null || mystr == string.Empty)
             {
                 return null;
             }
 
             try
             {
-                byte[] decodedString = Base64.Decode(mystr, Base64Flags.Default);
-                Bitmap decodedByte = BitmapFactory.DecodeByteArray(decodedString, 0, decodedString.Length);
-                return decodedByte;
+                byte[]? decodedString = Base64.Decode(mystr, Base64Flags.Default);
+
+                if (decodedString != null)
+                {
+                    Bitmap? decodedByte = BitmapFactory.DecodeByteArray(decodedString, 0, decodedString.Length);
+                    return decodedByte;
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                return null;
+                Serilog.Log.Error(ex, "ConvertStringToBitmap");
             }
+
+            return null;
         }
 
         public static int GetBitmapIdForEmbeddedResource(string imagePath)
@@ -141,42 +141,38 @@ namespace Utils
             {
                 var assembly = typeof(hajk.MainActivity).GetTypeInfo().Assembly;
                 var image = assembly.GetManifestResourceStream(imagePath);
+
+                if (image == null)
+                {
+                    return 0;
+                }
+
                 var bitmapId = Mapsui.Styles.BitmapRegistry.Instance.Register(image);
                 return bitmapId;
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Utils - AcessOSMLayerDirect()");
+                Serilog.Log.Error(ex, $"Utils - GetBitmapIdForEmbeddedResource()");
                 return 0;
             }
         }
 
-        public static Mapsui.Geometries.Point CalculateCenter(double BoundsRight, double BoundsTop, double BoundsLeft, double BoundsBottom)
+        public static Mapsui.MPoint CalculateCenter(double BoundsRight, double BoundsTop, double BoundsLeft, double BoundsBottom)
         {
-            double lat = (BoundsLeft + BoundsRight) / 2;
-            double lng = (BoundsBottom + BoundsTop) / 2;
-
-            Mapsui.Geometries.Point p = new Mapsui.Geometries.Point()
+            return new Mapsui.MPoint()
             {
-                X = lng,
-                Y = lat
+                X = (BoundsBottom + BoundsTop) / 2,
+                Y = (BoundsLeft + BoundsRight) / 2,
             };
-
-            return p;
         }
 
-        public static Mapsui.Geometries.Point CalculateQuarter(double BoundsRight, double BoundsTop, double BoundsLeft, double BoundsBottom)
+        public static Mapsui.MPoint CalculateQuarter(double BoundsRight, double BoundsTop, double BoundsLeft, double BoundsBottom)
         {
-            double lat = (((BoundsLeft + BoundsRight) / 2) + BoundsRight) / 2;
-            double lng = (((BoundsBottom + BoundsTop) / 2) + BoundsTop) / 2;
-
-            Mapsui.Geometries.Point p = new Mapsui.Geometries.Point()
+            return new Mapsui.MPoint()
             {
-                X = lng,
-                Y = lat
+                X = (((BoundsBottom + BoundsTop) / 2) + BoundsTop) / 2,
+                Y = (((BoundsLeft + BoundsRight) / 2) + BoundsRight) / 2,
             };
-
-            return p;
         }
 
         public static bool ClearTrackRoutesFromMap()
@@ -188,7 +184,7 @@ namespace Utils
                 //Remove recorded waypoints
                 hajk.RecordTrack.trackGpx.Waypoints.Clear();
 
-                IEnumerable<ILayer> layers = hajk.Fragments.Fragment_map.map.Layers.Where(x => (string)x.Tag == "route" || (string)x.Tag == "track" || (string)x.Tag == "tracklayer");
+                IEnumerable<ILayer> layers = hajk.Fragments.Fragment_map.map.Layers.Where(x => (string?)x.Tag == "route" || (string?)x.Tag == "track" || (string?)x.Tag == "tracklayer");
                 foreach (ILayer rt in layers)
                 {
                     hajk.Fragments.Fragment_map.map.Layers.Remove(rt);
@@ -205,15 +201,21 @@ namespace Utils
 
         public static void PromptToConfirmExit()
         {
-            using (var alert = new AlertDialog.Builder(hajk.MainActivity.mContext))
+            if (MainActivity.mContext == null || MainActivity.mContext.Resources == null)
             {
-                alert.SetTitle(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.ExitTitle));
-                alert.SetMessage(hajk.MainActivity.mContext.Resources.GetString(hajk.Resource.String.ExitPrompt));
-                alert.SetPositiveButton(hajk.Resource.String.Yes, (sender, args) => { hajk.MainActivity.mContext.FinishAffinity(); });
+                Serilog.Log.Error($"Utils - PromptToConfirmExit()");
+                return;
+            }
+
+            using (var alert = new AlertDialog.Builder(MainActivity.mContext))
+            {
+                alert.SetTitle(MainActivity.mContext.Resources.GetString(hajk.Resource.String.ExitTitle));
+                alert.SetMessage(MainActivity.mContext.Resources.GetString(hajk.Resource.String.ExitPrompt));
+                alert.SetPositiveButton(hajk.Resource.String.Yes, (sender, args) => { MainActivity.mContext.FinishAffinity(); });
                 alert.SetNegativeButton(hajk.Resource.String.No, (sender, args) => { });
 
                 var dialog = alert.Create();
-                dialog.Show();
+                dialog?.Show();
             }
         }
 

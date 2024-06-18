@@ -19,10 +19,18 @@ using hajk.Data;
 using hajk.Models;
 using hajk.Fragments;
 using GPXUtils;
+using Mapsui;
+using Mapsui.Extensions;
+using Mapsui.Nts;
+using Mapsui.Nts.Extensions;
 using Mapsui.Layers;
-using Mapsui.Geometries;
-using Mapsui.Projection;
+using Mapsui.Projections;
+using Mapsui.Providers;
+using Mapsui.Rendering.Skia;
+using Mapsui.Styles;
 using Xamarin.Essentials;
+
+
 
 namespace hajk
 {
@@ -360,15 +368,20 @@ namespace hajk
 
             try
             {
+
                 wptType waypoint = new()
                 {
                     lat = (decimal)location.Latitude,
                     lon = (decimal)location.Longitude,
-                    ele = (decimal)location.Altitude,                    
                     time = DateTime.Now,
                     timeSpecified = true,
                     eleSpecified = true,
                 };
+
+                if (location.Altitude != null)
+                {
+                    waypoint.ele = (decimal)location.Altitude;
+                }
 
                 trackGpx.Waypoints.Add(waypoint);
                 Log.Debug($"Recording has '{trackGpx.Waypoints.Count}' waypoints");
@@ -383,14 +396,19 @@ namespace hajk
                         lineStringLayer.Tag = "tracklayer";
                         Fragment_map.map.Layers.Add(lineStringLayer);
                         layer = Fragment_map.map.Layers.FindLayer("TrackLayer").FirstOrDefault();
+
+                        if (layer == null)
+                        {
+                            return;
+                        }
                     }
 
                     //Update feature on layer
-                    var feature = layer.GetFeaturesInView(Fragment_map.map.Envelope, 99).FirstOrDefault();
+                    var feature = layer.GetFeatures(Fragment_map.map.Extent, 99).FirstOrDefault();
                     if (feature != null)
                     {
-                        var lineString = new LineString(trackGpx.Waypoints.Select(v => SphericalMercator.FromLonLat((double)v.lon, (double)v.lat)));
-                        feature.Geometry = lineString;
+                        var lineString = new NetTopologySuite.Geometries.LineString(trackGpx.Waypoints.Select(v => SphericalMercator.FromLonLat((double)v.lon, (double)v.lat).ToCoordinate()).ToArray());
+                        feature = new GeometryFeature { Geometry = lineString };
                         layer.DataHasChanged();
                     }
                 }

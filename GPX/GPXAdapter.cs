@@ -10,9 +10,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Mapsui.Geometries;
+using Mapsui.Nts;
 using Mapsui.Layers;
-using Mapsui.Projection;
+using Mapsui.Projections;
 using Mapsui.Providers;
 using Mapsui.Styles;
 using Mapsui.Utilities;
@@ -22,6 +22,7 @@ using hajk.Models;
 using Serilog;
 using Google.Android.Material.Navigation;
 using SharpGPX;
+using Mapsui;
 
 namespace hajk.Adapter
 {
@@ -125,15 +126,18 @@ namespace hajk.Adapter
                                 var bounds = gpx.GetBounds();
                                 //Point p = Utils.Misc.CalculateCenter((double)bounds.maxlat, (double)bounds.minlon, (double)bounds.minlat, (double)bounds.maxlon);
                                 //var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(p.X, p.Y);
-                                //Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
+                                //Fragment_map.mapControl.Map.Navigator.CenterOn(sphericalMercatorCoordinate);
 
                                 //Zoom
-                                //Fragment_map.mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
+                                //Fragment_map.mapControl.Map.Navigator.ZoomTo(PrefsActivity.MaxZoom);
 
                                 //Show the full route
-                                var min = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
-                                var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
-                                Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
+                                /**/
+                                //var min = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
+                                //var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+                                //Fragment_map.mapControl.Map.Navigator.RotationLock .NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
+                                var mrect = new MRect((double)bounds.maxlon, (double)bounds.minlat, (double)bounds.minlon, (double)bounds.maxlat);
+                                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(mrect, MBoxFit.Fit);
 
                                 //Switch to map
                                 MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
@@ -184,12 +188,17 @@ namespace hajk.Adapter
                                 //Fragment_map.mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
 
                                 //Show the full route
-                                var min_1 = SphericalMercator.FromLonLat((double)bounds_1.maxlon, (double)bounds_1.minlat);
-                                var max_1 = SphericalMercator.FromLonLat((double)bounds_1.minlon, (double)bounds_1.maxlat);
-                                Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min_1, max_1), ScaleMethod.Fit);
+                                /**/
+                                //var min_1 = SphericalMercator.FromLonLat((double)bounds_1.maxlon, (double)bounds_1.minlat);
+                                //var max_1 = SphericalMercator.FromLonLat((double)bounds_1.minlon, (double)bounds_1.maxlat);
+                                mrect = new MRect((double)bounds_1.maxlon, (double)bounds_1.minlat, (double)bounds_1.minlon, (double)bounds_1.maxlat);
+                                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(mrect, MBoxFit.Fit);
 
                                 //Switch to map
-                                MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
+                                if (parent.Context != null)
+                                {
+                                    MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
+                                }
 
                                 break;
                             case var value when value == Resource.Id.gpx_menu_deleteroute:

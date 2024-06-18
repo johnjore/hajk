@@ -14,7 +14,7 @@ namespace hajk
 {
     class TileCache
     {
-        static MbTileCache mbTileCache;
+        static MbTileCache? mbTileCache;
 
         public static ITileSource GetOSMBasemap(string cacheFilename)
         {

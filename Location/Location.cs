@@ -1,14 +1,18 @@
-﻿using Mapsui.Layers;
+﻿using Mapsui;
+using Mapsui.Layers;
 using Mapsui.Providers;
-using Mapsui.Geometries;
+using Mapsui.Nts;
 using Mapsui.Styles;
 using Xamarin.Essentials;
-using Mapsui.Projection;
+using Mapsui.Projections;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using hajk.Fragments;
+using Mapsui.Extensions;
+using Mapsui.Nts.Extensions;
 
 namespace hajk
 {
@@ -24,37 +28,45 @@ namespace hajk
 
         public static void UpdateLocationMarker(bool navigate)
         {
+            if (location == null)
+            {
+                return;
+            }
+
             try
             {
-                Point sphericalMercatorCoordinate = null;
-
-                if (location == null)
-                    return;
-
-                sphericalMercatorCoordinate = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
+                MPoint? sphericalMercatorCoordinate = SphericalMercator.FromLonLat(location.Longitude, location.Latitude).ToMPoint();
                 if (sphericalMercatorCoordinate == null)
+                {
                     return;
+                }
 
                 if (navigate)
                 {
-                    Fragments.Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate);
+                    Fragment_map.map.Navigator.CenterOn(sphericalMercatorCoordinate);
                 }
 
-                ILayer layer = Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
+                ILayer? layer = Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
                 if (layer == null)
                 {
-                    Fragments.Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
-                    layer = Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
-                } 
+                    Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
+                    layer = Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
 
-                var feature = layer.GetFeaturesInView(layer.Envelope, 99).FirstOrDefault();
+                    if (layer == null)
+                    {
+                        return;
+                    }
+                }
+
+                var feature = layer.GetFeatures(layer.Extent, 99).FirstOrDefault();
                 if (feature == null)
                 {
                     Serilog.Log.Information($"No features?");
                     return;
                 }
 
-                feature.Geometry = sphericalMercatorCoordinate;
+                /**///XXX
+                //feature.Geometry = sphericalMercatorCoordinate;
                 layer.DataHasChanged();
 
                 //Fragments.Fragment_map.map.Home = n => n.CenterOn(sphericalMercatorCoordinate);
@@ -65,35 +77,29 @@ namespace hajk
             }
         }
 
-        public static ILayer CreateLocationLayer(Point GPSLocation)
+        public static ILayer CreateLocationLayer(MPoint GPSLocation)
         {
             return new MemoryLayer
             {
                 Name = LocationLayerName,
-                DataSource = CreateMemoryProviderWithDiverseSymbols(GPSLocation),
+                Features = CreateLocationFeatures(GPSLocation),
                 Style = null,
                 IsMapInfoLayer = true
             };
         }
 
-        private static MemoryProvider CreateMemoryProviderWithDiverseSymbols(Point GPSLocation)
+        private static List<IFeature> CreateLocationFeatures(MPoint GPSLocation)
         {
-            return new MemoryProvider(CreateLocationMarker(GPSLocation));
-        }
-
-        private static Features CreateLocationMarker(Point GPSLocation)
-        {
-            var features = new Features
+            return new List<IFeature>
             {
-                CreateLocationFeature(GPSLocation)
+                new PointFeature(CreateLocationMarker(GPSLocation)),
             };
-            return features;
         }
 
-        private static IFeature CreateLocationFeature(Point GPSLocation)
+        private static PointFeature CreateLocationMarker(MPoint GPSLocation)
         {
-            var feature = new Feature { Geometry = GPSLocation };
-            
+            var feature = new PointFeature(GPSLocation);
+
             feature.Styles.Add(new SymbolStyle
             {
                 SymbolScale = 1.5f,
@@ -109,14 +115,16 @@ namespace hajk
         {
             Color marker = Color.Blue;
 
-            ILayer layer = Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
+            ILayer? layer = Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
             if (layer == null)
             {
                 Serilog.Log.Debug($"No layer?");
                 return;
             }
+            //var feature =layer.GetFeatures(MRect, double)
 
-            var feature = layer.GetFeaturesInView(layer.Envelope, 99).FirstOrDefault();
+            //var feature = layer.GetFeaturesInView(layer.Envelope, 99).FirstOrDefault();
+            var feature = layer.GetFeatures(layer.Extent, 99).FirstOrDefault();
             if (feature == null)
             {
                 Serilog.Log.Debug($"No features?");

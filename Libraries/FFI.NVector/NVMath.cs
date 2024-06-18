@@ -352,7 +352,7 @@ namespace FFI.NVector
 
         /// <summary>
         /// FUNCTION 5: n_EB_E2p_EB_E
-        // WGS-84 ellipsoid is used
+        /// WGS-84 ellipsoid is used
         /// </summary>
         public double[] n_EB_E2p_EB_E(double[] n_EB_E, double z_EB = 0.0)
         {

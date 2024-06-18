@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using SQLite;
 using Xamarin.Essentials;
 using static hajk.TileCache;
+using Mapsui.Tiling.Layers;
 
 namespace hajk
 {
@@ -280,7 +281,7 @@ namespace hajk
                 //Get tiles
                 lock (MbTileCache.sqlConn)
                 {
-                    //Carefull: Captures variants of 1151 15 and 5 when looking for '5'
+                    //Careful: Captures variants of 1151 15 and 5 when looking for '5'
                     var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(Id.ToString()));
 
                     Log.Debug($"Query Count: " + query.Count().ToString());

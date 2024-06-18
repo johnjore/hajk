@@ -1,53 +1,70 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Android.OS;
 using Android.Views;
 using AndroidX.Fragment;
 using AndroidX.Fragment.App;
 using Xamarin.Essentials;
 using Mapsui;
-using Mapsui.Projection;
+using Mapsui.Extensions;
+using Mapsui.Projections;
 using Mapsui.UI;
 using Mapsui.UI.Android;
 using Mapsui.Styles;
+using Mapsui.Tiling;
 using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using Serilog;
 using GPXUtils;
-using System.Threading.Tasks;
-
 
 namespace hajk.Fragments
 {
     public class Fragment_map : AndroidX.Fragment.App.Fragment
     {
-        public static MapControl mapControl;
+        public static MapControl? mapControl;
         public static Mapsui.Map map = new Mapsui.Map();
-        public static Position MapPosition = null;        /**///Pass this as an argument instead of global variable
+        public static Position? MapPosition = null;        /**///Pass this as an argument instead of global variable
         
         public override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
         }
 
-        public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+        public override View? OnCreateView(LayoutInflater? inflater, ViewGroup? container, Bundle? savedInstanceState)
         {
+            if (inflater == null)
+            {
+                Log.Error($"inflator can't be null here");
+                return null;
+            }
+
             try
             {
                 var view = inflater.Inflate(Resource.Layout.fragment_map, container, false);
+                if (view == null)
+                {
+                    Log.Error($"View can't be null here");
+                    return null;
+                }
                 view.SetBackgroundColor(Android.Graphics.Color.White);
 
                 Log.Debug($"Create mapControl");
                 mapControl = view.FindViewById<MapControl>(Resource.Id.mapcontrol);
+                if (mapControl == null)
+                {
+                    Log.Error($"mapControl can't be null here");
+                    return null;
+                }
+
                 map = new Mapsui.Map
                 {
-                    CRS = "EPSG:3857", //https://epsg.io/3857
-                    Transformation = new MinimalTransformation(),
+                    CRS = "EPSG:3857", //https://epsg.io/3857,
                 };
                 mapControl.Map = map;
 
                 bool LockMapRotation = Preferences.Get("MapLockNorth", false);
                 Log.Verbose($"Set map rotation (lock or not):" + LockMapRotation.ToString());
-                map.RotationLock = LockMapRotation;
+                map.Navigator.RotationLock = LockMapRotation;
 
                 Log.Debug($"Cache downloaded tiles");
                 DownloadRasterImageMap.LoadOSMLayer();
@@ -84,7 +101,7 @@ namespace hajk.Fragments
                 }
 
                 Log.Debug($"Set Zoom");
-                mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
+                mapControl.Map.Navigator.ZoomTo(PrefsActivity.MaxZoom);
 
                 mapControl.Info += MapOnInfo;
 
@@ -136,7 +153,7 @@ namespace hajk.Fragments
                 if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "route" && style.ToString() == "Mapsui.Styles.SymbolStyle")
                 {
                     var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-                    MapPosition = new Position(b.Y, b.X, 0);
+                    MapPosition = new Position(b.lon, b.lat, 0);
                     Log.Debug($"Route Object. GPS Position: " + b.ToString());
 
                     var activity = (FragmentActivity)MainActivity.mContext;
