@@ -51,7 +51,7 @@ namespace FFI.NVector
     /// double[3] is a 3-vector and double[3,3] is a 3 x 3 matrix. For more documentation, 
     /// consult the n-vector webpage: www.navlab.net/nvector. 
     /// </summary>
-    public class NVMath 
+    public class NVMath
     {
         private const double piover180 = Math.PI / 180.0;
 
@@ -82,13 +82,13 @@ namespace FFI.NVector
         public double[] lat_long2n_E(double lat, double lon)
         {
             var n_E = Utilities.MatMul(
-                Utilities.Transpose(R_Ee), 
-                new double[3] {Math.Sin(lat), Math.Sin(lon)*Math.Cos(lat), -Math.Cos(lon)*Math.Cos(lat)});
+                Utilities.Transpose(R_Ee),
+                new double[3] { Math.Sin(lat), Math.Sin(lon) * Math.Cos(lat), -Math.Cos(lon) * Math.Cos(lat) });
             return n_E;
         }
 
         public double[] lat_long2n_E(double[] latlong)
-        { 
+        {
             return lat_long2n_E(latlong[0], latlong[1]);
         }
 
@@ -127,7 +127,7 @@ namespace FFI.NVector
 
         public double n_E2lat(double[] n_E1)
         {
-            var n_E = Utilities.MatMul(R_Ee, n_E1);            
+            var n_E = Utilities.MatMul(R_Ee, n_E1);
             var equatorialEomponent = Math.Sqrt(Math.Pow(n_E[1], 2) + Math.Pow(n_E[2], 2));  // vector component in the equatorial plane
             var latitude = Math.Atan2(n_E[0], equatorialEomponent); // atan() could also be used since latitude is within [-pi/2,pi/2]
             return latitude;
@@ -185,9 +185,9 @@ namespace FFI.NVector
         ///   See also n_EA_E_and_p_AB_E2n_EB_E, p_EB_E2n_EB_E, n_EB_E2p_EB_E.
         /// </summary>
         public double[] n_EA_E_and_n_EB_E2p_AB_E(double[] n_EA_E, double[] n_EB_E, double z_EA, double z_EB, double a, double f)
-        { 
+        {
             // Function 1. in Section 5.4 in Gade (2010):
-            var p_EA_E=  n_EB_E2p_EB_E(n_EA_E, z_EA, a, f);
+            var p_EA_E = n_EB_E2p_EB_E(n_EA_E, z_EA, a, f);
             var p_EB_E = n_EB_E2p_EB_E(n_EB_E, z_EB, a, f);
             var p_AB_E = new double[3] {
                 -p_EA_E[0] + p_EB_E[0],
@@ -256,12 +256,12 @@ namespace FFI.NVector
         ///
         ///   See also n_EA_E_and_n_EB_E2p_AB_E, p_EB_E2n_EB_E, n_EB_E2p_EB_E.        
         /// </summary>
-        public Tuple<double[], double> n_EA_E_and_p_AB_E2n_EB_E(double[] n_EA_E,double[] p_AB_E,double z_EA, double a, double f)
+        public Tuple<double[], double> n_EA_E_and_p_AB_E2n_EB_E(double[] n_EA_E, double[] p_AB_E, double z_EA, double a, double f)
         {
             // Function 2. in Section 5.4 in Gade (2010):
-            var p_EA_E = n_EB_E2p_EB_E(n_EA_E,z_EA, a, f);
-            var p_EB_E= Utilities.VecAdd(p_EA_E, p_AB_E);
-            return p_EB_E2n_EB_E(p_EB_E,a, f);
+            var p_EA_E = n_EB_E2p_EB_E(n_EA_E, z_EA, a, f);
+            var p_EB_E = Utilities.VecAdd(p_EA_E, p_AB_E);
+            return p_EB_E2n_EB_E(p_EB_E, a, f);
         }
 
         /// <summary>
@@ -270,7 +270,7 @@ namespace FFI.NVector
         /// </summary>
         public Tuple<double[], double> n_EA_E_and_p_AB_E2n_EB_E(double[] n_EA_E, double[] p_AB_E, double z_EA, double a)
         {
-            return  n_EA_E_and_p_AB_E2n_EB_E(n_EA_E, p_AB_E, z_EA, a, 0.0);
+            return n_EA_E_and_p_AB_E2n_EB_E(n_EA_E, p_AB_E, z_EA, a, 0.0);
         }
 
         /// <summary>
@@ -336,23 +336,23 @@ namespace FFI.NVector
             // We first calculate the position at the origin of coordinate system L,
             // which has the same n-vector as B (n_EL_E = n_EB_E),
             // but lies at the surface of the Earth (z_EL = 0).
-            var p_EL_E = new double[3] { 
-                b / denominator * n_EB_E[0], 
-                b / denominator * n_EB_E[1] / tmp, 
+            var p_EL_E = new double[3] {
+                b / denominator * n_EB_E[0],
+                b / denominator * n_EB_E[1] / tmp,
                 b / denominator * n_EB_E[2] / tmp };
             // (The factor ellipsoid_semiaxis_Ex./denominator.* is put inside to make it work on vectorized form)
             var p_EB_E = Utilities.MatMul(
-                Utilities.Transpose(R_Ee), 
-                new double[3] { 
-                    p_EL_E[0] - n_EB_E[0] * z_EB, 
-                    p_EL_E[1] - n_EB_E[1] * z_EB, 
+                Utilities.Transpose(R_Ee),
+                new double[3] {
+                    p_EL_E[0] - n_EB_E[0] * z_EB,
+                    p_EL_E[1] - n_EB_E[1] * z_EB,
                     p_EL_E[2] - n_EB_E[2] * z_EB });
             return p_EB_E;
         }
 
         /// <summary>
         /// FUNCTION 5: n_EB_E2p_EB_E
-        // WGS-84 ellipsoid is used
+        /// WGS-84 ellipsoid is used
         /// </summary>
         public double[] n_EB_E2p_EB_E(double[] n_EB_E, double z_EB = 0.0)
         {
@@ -370,7 +370,7 @@ namespace FFI.NVector
         {
             return n_EB_E2p_EB_E(n_EB_E, z_EB, a, 0.0);
         }
-      
+
         /// <summary>
         ///   FUNCTION 6: p_EB_E2n_EB_E
         ///   Converts Cartesian position vector in meters to n-vector.
@@ -411,7 +411,7 @@ namespace FFI.NVector
             var p_EB_E = Utilities.MatMul(R_Ee, p_EB_E1); //  Selects correct E-axes
             // e_2 = eccentricity^2
             var e_2 = 2 * f - Math.Pow(f, 2); // = 1-b^2/a^2;
-            
+
             // The following code implements equation (23) from Gade (2010):
             var R_2 = Math.Pow(p_EB_E[1], 2) + Math.Pow(p_EB_E[2], 2);
             var R = Math.Sqrt(R_2); // R = component of p_EB_E in the equatorial plane
@@ -425,7 +425,7 @@ namespace FFI.NVector
             var u = r * (1 + t + 1 / t);
             var v = Math.Sqrt(Math.Pow(u, 2) + Math.Pow(e_2, 2) * q);
 
-            var w = e_2 * (u + v - q) /(2.0 * v);
+            var w = e_2 * (u + v - q) / (2.0 * v);
             var k = Math.Sqrt(u + v + Math.Pow(w, 2)) - w;
             var d = k * R / (k + e_2);
 
@@ -437,8 +437,8 @@ namespace FFI.NVector
             var n_EB_E_y = temp * k / (k + e_2) * p_EB_E[1];
             var n_EB_E_z = temp * k / (k + e_2) * p_EB_E[2];
 
-            var n_EB_E = Utilities.MatMul(Utilities.Transpose(R_Ee), new double[3] { n_EB_E_x, n_EB_E_y, n_EB_E_z });             
-            return new Tuple<double[], double>(unit(n_EB_E),  -height);
+            var n_EB_E = Utilities.MatMul(Utilities.Transpose(R_Ee), new double[3] { n_EB_E_x, n_EB_E_y, n_EB_E_z });
+            return new Tuple<double[], double>(unit(n_EB_E), -height);
         }
 
         /// <summary>
@@ -518,8 +518,8 @@ namespace FFI.NVector
             // Equation (9) in Gade (2010):
             var Ny_E_direction = Utilities.Cross(new double[3] { 1, 0, 0 }, n_E); // Ny points perpendicular to the plane
             // formed by n-vector and Earth's spin axis 
-            var Ny_E = (Utilities.Norm(Ny_E_direction) != 0.0) ? 
-                unit(Ny_E_direction) : new double[3] {0,1,0};
+            var Ny_E = (Utilities.Norm(Ny_E_direction) != 0.0) ?
+                unit(Ny_E_direction) : new double[3] { 0, 1, 0 };
 
             // Find x-axis of N (North):
             var Nx_E = Utilities.Cross(Ny_E, Nz_E); // Final axis found by right hand rule
@@ -527,8 +527,8 @@ namespace FFI.NVector
             // Form R_EN from the unit vectors:
             // JIV TODO check orientation
             var R_EN = Utilities.MatMul(
-                Utilities.Transpose(R_Ee), 
-                new double[3,3] { 
+                Utilities.Transpose(R_Ee),
+                new double[3, 3] {
                     {Nx_E[0], Ny_E[0],Nz_E[0]},
                     {Nx_E[1], Ny_E[1],Nz_E[1]},
                     {Nx_E[2], Ny_E[2],Nz_E[2]}}); // R_Ee selects correct E-axes, see R_Ee.m for details
@@ -551,10 +551,10 @@ namespace FFI.NVector
         ///   See also R_EN2n_E, n_E_and_wa2R_EL, n_E2R_EN
         /// </summary>
         public double[] R_EL2n_E(double[,] R_EL)
-        { 
+        {
             // n-vector equals minus the last column of R_EL and R_EN, see Section 5.5
             // in Gade (2010)
-            return Utilities.MatMul(R_EL, new double[3] { 0, 0, -1 });        
+            return Utilities.MatMul(R_EL, new double[3] { 0, 0, -1 });
         }
 
         /// <summary>
@@ -623,9 +623,9 @@ namespace FFI.NVector
             var sz = Math.Sin(z);
             var cz = Math.Cos(z);
             return new double[3, 3] {
-                    { cy*cz, -cy*sz, sy }, 
-                    { sy*sx*cz + cx*sz, -sy*sx*sz+cx*cz, -cy*sx }, 
-                    { -sy*cx*cz+sx*sz, sy*cx*sz+sx*cz, cy*cx } 
+                    { cy*cz, -cy*sz, sy },
+                    { sy*sx*cz + cx*sz, -sy*sx*sz+cx*cz, -cy*sx },
+                    { -sy*cx*cz+sx*sz, sy*cx*sz+sx*cz, cy*cx }
                 };
         }
 
@@ -664,7 +664,7 @@ namespace FFI.NVector
             var z = Math.Atan2(-R_AB[0, 1], R_AB[0, 0]);
             var x = Math.Atan2(-R_AB[1, 2], R_AB[2, 2]);
 
-            var sin_y=R_AB[0,2];
+            var sin_y = R_AB[0, 2];
 
             // cos_y is based on as many elements as possible, to average out
             // numerical errors. It is selected as the positive square root since
@@ -711,9 +711,9 @@ namespace FFI.NVector
             var cz = Math.Cos(z); var sz = Math.Sin(z);
             var cy = Math.Cos(y); var sy = Math.Sin(y);
             var cx = Math.Cos(x); var sx = Math.Sin(x);
-            var R_AB = new double[3, 3] 
-                {   {cz*cy, -sz*cx+cz*sy*sx,  sz*sx+cz*sy*cx }, 
-                    {sz*cy,  cz*cx+sz*sy*sx, -cz*sx+sz*sy*cx},  
+            var R_AB = new double[3, 3]
+                {   {cz*cy, -sz*cx+cz*sy*sx,  sz*sx+cz*sy*cx },
+                    {sz*cy,  cz*cx+sz*sy*sx, -cz*sx+sz*sy*cx},
                     {-sy,       cy*sx,            cy*cx}};
             return R_AB;
         }
@@ -752,17 +752,17 @@ namespace FFI.NVector
         public double[] R2zyx(double[,] R_AB)
         {
             // atan2: [-pi pi]
-            var z = Math.Atan2(R_AB[1,0],R_AB[0,0]);
-            var x = Math.Atan2(R_AB[2,1],R_AB[2,2]);
+            var z = Math.Atan2(R_AB[1, 0], R_AB[0, 0]);
+            var x = Math.Atan2(R_AB[2, 1], R_AB[2, 2]);
 
-            var sin_y = -R_AB[2,0];
+            var sin_y = -R_AB[2, 0];
 
             // cos_y is based on as many elements as possible, to average out
             // numerical errors. It is selected as the positive square root since
             // y: [-pi/2 pi/2]
-            var cos_y = Math.Sqrt((Math.Pow(R_AB[0,0],2)+Math.Pow(R_AB[1,0],2)+Math.Pow(R_AB[2,1],2)+Math.Pow(R_AB[2,2],2))/2.0);
+            var cos_y = Math.Sqrt((Math.Pow(R_AB[0, 0], 2) + Math.Pow(R_AB[1, 0], 2) + Math.Pow(R_AB[2, 1], 2) + Math.Pow(R_AB[2, 2], 2)) / 2.0);
 
-            var y = Math.Atan2(sin_y,cos_y);
+            var y = Math.Atan2(sin_y, cos_y);
             return new double[3] { z, y, x };
         }
 
@@ -793,8 +793,8 @@ namespace FFI.NVector
         ///   See also deg.
         /// </summary>
         public double rad(double deg_angle)
-        { 
-            return deg_angle *  piover180;
+        {
+            return deg_angle * piover180;
         }
 
         /// <summary>
@@ -855,20 +855,20 @@ namespace FFI.NVector
         {
             get
             {
-                return new double[3, 3] 
-                { { 1, 0, 0 }, 
-                  { 0, 1, 0 }, 
+                return new double[3, 3]
+                { { 1, 0, 0 },
+                  { 0, 1, 0 },
                   { 0, 0, 1 } };
             }
         }
 
         public static double[,] R_Ee_Northpole_Z
         {
-            get 
+            get
             {
-                return new double[3, 3] 
-                { { 0, 0, 1 }, 
-                  { 0, 1, 0 }, 
+                return new double[3, 3]
+                { { 0, 0, 1 },
+                  { 0, 1, 0 },
                   { -1, 0, 0 } };
             }
         }

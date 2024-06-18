@@ -91,7 +91,7 @@ namespace hajk
                 }
 
                 DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
-                ActionBarDrawerToggle toggle = new (this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
+                ActionBarDrawerToggle toggle = new(this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
                 if (drawer != null && toggle != null)
                 {
                     drawer.AddDrawerListener(toggle);
@@ -309,12 +309,12 @@ namespace hajk
             {
                 fab.Background?.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.Red));
                 Location.UpdateLocationMarker(true);
-                Fragment_map.mapControl.Map.PanLock = true;
+                Fragment_map.mapControl.Map.Navigator.PanLock = true;
             }
             else
             {
                 fab.Background?.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.LightBlue));
-                Fragment_map.mapControl.Map.PanLock = false;
+                Fragment_map.mapControl.Map.Navigator.PanLock = false;
             }
 
             /*View view = (View)sender;

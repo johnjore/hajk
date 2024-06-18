@@ -11,17 +11,10 @@
     <BaseOutputPath>c:\data\temp\hajk</BaseOutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <AndroidJavaSource Remove="Misc\**" />
-    <AndroidLibrary Remove="Misc\**" />
-    <AndroidNativeLibrary Remove="Misc\**" />
-    <Compile Remove="Misc\**" />
-    <EmbeddedResource Remove="Misc\**" />
-    <JavaSourceJar Remove="Misc\**" />
-    <None Remove="Misc\**" />
-    <ProguardConfiguration Remove="Misc\**" />
-    <TransformFile Remove="Misc\**" />
-  </ItemGroup>
-  <ItemGroup>
+    <None Remove="Images\Arrow-up.svg" />
+    <None Remove="Images\Black-dot.svg" />
+    <None Remove="Images\Drinking-water.svg" />
+    <None Remove="Images\Tent.svg" />
     <None Remove="Resources\layout\activity_gpx.xml" />
     <None Remove="Resources\layout\app_bar_main.xml" />
     <None Remove="Resources\layout\content_main.xml" />
@@ -59,10 +52,11 @@
     <PackageReference Include="AsyncEnumerator" Version="4.0.2" />
     <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.649" />
     <PackageReference Include="BlueToque.SharpGPX" Version="2.22.302" />
-    <PackageReference Include="BruTile" Version="4.0.0" />
-    <PackageReference Include="BruTile.MbTiles" Version="4.0.0" />
-    <PackageReference Include="Mapsui" Version="3.0.2" />
-    <PackageReference Include="Mapsui.Android" Version="3.0.2" />
+    <PackageReference Include="BruTile" Version="5.0.6" />
+    <PackageReference Include="BruTile.MbTiles" Version="5.0.6" />
+    <PackageReference Include="Mapsui" Version="4.1.6" />
+    <PackageReference Include="Mapsui.Android" Version="4.1.6" />
+    <PackageReference Include="Mapsui.Nts" Version="4.1.6" />
     <PackageReference Include="Microcharts.Android" Version="1.0.0-preview1" />
     <PackageReference Include="Serilog" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
@@ -73,15 +67,23 @@
     <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageReference Include="System.Text.Json" Version="8.0.3" />
     <PackageReference Include="tilebelt" Version="2.0.0" />
-    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.6.1.8" />
-    <PackageReference Include="Xamarin.AndroidX.Browser" Version="1.8.0.1" />
-    <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.26" />
-    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.6.2.3" />
-    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.UI" Version="1.0.0.25" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.7.0.2" />
-    <PackageReference Include="Xamarin.AndroidX.Preference" Version="1.2.1.5" />
-    <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.3.2.3" />
+    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.6.1.7" />
+    <PackageReference Include="Xamarin.AndroidX.Browser" Version="1.8.0" />
+    <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.25" />
+    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.6.2.2" />
+    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.UI" Version="1.0.0.24" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.6.2.2" />
+    <PackageReference Include="Xamarin.AndroidX.Preference" Version="1.2.1.4" />
+    <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.3.2.2" />
     <PackageReference Include="Xamarin.Essentials" Version="1.8.1" />
-    <PackageReference Include="Xamarin.Google.Android.Material" Version="1.10.0.4" />
+    <PackageReference Include="Xamarin.Google.Android.Material" Version="1.10.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\Arrow-up.svg" />
+    <EmbeddedResource Include="Images\Drinking-water.svg" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\Black-dot.svg" />
+    <EmbeddedResource Include="Images\Tent.svg" />
   </ItemGroup>
 </Project>

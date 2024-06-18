@@ -12,7 +12,7 @@ using SharpGPX;
 using BitMiracle;
 using BitMiracle.LibTiff;
 using BitMiracle.LibTiff.Classic;
-using Mapsui.Projection;
+using Mapsui.Projections;
 using GeoTiffCOG;
 
 namespace hajk
@@ -47,26 +47,26 @@ namespace hajk
                 float lat = -37.94607f;
                 float lon = 144.40093f;
                 var tmp = SphericalMercator.FromLonLat((double)lon, (double)lat);
-                Serilog.Log.Debug($"Mercator, X:{tmp.X}, Y:{tmp.Y}");
+                Serilog.Log.Debug($"Mercator, X:{tmp.x}, Y:{tmp.y}");
 
                 try
                 {
                     GeoTiff geoTiff = new GeoTiff(MainActivity.rootPath + "/" + "14-14763-10061.tif");
-                    double value = geoTiff.GetElevationAtLatLon(tmp.Y, tmp.X);
+                    double value = geoTiff.GetElevationAtLatLon(tmp.y, tmp.x);
                     Serilog.Log.Information($"Elevaton at lat:{lat:N3}, lon:{lon:N3} is '{value}' meters");
                 }
                 catch (Exception ex)
                 {
                     Serilog.Log.Error(ex, $"COGGeoTIFF - Elevation data not in tif file");
-                }                
+                }
             }
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, $"COGGeoTIFF - GetElevationData()");
             }
-            
+
             return;
-            }
+        }
 
         private static void MergeElevationTiles(List<string> FileNames)
         {

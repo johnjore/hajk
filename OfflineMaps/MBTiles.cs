@@ -7,8 +7,6 @@ using SQLite;
 using hajk.Models;
 using static hajk.TileCache;
 using Xamarin.Essentials;
-using hajk.Data;
-using SharpGPX.GPX1_1;
 
 //This is a partial rewrite of https://github.com/bertt/MBTiles
 

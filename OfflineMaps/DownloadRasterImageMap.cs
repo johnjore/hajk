@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using SQLite;
 using Xamarin.Essentials;
 using static hajk.TileCache;
+using Mapsui.Tiling.Layers;
 
 namespace hajk
 {
@@ -25,8 +26,8 @@ namespace hajk
 
         public static async Task DownloadMap(Models.Map map, bool ShowDialog)
         {
-            try 
-            { 
+            try
+            {
                 //Reset counters for download
                 done = 0;
                 missingTilesCount = 0;
@@ -55,7 +56,7 @@ namespace hajk
                     {
                         throw new Exception("How can this be?!?");
                     }
-                    
+
                 }
 
                 Import.progress = 999;
@@ -63,7 +64,7 @@ namespace hajk
 
                 if (ShowDialog)
                 {
-                    Show_Dialog msg3 = new (MainActivity.mContext);
+                    Show_Dialog msg3 = new(MainActivity.mContext);
                     await msg3.ShowDialog($"Done", $"Map Download Completed", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
                 }
 
@@ -168,7 +169,7 @@ namespace hajk
                                     newTile.id = oldTile.id;
                                     newTile.reference = oldTile.reference;
                                 }
-                                
+
                                 //Break out of loop as we have an updatd blob
                                 break;
                             }
@@ -201,7 +202,7 @@ namespace hajk
                         {
                             Log.Error(ex, $"Crashed. Clear reference: {ex}");
                             r.Clear();
-                        }                        
+                        }
                     }
 
                     if (r.Contains(id) == false)
@@ -230,9 +231,9 @@ namespace hajk
         {
             HttpClientHandler clientHandler = new HttpClientHandler
             {
-                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }  
+                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }
             };
-            HttpClient _httpClient = new (clientHandler)
+            HttpClient _httpClient = new(clientHandler)
             {
                 Timeout = TimeSpan.FromSeconds(60)
             };
@@ -253,7 +254,7 @@ namespace hajk
             return null;
         }
 
-       public static void LoadOSMLayer()
+        public static void LoadOSMLayer()
         {
             try
             {
@@ -276,11 +277,11 @@ namespace hajk
             {
                 //Save tiles here
                 SQLiteConnection ExportDB = InitializeTileCache(strFileName, "png");
-                
+
                 //Get tiles
                 lock (MbTileCache.sqlConn)
                 {
-                    //Carefull: Captures variants of 1151 15 and 5 when looking for '5'
+                    //Careful: Captures variants of 1151 15 and 5 when looking for '5'
                     var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(Id.ToString()));
 
                     Log.Debug($"Query Count: " + query.Count().ToString());

@@ -9,38 +9,48 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Mapsui.Geometries;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
+using Mapsui;
+using Mapsui.Extensions;
+using Mapsui.Nts;
+using Mapsui.Nts.Extensions;
 using Mapsui.Layers;
-using Mapsui.Projection;
+using Mapsui.Projections;
 using Mapsui.Providers;
+using Mapsui.Rendering.Skia;
 using Mapsui.Styles;
+using Mapsui.Tiling;
+using Mapsui.Utilities;
+using Mapsui.UI;
+using Mapsui.UI.Android;
+using Mapsui.Widgets;
+using Mapsui.Widgets.ScaleBar;
 using Xamarin.Essentials;
-using SharpGPX;
 using hajk.Data;
 using hajk.Models;
 using hajk.Fragments;
 using Serilog;
+using SharpGPX;
 using SharpGPX.GPX1_1;
 using SharpGPX.GPX1_1.Garmin;
 using SharpGPX.GPX1_1.Topografix;
 using GPXUtils;
-using Mapsui.Rendering.Skia;
-using Mapsui.Utilities;
-using Mapsui;
 using Android.Widget;
 using Android.Views;
 using Android.OS;
 using AndroidX.AppCompat.App;
 using AndroidX.Fragment.App;
+using Mapsui.Tiling.Layers;
 
 namespace hajk
 {
     public class Import
     {
         /**///Why do we need this as global variables
-        public static Android.App.Dialog dialog = null;
+        public static Android.App.Dialog? dialog = null;
         public static int progress = 0;
-        public static Google.Android.Material.TextView.MaterialTextView progressBarText2 = null;
+        public static Google.Android.Material.TextView.MaterialTextView? progressBarText2 = null;
 
         public static ILayer GetRoute()
         {
@@ -50,7 +60,7 @@ namespace hajk
             {
                 try
                 {
-                    GpxClass gpxData = await PickAndParse();
+                    GpxClass? gpxData = await PickAndParse();
                     ProcessGPX(gpxData);
                 }
                 catch (Exception ex)
@@ -66,6 +76,9 @@ namespace hajk
         {
             try
             {
+                if (intent == null || intent.Action == null || intent.Scheme == null || intent.Type == null || intent.Data == null || intent.Data.Path == null)
+                    return;
+
                 var action = intent.Action;
                 if ((action.CompareTo("android.intent.action.VIEW") == 0) && (intent.Scheme.CompareTo("content") == 0) && !String.IsNullOrEmpty(intent.DataString))
                 {
@@ -164,7 +177,7 @@ namespace hajk
                 Serilog.Log.Error(ex, $"Import - GetRoute()");
             };
         }
-    
+
         public static void AddGPXWayPoint(wptType wptType, bool DownloadOfflineMap)
         {
             try
@@ -202,7 +215,7 @@ namespace hajk
                 float mapDistance_m = t.Item2;
                 int ascent = t.Item3;
                 int descent = t.Item4;
-                List<Position> LatLon = t.Item5;
+                List<GPXUtils.Position> LatLon = t.Item5;
 
                 //Clear existing GPX routes from map, else they will be included
                 Utils.Misc.ClearTrackRoutesFromMap();
@@ -283,7 +296,7 @@ namespace hajk
                 float mapDistance_km = t.Item2;
                 int ascent = t.Item3;
                 int descent = t.Item4;
-                List<Position> LatLon = t.Item5;
+                List<GPXUtils.Position> LatLon = t.Item5;
 
                 //Clear existing GPX routes from map, else they will be included
                 Utils.Misc.ClearTrackRoutesFromMap();
@@ -353,14 +366,14 @@ namespace hajk
                 {
                     GetloadOfflineMap(route.GetBounds(), r.Id, null, false);
                 }
-}
+            }
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, $"Import - AddGPXRoute()");
             }
         }
 
-        public static string CreateThumbprintMap(GpxClass newGPX)
+        public static string? CreateThumbprintMap(GpxClass newGPX)
         {
             try
             {
@@ -370,19 +383,19 @@ namespace hajk
                 var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
 
                 //Set location to match route/track
-                Fragment_map.mapControl.Navigator.RotateTo(0.0);
-                Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
+                Fragment_map.mapControl?.Map.Navigator.RotateTo(0.0);
+                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min.x, min.y, max.x, max.y), MBoxFit.Fit);
 
                 //Create viewport to match GPX list
-                var viewport = new Viewport(Fragment_map.mapControl.Viewport)
+                var viewport = new Viewport()
                 {
                     Width = MainActivity.wTrackRouteMap
                 };
 
-                //Set loction to match route/ track (again). Why?
-                var navigator = new Navigator(Fragment_map.map, viewport);
-                navigator.RotateTo(0, 0);
-                navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
+                //Set loction to match route/ track and change viewport to fill available size
+                //Fragment_map.mapControl?.Map.Navigator.SetViewport(viewport);
+                //Fragment_map.mapControl?.Map.Navigator.RotateTo(0, 0);
+                //Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min.x, min.y, max.x, max.y), MBoxFit.Fit);
 
                 //Wait for each layer to complete
                 foreach (ILayer layer in Fragment_map.map.Layers)
@@ -394,7 +407,9 @@ namespace hajk
                 }
 
                 //Create the thumbprint
-                MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
+                //MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
+                MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(Fragment_map.map.Navigator.Viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
+                //MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
                 bitmap.Position = 0;
                 string ImageBase64String = Convert.ToBase64String(bitmap.ToArray());
 
@@ -426,7 +441,7 @@ namespace hajk
             dialog.Show();
             UpdatePB uptask = new UpdatePB(progressBar);
             uptask.Execute(0);
-            
+
             try
             {
                 Models.Map map = new Models.Map
@@ -509,7 +524,7 @@ namespace hajk
                     Tag = "poi",
                     Enabled = true,
                     IsMapInfoLayer = true,
-                    DataSource = new MemoryProvider(ConvertListToInumerable(POIs)),
+                    Features = ConvertListToInumerable(POIs),
                     Style = new SymbolStyle { Enabled = false },
                 };
 
@@ -527,9 +542,8 @@ namespace hajk
             {
                 return POIs.Select(c =>
                 {
-                    var feature = new Feature();
-                    var point = SphericalMercator.FromLonLat((double)c.Lon, (double)c.Lat);
-                    feature.Geometry = point;
+                    var point = SphericalMercator.FromLonLat((double)c.Lon, (double)c.Lat).ToMPoint();
+                    var feature = new PointFeature(point);
                     feature["name"] = c.Name;
                     feature["description"] = c.Description;
 
@@ -572,12 +586,12 @@ namespace hajk
                 ILayer lineStringLayer;
                 if (gpxtype == GPXType.Route)
                 {
-                    lineStringLayer = CreateRouteLayer(mapRoute, CreateRouteStyle());
+                    lineStringLayer = CreateRouteLayer(mapRoute, Color.Blue, CreateStyle("Blue"));
                     lineStringLayer.Tag = "route";
                 }
                 else
                 {
-                    lineStringLayer = CreateRouteLayer(mapRoute, CreateTrackStyle());
+                    lineStringLayer = CreateRouteLayer(mapRoute, Color.Red, CreateStyle("Red"));
                     lineStringLayer.Tag = "track";
                 }
                 lineStringLayer.IsMapInfoLayer = true;
@@ -604,7 +618,7 @@ namespace hajk
             }
         }
 
-        public static (string, float, int, int, List<Position>) GPXtoRoute(rteType route, bool getAscentDescent)
+        public static (string, float, int, int, List<GPXUtils.Position>) GPXtoRoute(rteType route, bool getAscentDescent)
         {
             int ascent = 0;
             int descent = 0;
@@ -613,48 +627,48 @@ namespace hajk
             {
                 float mapDistance_m = 0.0f;
                 var p = new PositionHandler();
-                var p2 = new Position(0, 0, 0);
-                List<Position> ListLatLon = new List<Position>();
+                var p2 = new GPXUtils.Position(0, 0, 0);
+                List<GPXUtils.Position> ListLatLon = new List<GPXUtils.Position>();
 
                 for (int i = 0; i < route.rtept.Count; i++)
                 {
-                    ListLatLon.Add(new Position((double)route.rtept[i].lat, (double)route.rtept[i].lon, 0));
+                    ListLatLon.Add(new GPXUtils.Position((double)route.rtept[i].lat, (double)route.rtept[i].lon, 0));
 
                     var rtePteExt = route.rtept[i].GetExt<RoutePointExtension>();
                     if (rtePteExt != null)
                     {
                         Log.Debug("Route '{0}' has Garmin extension", route.name);
 
-                        for (int j = 0; j < rtePteExt.rpt.Count(); j++)
+                        for (int j = 0; j < rtePteExt.rpt.Count; j++)
                         {
-                            ListLatLon.Add(new Position((double)rtePteExt.rpt[j].lat, (double)rtePteExt.rpt[j].lon, 0));
+                            ListLatLon.Add(new GPXUtils.Position((double)rtePteExt.rpt[j].lat, (double)rtePteExt.rpt[j].lon, 0));
 
                             //Previous leg
                             if (j == 0 && p2.Latitude != 0 && p2.Longitude != 0)
                             {
-                                var p1 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
+                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
                                 mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
 
                             //First leg
                             if (j == 0)
                             {
-                                var p1 = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0);
-                                p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
+                                var p1 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0);
+                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
                                 mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
 
                             //All other legs
                             if (j >= 1)
                             {
-                                var p1 = new Position((float)rtePteExt.rpt[j - 1].lat, (float)rtePteExt.rpt[j - 1].lon, 0);
-                                p2 = new Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
+                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j - 1].lat, (float)rtePteExt.rpt[j - 1].lon, 0);
+                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
                                 mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
                         }
 
                         //Any points?
-                        if (rtePteExt.rpt.Count() == 0)
+                        if (rtePteExt.rpt.Count == 0)
                             rtePteExt = null;
                     }
 
@@ -663,8 +677,8 @@ namespace hajk
                         //Previous leg
                         if (i >= 1)
                         {
-                            var p1 = new Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, 0);
-                            p2 = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0);
+                            var p1 = new GPXUtils.Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, 0);
+                            p2 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0);
                             mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                         }
                     }
@@ -695,14 +709,14 @@ namespace hajk
             }
         }
 
-        private static (int, int) CalculateAscentDescent(List<Position> LatLonEle)
+        private static (int, int) CalculateAscentDescent(List<GPXUtils.Position> LatLonEle)
         {
             double ascent = 0;
             double descent = 0;
 
             try
             {
-                for (int j = 0; j < LatLonEle.Count() - 1; j++)
+                for (int j = 0; j < LatLonEle.Count - 1; j++)
                 {
                     var j0 = LatLonEle[j].Elevation;
                     var j1 = LatLonEle[j + 1].Elevation;
@@ -726,14 +740,14 @@ namespace hajk
             }
         }
 
-        private static List<Position> GetElevationData(List<Position> ListLatLon)
+        private static List<GPXUtils.Position> GetElevationData(List<GPXUtils.Position> ListLatLon)
         {
-            List<Position> ElevationData = new List<Position>();
+            List<GPXUtils.Position> ElevationData = new List<GPXUtils.Position>();
             var LatLon = String.Empty;
 
             try
             {
-                for (int i = 0; i < ListLatLon.Count() - 1; i++)
+                for (int i = 0; i < ListLatLon.Count - 1; i++)
                 {
                     //Max 100 at a time
                     if ((i != 0) && (i % 100 == 0))
@@ -784,11 +798,11 @@ namespace hajk
             return ListLatLon;
         }
 
-        private static List<Position> DownloadElevationData(string LatLon)
+        private static List<GPXUtils.Position> DownloadElevationData(string LatLon)
         {
             var Pre = $"https://api.opentopodata.org/v1/aster30m?locations=";
             var Post = $"&interpolation=bilinear&nodata_value=null";
-            List<Position> ElevationData = new List<Position>();
+            List<GPXUtils.Position> ElevationData = new List<GPXUtils.Position>();
 
             try
             {
@@ -797,23 +811,29 @@ namespace hajk
 
                 //Do we have elevation data?
                 if (eleJSON == null)
+                {
                     return null;
+                }
 
                 //Convert from string to JSON
                 Models.Elevation.ElevationData elevationData = JsonSerializer.Deserialize<Models.Elevation.ElevationData>(eleJSON);
 
                 //Data is ok?
-                if (elevationData.status != "OK")
+                if (elevationData?.status != "OK")
+                {
                     return null;
+                }
 
                 //Any data?
-                if (elevationData.results.Count() < 1)
+                if (elevationData.results.Count < 1)
+                {
                     return null;
+                }
 
                 //Convert from JSON to List
                 foreach (var result in elevationData.results)
                 {
-                    var a = new Position(result.location.lat, result.location.lng, result.elevation);
+                    var a = new GPXUtils.Position(result.location.lat, result.location.lng, result.elevation);
                     ElevationData.Add(a);
                 }
 
@@ -855,13 +875,13 @@ namespace hajk
             return null;
         }
 
-        private static string ConvertLatLonListToLineString(List<Position> ListLatLon)
+        private static string ConvertLatLonListToLineString(List<GPXUtils.Position> ListLatLon)
         {
             var LineString = "LINESTRING(";
 
             try
             {
-                for (int i = 0; i < ListLatLon.Count(); i++)
+                for (int i = 0; i < ListLatLon.Count; i++)
                 {
                     if (i == 0)
                     {
@@ -902,10 +922,14 @@ namespace hajk
                 var result = await FilePicker.PickAsync(options);
 
                 if (result == null)
+                {
                     return null;
+                }
 
                 if (result.FileName.EndsWith("gpx", StringComparison.OrdinalIgnoreCase) == false)
+                {
                     return null;
+                }
 
                 var stream = await result.OpenReadAsync();
                 string contents = string.Empty;
@@ -923,7 +947,9 @@ namespace hajk
 
                 Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
                 if (await msg1.ShowDialog($"{result.FileName}", $"Found {gpx.Routes.Count} {r}, {gpx.Tracks.Count} {t} and {gpx.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) != Show_Dialog.MessageResult.YES)
+                {
                     return null;
+                }
 
                 return gpx;
             }
@@ -935,20 +961,20 @@ namespace hajk
             return null;
         }
 
-        public static ILayer CreateRouteLayer(string strRoute, IStyle style = null)
+        public static ILayer CreateRouteLayer(string strRoute, Mapsui.Styles.Color sColor, IStyle? style = null)
         {
-            var features = new Features();
+            var features = new List<IFeature>();
 
             try
             {
-                var GPSlineString = (LineString)Geometry.GeomFromText(strRoute);
+                var GPSlineString = (LineString)new WKTReader().Read(strRoute);
 
                 //Lines between each waypoint
-                var lineString = new LineString(GPSlineString.Vertices.Select(v => SphericalMercator.FromLonLat(v.Y, v.X)));
-                features.Add(new Feature { Geometry = lineString });
+                var lineString = new LineString(GPSlineString.Coordinates.Select(v => SphericalMercator.FromLonLat(v.Y, v.X).ToCoordinate()).ToArray());
+                features.Add(new GeometryFeature { Geometry = lineString });
 
                 //End of route
-                var FeatureEnd = new Feature { Geometry = lineString.EndPoint };
+                var FeatureEnd = new GeometryFeature { Geometry = lineString.EndPoint };
                 FeatureEnd.Styles.Add(new SymbolStyle
                 {
                     SymbolScale = 1.5f,
@@ -962,7 +988,7 @@ namespace hajk
                 features.Add(FeatureEnd);
 
                 //Start of route
-                var FeatureStart = new Feature { Geometry = lineString.StartPoint };
+                var FeatureStart = new GeometryFeature { Geometry = lineString.StartPoint };
                 FeatureStart.Styles.Add(new SymbolStyle
                 {
                     SymbolScale = 1.5f,
@@ -980,17 +1006,17 @@ namespace hajk
                 for (int i = 0; i < GPSlineString.NumPoints - 1; i++)
                 {
                     //End points for line
-                    Position p1 = new Position(GPSlineString.Vertices[i].X, GPSlineString.Vertices[i].Y, 0);
-                    Position p2 = new Position(GPSlineString.Vertices[i + 1].X, GPSlineString.Vertices[i + 1].Y, 0);
+                    GPXUtils.Position p1 = new (GPSlineString.Coordinates[i].X, GPSlineString.Coordinates[i].Y, 0);
+                    GPXUtils.Position p2 = new (GPSlineString.Coordinates[i + 1].X, GPSlineString.Coordinates[i + 1].Y, 0);
 
                     //Quarter point on line for arrow
-                    Point p_quarter = Utils.Misc.CalculateQuarter(lineString.Vertices[i].Y, lineString.Vertices[i].X, lineString.Vertices[i + 1].Y, lineString.Vertices[i + 1].X);
+                    MPoint p_quarter = Utils.Misc.CalculateQuarter(lineString.Coordinates[i].Y, lineString.Coordinates[i].X, lineString.Coordinates[i + 1].Y, lineString.Coordinates[i + 1].X);
 
                     //Bearing of arrow
                     var p = new PositionHandler();
                     var angle = p.CalculateBearing(p1, p2);
 
-                    var FeatureArrow = new Feature { Geometry = p_quarter };
+                    var FeatureArrow = new PointFeature(new MPoint(p_quarter));
                     FeatureArrow.Styles.Add(new SymbolStyle
                     {
                         BitmapId = bitmapId,
@@ -1001,11 +1027,13 @@ namespace hajk
                         SymbolRotation = angle,
                         SymbolOffset = new Offset(0, 0),
                         SymbolType = SymbolType.Triangle,
+                        Fill = new Brush { FillStyle = FillStyle.Solid, Color = sColor, Background = sColor },
+                        Outline = new Pen { Color = sColor, Width = 1.5f },
                     });
                     features.Add(FeatureArrow);
 
                     //Waypoints
-                    var FeatureWaypoint = new Feature { Geometry = lineString.Vertices[i] };
+                    var FeatureWaypoint = new GeometryFeature { Geometry = lineString.Coordinates[i].ToPoint() };
                     FeatureWaypoint.Styles.Add(new SymbolStyle
                     {
                         SymbolScale = 0.7f,
@@ -1014,9 +1042,8 @@ namespace hajk
                         RotateWithMap = true,
                         SymbolRotation = 0,
                         SymbolType = SymbolType.Ellipse,
-                        //Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Blue, Background = Color.Transparent },
                         Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
-                        Outline = new Pen { Color = Color.Blue, Width = 1.5f },
+                        Outline = new Pen { Color = sColor, Width = 1.5f },
                     });
                     features.Add(FeatureWaypoint);
                 }
@@ -1028,27 +1055,27 @@ namespace hajk
 
             return new MemoryLayer
             {
-                DataSource = new MemoryProvider(features),
+                Features = features,
                 Name = "RouteLayer",
                 Style = style
             };
         }
 
-        public static ILayer CreateTrackLayer(string strTrack, IStyle style = null)
+        public static ILayer CreateTrackLayer(string strTrack, IStyle? style = null)
         {
-            var features = new Features();
+            var features = new List<IFeature>();
 
             try
             {
                 //Convert from string and line strings
-                var lineString = (LineString)Geometry.GeomFromText(strTrack);
-                lineString = new LineString(lineString.Vertices.Select(v => SphericalMercator.FromLonLat(v.Y, v.X)));
-                features.Add(new Feature { Geometry = lineString });
+                var lineString = (LineString)new WKTReader().Read(strTrack);
+                lineString = new LineString(lineString.Coordinates.Select(v => SphericalMercator.FromLonLat(v.Y, v.X).ToCoordinate()).ToArray());
+                features.Add(new GeometryFeature { Geometry = lineString });
 
                 //Waypoint markers
-                foreach (var waypoint in lineString.Vertices)
+                foreach (var waypoint in lineString.Coordinates)
                 {
-                    var feature = new Feature { Geometry = waypoint };
+                    var feature = new PointFeature(new MPoint(waypoint.ToMPoint()));
                     feature.Styles.Add(new SymbolStyle
                     {
                         SymbolScale = 0.2f,
@@ -1059,7 +1086,6 @@ namespace hajk
                         //Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Red, Background = Color.Transparent },
                         Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
                         Outline = new Pen { Color = Color.Red, Width = 0.2f },
-
                     });
                     features.Add(feature);
                 }
@@ -1071,29 +1097,19 @@ namespace hajk
 
             return new MemoryLayer
             {
-                DataSource = new MemoryProvider(features),
+                Features = features,
                 Name = "TrackLayer",
                 Style = style
             };
         }
 
-        public static IStyle CreateRouteStyle()
+        public static IStyle CreateStyle(string? colour)
         {
             return new VectorStyle
             {
                 Fill = null,
                 Outline = null,
-                Line = { Color = Color.FromString("Blue"), Width = 4, PenStyle = PenStyle.Solid }
-            };
-        }
-
-        public static IStyle CreateTrackStyle()
-        {
-            return new VectorStyle
-            {
-                Fill = null,
-                Outline = null,
-                Line = { Color = Color.FromString("Red"), Width = 4, PenStyle = PenStyle.Solid },
+                Line = { Color = Color.FromString(colour), Width = 4, PenStyle = PenStyle.Solid }
             };
         }
 
@@ -1108,12 +1124,15 @@ namespace hajk
 
             protected override string RunInBackground(params int[] @params)
             {
-                while (progress < 100)
+                if (OperatingSystem.IsAndroidVersionAtLeast(24))
                 {
-                    mpb.SetProgress(progress, false);
+                    while (progress < 100)
+                    {
+                        mpb.SetProgress(progress, false);
+                    }
                 }
 
-                Import.dialog.Cancel();
+                Import.dialog?.Cancel();
                 return "finish";
             }
         }

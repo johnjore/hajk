@@ -14,7 +14,7 @@ namespace hajk
 {
     class TileCache
     {
-        static MbTileCache mbTileCache;
+        static MbTileCache? mbTileCache;
 
         public static ITileSource GetOSMBasemap(string cacheFilename)
         {
@@ -25,7 +25,7 @@ namespace hajk
                     mbTileCache = new MbTileCache(cacheFilename, "png");
                 }
 
-                HttpTileSource src = new (new GlobalSphericalMercator(PrefsActivity.MinZoom, PrefsActivity.MaxZoom),
+                HttpTileSource src = new(new GlobalSphericalMercator(PrefsActivity.MinZoom, PrefsActivity.MaxZoom),
                     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                     new[] { "a", "b", "c" }, name: "OpenStreetMap",
                     persistentCache: mbTileCache,
@@ -38,7 +38,7 @@ namespace hajk
             {
                 Serilog.Log.Error(ex, $"TileCache - GetOSMBasemap()");
                 return null;
-            }            
+            }
         }
 
         public class MbTileCache : IPersistentCache<byte[]>, IDisposable
@@ -62,7 +62,7 @@ namespace hajk
             {
                 return (1 << level) - row - 1;
             }
-            
+
             public void Add(TileIndex index, byte[] tile)
             {
                 try
@@ -159,7 +159,7 @@ namespace hajk
 
             public void Remove(TileIndex index)
             {
-                /**/ 
+                /**/
                 //Todo
             }
 

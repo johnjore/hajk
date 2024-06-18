@@ -3,42 +3,42 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="none">
-        <item
-            android:id="@+id/nav_import"
-            android:icon="@drawable/ic_create_new_folder_black_24dp"
-            android:title="@string/Import_GPX_file" />
-        <item
-            android:id="@+id/nav_offlinemap"
-            android:icon="@android:drawable/ic_menu_mapmode"
-            android:title="@string/Import_Map" />
-        <item
-            android:id="@+id/nav_recordtrack"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/Record_Track" />
-		    <item
-            android:id="@+id/nav_PauseResumeRecordTrack"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/PauseRecord_Track"
-			      android:visible="false"
-			      android:enabled="false"/>
-	  </group>
+  <group android:checkableBehavior="none">
+    <item
+        android:id="@+id/nav_import"
+        android:icon="@drawable/ic_create_new_folder_black_24dp"
+        android:title="@string/Import_GPX_file" />
+    <item
+        android:id="@+id/nav_offlinemap"
+        android:icon="@android:drawable/ic_menu_mapmode"
+        android:title="@string/Import_Map" />
+    <item
+        android:id="@+id/nav_recordtrack"
+        android:icon="@drawable/ic_menu_slideshow"
+        android:title="@string/Record_Track" />
+    <item
+        android:id="@+id/nav_PauseResumeRecordTrack"
+        android:icon="@drawable/ic_menu_slideshow"
+        android:title="@string/PauseRecord_Track"
+        android:visible="false"
+        android:enabled="false"/>
+  </group>
 
-	  <item android:title="@string/Routes_Tracks">
-	    <menu>
-		    <item
-            android:id="@+id/nav_routes"
-            android:icon="@drawable/route"
-            android:title="@string/Routes" />
-		    <item
-            android:id="@+id/nav_tracks"
-            android:icon="@drawable/track"
-            android:title="@string/Tracks" />
-		</menu>
-	</item>
-	
-	<item android:title="@string/Misc">
-		<menu>
+  <item android:title="@string/Routes_Tracks">
+    <menu>
+      <item
+          android:id="@+id/nav_routes"
+          android:icon="@drawable/route"
+          android:title="@string/Routes" />
+      <item
+          android:id="@+id/nav_tracks"
+          android:icon="@drawable/track"
+          android:title="@string/Tracks" />
+    </menu>
+  </item>
+
+  <item android:title="@string/Misc">
+    <menu>
       <item
             android:id="@+id/backup"
             android:icon="@android:drawable/ic_dialog_info"
@@ -56,6 +56,6 @@
             android:id="@+id/about"
             android:icon="@android:drawable/ic_dialog_info"
             android:title="@string/About" />
-	    </menu>
-    </item>
+    </menu>
+  </item>
 </menu>
