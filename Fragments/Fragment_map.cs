@@ -16,16 +16,17 @@ using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using Serilog;
 using GPXUtils;
+using Mapsui.Layers;
 
 namespace hajk.Fragments
 {
     public class Fragment_map : AndroidX.Fragment.App.Fragment
     {
         public static MapControl? mapControl;
-        public static Mapsui.Map map = new Mapsui.Map();
+        public static Mapsui.Map map = new();
         public static Position? MapPosition = null;        /**///Pass this as an argument instead of global variable
-        
-        public override void OnCreate(Bundle savedInstanceState)
+
+        public override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
         }
@@ -100,13 +101,14 @@ namespace hajk.Fragments
                     Task.Run(() => Import.AddTracksToMap());
                 }
 
-                Log.Debug($"Set Zoom");
-                mapControl.Map.Navigator.ZoomTo(PrefsActivity.MaxZoom);
+                //Log.Debug($"Set Zoom");
+                /**///Not working
+                //Fragment_map.map.Navigator.ZoomToLevel(PrefsActivity.MaxZoom);
 
                 mapControl.Info += MapOnInfo;
 
                 return view;
-            }            
+            }
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, $"Fragment_map - OnCreateView() Crashed");
@@ -115,17 +117,23 @@ namespace hajk.Fragments
             return null;
         }
 
-        private void MapOnInfo(object sender, MapInfoEventArgs args)
+        private void MapOnInfo(object? sender, MapInfoEventArgs? args)
         {
             try
             {
+                if (args == null)
+                    return;
+
                 if (args.MapInfo?.Feature == null)
                     return;
 
-                if (args.MapInfo.Layer.Name == null)
+                if (args.MapInfo.Layer?.Name == null)
                     return;
 
                 if (args.MapInfo.Layer.Tag == null)
+                    return;
+
+                if (args.MapInfo.WorldPosition == null)
                     return;
 
                 //Simplify
@@ -150,40 +158,40 @@ namespace hajk.Fragments
 
                 /**///Need to filter out the arrows
                 //Route?
-                if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "route" && style.ToString() == "Mapsui.Styles.SymbolStyle")
+                if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "route" && style?.ToString() == "Mapsui.Styles.SymbolStyle")
                 {
                     var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                     MapPosition = new Position(b.lon, b.lat, 0);
                     Log.Debug($"Route Object. GPS Position: " + b.ToString());
 
-                    var activity = (FragmentActivity)MainActivity.mContext;
+                    var activity = (FragmentActivity?)MainActivity.mContext;
 
                     //Remove the old fragment, before creating a new one. Maybe replace this with update, instead of delete and create... /**/
-                    var fragment = activity.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo");
+                    var fragment = activity?.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo");
                     if (fragment != null)
                     {
-                        activity.SupportFragmentManager.BeginTransaction()
-                            .Remove((AndroidX.Fragment.App.Fragment)activity.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo"))
+                        activity?.SupportFragmentManager.BeginTransaction()
+                            .Remove((AndroidX.Fragment.App.Fragment)activity?.SupportFragmentManager?.FindFragmentByTag("Fragment_posinfo"))
                             .Commit();
-                        activity.SupportFragmentManager.ExecutePendingTransactions();
+                        activity?.SupportFragmentManager.ExecutePendingTransactions();
                     }
 
                     //Create fragment
-                    activity.SupportFragmentManager.BeginTransaction()
+                    activity?.SupportFragmentManager.BeginTransaction()
                         .Add(Resource.Id.fragment_container, new Fragment_posinfo(), "Fragment_posinfo")
                         .Commit();
-                    activity.SupportFragmentManager.ExecutePendingTransactions();
+                    activity?.SupportFragmentManager.ExecutePendingTransactions();
 
                     //Show fragment
-                    activity.SupportFragmentManager.BeginTransaction()
-                        .Show(activity.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo"))
+                    activity?.SupportFragmentManager.BeginTransaction()
+                        .Show(activity?.SupportFragmentManager?.FindFragmentByTag("Fragment_posinfo"))
                         .Commit();
-                    activity.SupportFragmentManager.ExecutePendingTransactions();
+                    activity?.SupportFragmentManager.ExecutePendingTransactions();
                 }
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Fragment_map - MapInfo()");
+                Log.Error(ex, $"Fragment_map - MapInfo()");
             }
         }
     }

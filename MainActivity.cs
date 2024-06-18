@@ -91,7 +91,7 @@ namespace hajk
                 }
 
                 DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
-                ActionBarDrawerToggle toggle = new (this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
+                ActionBarDrawerToggle toggle = new(this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
                 if (drawer != null && toggle != null)
                 {
                     drawer.AddDrawerListener(toggle);

@@ -15,7 +15,7 @@ namespace Utils
 {
     public class Misc
     {
-        public static void ExtractInitialMap(Android.App.Activity activity, string dbFile)
+        public static void ExtractInitialMap(Activity activity, string dbFile)
         {
             try
             {
@@ -56,14 +56,14 @@ namespace Utils
             }
         }
 
-        private static void OnEnergySaverStatusChanged(object sender, EnergySaverStatusChangedEventArgs e)
+        private static void OnEnergySaverStatusChanged(object? sender, EnergySaverStatusChangedEventArgs? e)
         {
             if (Battery.EnergySaverStatus == EnergySaverStatus.Off)
                 return;
 
             using var alert = new AlertDialog.Builder(MainActivity.mContext);
-            alert.SetTitle(MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledTitle));
-            alert.SetMessage(MainActivity.mContext.Resources.GetString(hajk.Resource.String.BatterySaveModeEnabledDescription));
+            alert.SetTitle(MainActivity.mContext?.Resources?.GetString(hajk.Resource.String.BatterySaveModeEnabledTitle));
+            alert.SetMessage(MainActivity.mContext?.Resources?.GetString(hajk.Resource.String.BatterySaveModeEnabledDescription));
             alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
             var dialog = alert.Create();
             dialog?.Show();
@@ -76,12 +76,14 @@ namespace Utils
             {
                 MainActivity.mContext.RequestPermissions( new string[] { Android.Manifest.Permission.AccessBackgroundLocation }, 0);
             }*/
+            if (MainActivity.mContext == null)
+                return;
 
             if (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(MainActivity.mContext, Android.Manifest.Permission.AccessBackgroundLocation) != (int)Android.Content.PM.Permission.Granted)
             {
-                using var alert = new Android.App.AlertDialog.Builder(MainActivity.mContext);
-                alert.SetTitle(MainActivity.mContext.Resources.GetString(hajk.Resource.String.LocationPermissionTitle));
-                alert.SetMessage(MainActivity.mContext.Resources.GetString(hajk.Resource.String.LocationPermissionDescription));
+                using var alert = new AlertDialog.Builder(MainActivity.mContext);
+                alert.SetTitle(MainActivity.mContext.Resources?.GetString(hajk.Resource.String.LocationPermissionTitle));
+                alert.SetMessage(MainActivity.mContext.Resources?.GetString(hajk.Resource.String.LocationPermissionDescription));
                 alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
                 var dialog = alert.Create();
                 dialog?.SetCancelable(false);
@@ -139,11 +141,12 @@ namespace Utils
         {
             try
             {
-                var assembly = typeof(hajk.MainActivity).GetTypeInfo().Assembly;
+                var assembly = typeof(MainActivity).GetTypeInfo().Assembly;
                 var image = assembly.GetManifestResourceStream(imagePath);
 
                 if (image == null)
                 {
+                    Serilog.Log.Error($"Utils - GetBitmapIdForEmbeddedResource() is null for {imagePath}");
                     return 0;
                 }
 
@@ -182,7 +185,7 @@ namespace Utils
             try
             {
                 //Remove recorded waypoints
-                hajk.RecordTrack.trackGpx.Waypoints.Clear();
+                RecordTrack.trackGpx.Waypoints.Clear();
 
                 IEnumerable<ILayer> layers = hajk.Fragments.Fragment_map.map.Layers.Where(x => (string?)x.Tag == "route" || (string?)x.Tag == "track" || (string?)x.Tag == "tracklayer");
                 foreach (ILayer rt in layers)

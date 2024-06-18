@@ -3,23 +3,23 @@ using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Nts;
 using Mapsui.Styles;
-using Xamarin.Essentials;
 using Mapsui.Projections;
+using Mapsui.Extensions;
+using Mapsui.Nts.Extensions;
+using Xamarin.Essentials;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using hajk.Fragments;
-using Mapsui.Extensions;
-using Mapsui.Nts.Extensions;
 
 namespace hajk
 {
     class Location
     {
         private static readonly string LocationLayerName = "Location";
-        public static Xamarin.Essentials.Location location = null;
+        public static Xamarin.Essentials.Location? location = null;
 
         public static void UpdateLocationMarker(object state)
         {
@@ -43,7 +43,9 @@ namespace hajk
 
                 if (navigate)
                 {
+                    /**///Zoom should be in Fragment_map.cs, OnCreateView
                     Fragment_map.map.Navigator.CenterOn(sphericalMercatorCoordinate);
+                    Fragment_map.map.Navigator.ZoomToLevel(PrefsActivity.MaxZoom);
                 }
 
                 ILayer? layer = Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
@@ -51,25 +53,7 @@ namespace hajk
                 {
                     Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
                     layer = Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
-
-                    if (layer == null)
-                    {
-                        return;
-                    }
                 }
-
-                var feature = layer.GetFeatures(layer.Extent, 99).FirstOrDefault();
-                if (feature == null)
-                {
-                    Serilog.Log.Information($"No features?");
-                    return;
-                }
-
-                /**///XXX
-                //feature.Geometry = sphericalMercatorCoordinate;
-                layer.DataHasChanged();
-
-                //Fragments.Fragment_map.map.Home = n => n.CenterOn(sphericalMercatorCoordinate);
             }
             catch (Exception ex)
             {
@@ -115,7 +99,7 @@ namespace hajk
         {
             Color marker = Color.Blue;
 
-            ILayer? layer = Fragments.Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
+            ILayer? layer = Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
             if (layer == null)
             {
                 Serilog.Log.Debug($"No layer?");

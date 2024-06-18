@@ -41,6 +41,7 @@ using Android.Views;
 using Android.OS;
 using AndroidX.AppCompat.App;
 using AndroidX.Fragment.App;
+using Mapsui.Tiling.Layers;
 
 namespace hajk
 {
@@ -75,6 +76,9 @@ namespace hajk
         {
             try
             {
+                if (intent == null || intent.Action == null || intent.Scheme == null || intent.Type == null || intent.Data == null || intent.Data.Path == null)
+                    return;
+
                 var action = intent.Action;
                 if ((action.CompareTo("android.intent.action.VIEW") == 0) && (intent.Scheme.CompareTo("content") == 0) && !String.IsNullOrEmpty(intent.DataString))
                 {
@@ -173,7 +177,7 @@ namespace hajk
                 Serilog.Log.Error(ex, $"Import - GetRoute()");
             };
         }
-    
+
         public static void AddGPXWayPoint(wptType wptType, bool DownloadOfflineMap)
         {
             try
@@ -362,27 +366,25 @@ namespace hajk
                 {
                     GetloadOfflineMap(route.GetBounds(), r.Id, null, false);
                 }
-}
+            }
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, $"Import - AddGPXRoute()");
             }
         }
 
-        public static string CreateThumbprintMap(GpxClass newGPX)
+        public static string? CreateThumbprintMap(GpxClass newGPX)
         {
             try
             {
                 //Overlay GPX on map and zoom
                 var bounds = newGPX.GetBounds();
-                /**/
-                //var min = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
-                //var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+                var min = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
+                var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+
                 //Set location to match route/track
-                /**///Fragment_map.mapControl.Navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
                 Fragment_map.mapControl?.Map.Navigator.RotateTo(0.0);
-                var mrect = new MRect((double)bounds.maxlon, (double)bounds.minlat, (double)bounds.minlon, (double)bounds.maxlat);
-                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(mrect, MBoxFit.Fit);
+                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min.x, min.y, max.x, max.y), MBoxFit.Fit);
 
                 //Create viewport to match GPX list
                 var viewport = new Viewport()
@@ -390,11 +392,10 @@ namespace hajk
                     Width = MainActivity.wTrackRouteMap
                 };
 
-                //Set loction to match route/ track (again). Why?
-                /**/
-                //var navigator = new Navigator(Fragment_map.map, viewport);
-                //navigator.RotateTo(0, 0);
-                //navigator.NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
+                //Set loction to match route/ track and change viewport to fill available size
+                //Fragment_map.mapControl?.Map.Navigator.SetViewport(viewport);
+                //Fragment_map.mapControl?.Map.Navigator.RotateTo(0, 0);
+                //Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min.x, min.y, max.x, max.y), MBoxFit.Fit);
 
                 //Wait for each layer to complete
                 foreach (ILayer layer in Fragment_map.map.Layers)
@@ -406,7 +407,9 @@ namespace hajk
                 }
 
                 //Create the thumbprint
-                MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
+                //MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
+                MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(Fragment_map.map.Navigator.Viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
+                //MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
                 bitmap.Position = 0;
                 string ImageBase64String = Convert.ToBase64String(bitmap.ToArray());
 
@@ -438,7 +441,7 @@ namespace hajk
             dialog.Show();
             UpdatePB uptask = new UpdatePB(progressBar);
             uptask.Execute(0);
-            
+
             try
             {
                 Models.Map map = new Models.Map
@@ -520,7 +523,7 @@ namespace hajk
                     Name = "Poi",
                     Tag = "poi",
                     Enabled = true,
-                    IsMapInfoLayer = true,                    
+                    IsMapInfoLayer = true,
                     Features = ConvertListToInumerable(POIs),
                     Style = new SymbolStyle { Enabled = false },
                 };
@@ -583,12 +586,12 @@ namespace hajk
                 ILayer lineStringLayer;
                 if (gpxtype == GPXType.Route)
                 {
-                    lineStringLayer = CreateRouteLayer(mapRoute, CreateRouteStyle());
+                    lineStringLayer = CreateRouteLayer(mapRoute, Color.Blue, CreateStyle("Blue"));
                     lineStringLayer.Tag = "route";
                 }
                 else
                 {
-                    lineStringLayer = CreateRouteLayer(mapRoute, CreateTrackStyle());
+                    lineStringLayer = CreateRouteLayer(mapRoute, Color.Red, CreateStyle("Red"));
                     lineStringLayer.Tag = "track";
                 }
                 lineStringLayer.IsMapInfoLayer = true;
@@ -958,16 +961,16 @@ namespace hajk
             return null;
         }
 
-        public static ILayer CreateRouteLayer(string strRoute, IStyle? style = null)
+        public static ILayer CreateRouteLayer(string strRoute, Mapsui.Styles.Color sColor, IStyle? style = null)
         {
             var features = new List<IFeature>();
 
             try
             {
-                //Lines between each waypoint
                 var GPSlineString = (LineString)new WKTReader().Read(strRoute);
-                var lineString = new LineString(GPSlineString.Coordinates.Select(v => SphericalMercator.FromLonLat(v.Y, v.X).ToCoordinate()).ToArray());
 
+                //Lines between each waypoint
+                var lineString = new LineString(GPSlineString.Coordinates.Select(v => SphericalMercator.FromLonLat(v.Y, v.X).ToCoordinate()).ToArray());
                 features.Add(new GeometryFeature { Geometry = lineString });
 
                 //End of route
@@ -1002,14 +1005,12 @@ namespace hajk
                 var bitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource("hajk.Images.Arrow-up.svg");
                 for (int i = 0; i < GPSlineString.NumPoints - 1; i++)
                 {
-/**///xxx
-/*                    
                     //End points for line
-                    GPXUtils.Position p1 = new GPXUtils.Position(GPSlineString.StartPoint.ToMPoint().X, GPSlineString.Vertices[i].Y, 0);
-                    GPXUtils.Position p2 = new GPXUtils.Position(GPSlineString.Vertices[i + 1].X, GPSlineString.Vertices[i + 1].Y, 0);
+                    GPXUtils.Position p1 = new (GPSlineString.Coordinates[i].X, GPSlineString.Coordinates[i].Y, 0);
+                    GPXUtils.Position p2 = new (GPSlineString.Coordinates[i + 1].X, GPSlineString.Coordinates[i + 1].Y, 0);
 
                     //Quarter point on line for arrow
-                    MPoint p_quarter = Utils.Misc.CalculateQuarter(lineString.Vertices[i].Y, lineString.Vertices[i].X, lineString.Vertices[i + 1].Y, lineString.Vertices[i + 1].X);
+                    MPoint p_quarter = Utils.Misc.CalculateQuarter(lineString.Coordinates[i].Y, lineString.Coordinates[i].X, lineString.Coordinates[i + 1].Y, lineString.Coordinates[i + 1].X);
 
                     //Bearing of arrow
                     var p = new PositionHandler();
@@ -1026,13 +1027,13 @@ namespace hajk
                         SymbolRotation = angle,
                         SymbolOffset = new Offset(0, 0),
                         SymbolType = SymbolType.Triangle,
+                        Fill = new Brush { FillStyle = FillStyle.Solid, Color = sColor, Background = sColor },
+                        Outline = new Pen { Color = sColor, Width = 1.5f },
                     });
                     features.Add(FeatureArrow);
-*/
 
-                    //xxx
                     //Waypoints
-/*                    var FeatureWaypoint = new GeometryFeature { Geometry = lineString.Vertices[i] };
+                    var FeatureWaypoint = new GeometryFeature { Geometry = lineString.Coordinates[i].ToPoint() };
                     FeatureWaypoint.Styles.Add(new SymbolStyle
                     {
                         SymbolScale = 0.7f,
@@ -1041,12 +1042,10 @@ namespace hajk
                         RotateWithMap = true,
                         SymbolRotation = 0,
                         SymbolType = SymbolType.Ellipse,
-                        //Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Blue, Background = Color.Transparent },
                         Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
-                        Outline = new Pen { Color = Color.Blue, Width = 1.5f },
+                        Outline = new Pen { Color = sColor, Width = 1.5f },
                     });
                     features.Add(FeatureWaypoint);
-*/
                 }
             }
             catch (Exception ex)
@@ -1062,7 +1061,7 @@ namespace hajk
             };
         }
 
-        public static ILayer CreateTrackLayer(string strTrack, IStyle style = null)
+        public static ILayer CreateTrackLayer(string strTrack, IStyle? style = null)
         {
             var features = new List<IFeature>();
 
@@ -1104,23 +1103,13 @@ namespace hajk
             };
         }
 
-        public static IStyle CreateRouteStyle()
+        public static IStyle CreateStyle(string? colour)
         {
             return new VectorStyle
             {
                 Fill = null,
                 Outline = null,
-                Line = { Color = Color.FromString("Blue"), Width = 4, PenStyle = PenStyle.Solid }
-            };
-        }
-
-        public static IStyle CreateTrackStyle()
-        {
-            return new VectorStyle
-            {
-                Fill = null,
-                Outline = null,
-                Line = { Color = Color.FromString("Red"), Width = 4, PenStyle = PenStyle.Solid },
+                Line = { Color = Color.FromString(colour), Width = 4, PenStyle = PenStyle.Solid }
             };
         }
 

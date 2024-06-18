@@ -58,15 +58,15 @@ namespace hajk
                 catch (Exception ex)
                 {
                     Serilog.Log.Error(ex, $"COGGeoTIFF - Elevation data not in tif file");
-                }                
+                }
             }
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, $"COGGeoTIFF - GetElevationData()");
             }
-            
+
             return;
-            }
+        }
 
         private static void MergeElevationTiles(List<string> FileNames)
         {

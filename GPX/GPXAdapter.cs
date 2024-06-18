@@ -23,6 +23,7 @@ using Serilog;
 using Google.Android.Material.Navigation;
 using SharpGPX;
 using Mapsui;
+using GeoTiffCOG.Struture;
 
 namespace hajk.Adapter
 {
@@ -132,12 +133,9 @@ namespace hajk.Adapter
                                 //Fragment_map.mapControl.Map.Navigator.ZoomTo(PrefsActivity.MaxZoom);
 
                                 //Show the full route
-                                /**/
-                                //var min = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
-                                //var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
-                                //Fragment_map.mapControl.Map.Navigator.RotationLock .NavigateTo(new BoundingBox(min, max), ScaleMethod.Fit);
-                                var mrect = new MRect((double)bounds.maxlon, (double)bounds.minlat, (double)bounds.minlon, (double)bounds.maxlat);
-                                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(mrect, MBoxFit.Fit);
+                                var min_1 = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
+                                var max_1 = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+                                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min_1.x, min_1.y, max_1.x, max_1.y), MBoxFit.Fit);
 
                                 //Switch to map
                                 MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
@@ -166,20 +164,20 @@ namespace hajk.Adapter
                                 Log.Information($"Show route on map '{vh.Name.Text}'");
 
                                 //Get the route
-                                var routetrack_1 = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                                GpxClass gpx_1 = GpxClass.FromXml(routetrack_1.GPX);
+                                var routetrack_2 = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                                GpxClass gpx_2 = GpxClass.FromXml(routetrack_2.GPX);
 
-                                if (routetrack_1.GPXType == GPXType.Track)
+                                if (routetrack_2.GPXType == GPXType.Track)
                                 {
-                                    gpx_1.Routes.Add(gpx_1.Tracks[0].ToRoutes()[0]);
+                                    gpx_2.Routes.Add(gpx_2.Tracks[0].ToRoutes()[0]);
                                 }
-                                string mapRouteTrack_1 = Import.GPXtoRoute(gpx_1.Routes[0], false).Item1;
+                                string mapRouteTrack_2 = Import.GPXtoRoute(gpx_2.Routes[0], false).Item1;
 
                                 //Add GPX to Map
-                                Import.AddRouteToMap(mapRouteTrack_1, routetrack_1.GPXType, true);
+                                Import.AddRouteToMap(mapRouteTrack_2, routetrack_2.GPXType, true);
 
                                 //Center on imported route
-                                var bounds_1 = gpx_1.GetBounds();
+                                var bounds_2 = gpx_2.GetBounds();
                                 //Point p_1 = Utils.Misc.CalculateCenter((double)bounds_1.maxlat, (double)bounds_1.minlon, (double)bounds_1.minlat, (double)bounds_1.maxlon);
                                 //var sphericalMercatorCoordinate_1 = SphericalMercator.FromLonLat(p_1.X, p_1.Y);
                                 //Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate_1);
@@ -188,11 +186,9 @@ namespace hajk.Adapter
                                 //Fragment_map.mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
 
                                 //Show the full route
-                                /**/
-                                //var min_1 = SphericalMercator.FromLonLat((double)bounds_1.maxlon, (double)bounds_1.minlat);
-                                //var max_1 = SphericalMercator.FromLonLat((double)bounds_1.minlon, (double)bounds_1.maxlat);
-                                mrect = new MRect((double)bounds_1.maxlon, (double)bounds_1.minlat, (double)bounds_1.minlon, (double)bounds_1.maxlat);
-                                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(mrect, MBoxFit.Fit);
+                                var (x1, y1) = SphericalMercator.FromLonLat((double)bounds_2.maxlon, (double)bounds_2.minlat);
+                                var (x2, y2) = SphericalMercator.FromLonLat((double)bounds_2.minlon, (double)bounds_2.maxlat);
+                                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(x1, y1, x2, y2), MBoxFit.Fit);
 
                                 //Switch to map
                                 if (parent.Context != null)

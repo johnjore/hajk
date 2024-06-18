@@ -392,7 +392,7 @@ namespace hajk
                     ILayer layer = Fragment_map.map.Layers.FindLayer("TrackLayer").FirstOrDefault();
                     if (layer == null && Location.location != null)
                     {
-                        ILayer lineStringLayer = Import.CreateTrackLayer($"LINESTRING({location.Latitude} {location.Longitude})", Import.CreateTrackStyle());
+                        ILayer lineStringLayer = Import.CreateTrackLayer($"LINESTRING({location.Latitude} {location.Longitude})", Import.CreateStyle("Red"));
                         lineStringLayer.Tag = "tracklayer";
                         Fragment_map.map.Layers.Add(lineStringLayer);
                         layer = Fragment_map.map.Layers.FindLayer("TrackLayer").FirstOrDefault();
