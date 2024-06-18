@@ -426,21 +426,27 @@ namespace hajk
         public static async void GetloadOfflineMap(boundsType bounds, int id, string strFilePath, bool ShowDialog)
         {
             //Progress bar
-            LayoutInflater layoutInflater = LayoutInflater.From(MainActivity.mContext);
-            View progressDialogBox = layoutInflater.Inflate(Resource.Layout.progressbardialog, null);
-            AndroidX.AppCompat.App.AlertDialog.Builder alertDialogBuilder = new AndroidX.AppCompat.App.AlertDialog.Builder(MainActivity.mContext);
+            LayoutInflater? layoutInflater = LayoutInflater.From(MainActivity.mContext);
+            View? progressDialogBox = layoutInflater?.Inflate(Resource.Layout.progressbardialog, null);
+            AndroidX.AppCompat.App.AlertDialog.Builder alertDialogBuilder = new (MainActivity.mContext);
             alertDialogBuilder.SetView(progressDialogBox);
-            var progressBar = progressDialogBox.FindViewById<ProgressBar>(Resource.Id.progressBar);
-            progressBar.Max = 100;
-            progressBar.Progress = 0;
-            var progressBarText1 = progressDialogBox.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText1);
-            progressBarText1.Text = $"{MainActivity.mContext.GetString(Resource.String.DownloadTiles)}";
+            var progressBar = progressDialogBox?.FindViewById<ProgressBar>(Resource.Id.progressBar);
+            if (progressBar != null)
+            {
+                progressBar.Max = 100;
+                progressBar.Progress = 0;
+            }
+            var progressBarText1 = progressDialogBox?.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText1);
+            if (progressBarText1 != null)
+            {
+                progressBarText1.Text = $"{MainActivity.mContext.GetString(Resource.String.DownloadTiles)}";
+            }
             progressBarText2 = progressDialogBox.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText2);
             dialog = alertDialogBuilder.Create();
             dialog.SetCancelable(false);
             dialog.Show();
             UpdatePB uptask = new UpdatePB(progressBar);
-            uptask.Execute(0);
+            uptask?.Execute(0);
 
             try
             {

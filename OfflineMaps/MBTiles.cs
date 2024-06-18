@@ -216,7 +216,7 @@ namespace hajk
 
         public static async void RefreshOldTiles()
         {
-            string OSMServer = Preferences.Get("OSMServer", PrefsActivity.OSMServer_s);
+            string OSMServer = Preferences.Get("OSMServer", MainActivity.mContext?.GetString(Resource.String.OSMServerDefault));
 
             var query = MbTileCache.sqlConn.Table<tiles>().Where(x => (DateTime.UtcNow - x.createDate).TotalDays > PrefsActivity.OfflineMaxAge);
             Log.Debug($"Query Count: " + query.Count().ToString());

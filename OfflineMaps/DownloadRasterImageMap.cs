@@ -105,7 +105,7 @@ namespace hajk
 
         private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id, int intmissingTiles, int inttotalTiles)
         {
-            string OSMServer = Preferences.Get("OSMServer", PrefsActivity.OSMServer_s);
+            string OSMServer = Preferences.Get("OSMServer", MainActivity.mContext?.GetString(Resource.String.OSMServerDefault));
 
             try
             {

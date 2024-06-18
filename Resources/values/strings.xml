@@ -94,4 +94,7 @@
   <string name="MapLockNorthDescription">Disable rotation of map</string>
   <string name="RestoreActivitys">Restore Activities</string>
   <string name="ActivitiesImported">Activities imported"</string>
+  <string name="OSMServerTitle">OSM Server</string>
+  <string name="OSMServerDescription">URL of OSM Server</string>
+  <string name="OSMServerDefault">"https://cloudstorage.jore.no/tile/"</string>
 </resources>
