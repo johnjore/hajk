@@ -63,8 +63,6 @@ namespace hajk
 
         protected override void OnDestroy()
         {
-            base.OnDestroy();
-
             //
             bool LockMapRotation = Preferences.Get("MapLockNorth", false);
             if (LockMapRotation)
@@ -73,6 +71,8 @@ namespace hajk
             }
             Fragment_map.map.Navigator.RotationLock = LockMapRotation;
             Log.Verbose($"Set map rotation (lock or not):" + LockMapRotation.ToString());
+
+            base.OnDestroy();
         }
     }
 }
