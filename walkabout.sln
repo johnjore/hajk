@@ -5,6 +5,8 @@ VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hajk", "hajk.csproj", "{A08B612A-EE54-44EE-BBB3-9E2515CAAF3A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Velociraptor", "..\Velociraptor\Velociraptor.csproj", "{C3CF93EE-CD64-4A29-A786-B91E2110A906}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,6 +19,12 @@ Global
 		{A08B612A-EE54-44EE-BBB3-9E2515CAAF3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A08B612A-EE54-44EE-BBB3-9E2515CAAF3A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A08B612A-EE54-44EE-BBB3-9E2515CAAF3A}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{C3CF93EE-CD64-4A29-A786-B91E2110A906}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3CF93EE-CD64-4A29-A786-B91E2110A906}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3CF93EE-CD64-4A29-A786-B91E2110A906}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{C3CF93EE-CD64-4A29-A786-B91E2110A906}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3CF93EE-CD64-4A29-A786-B91E2110A906}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3CF93EE-CD64-4A29-A786-B91E2110A906}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

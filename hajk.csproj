@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0-android</TargetFramework>
+    <TargetFramework>net8.0-android</TargetFramework>
     <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -81,8 +81,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Images\Arrow-up.svg" />
     <EmbeddedResource Include="Images\Drinking-water.svg" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Images\Black-dot.svg" />
     <EmbeddedResource Include="Images\Tent.svg" />
   </ItemGroup>

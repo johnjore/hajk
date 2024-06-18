@@ -10,9 +10,9 @@ using Xamarin.Essentials;
 
 namespace hajk
 {
-	[Service]
-	public class LocationService : Service
-	{
+    [Service(ForegroundServiceType = Android.Content.PM.ForegroundService.TypeLocation)]
+    public class LocationService : Service
+    {
 		GPSLocation gpslocation;
 		bool isStarted;
 		Handler handler;
@@ -140,20 +140,27 @@ namespace hajk
 				.Build();
 
 			// Enlist this instance of the service as a foreground service
-			StartForeground(PrefsActivity.SERVICE_RUNNING_NOTIFICATION_ID, notification);
-		}
+			if (OperatingSystem.IsAndroidVersionAtLeast(34))
+			{
+				StartForeground(PrefsActivity.SERVICE_RUNNING_NOTIFICATION_ID, notification, Android.Content.PM.ForegroundService.TypeLocation);
+            }
+            else
+            {
+                StartForeground(PrefsActivity.SERVICE_RUNNING_NOTIFICATION_ID, notification);
+            }
+        }
 
-		/// <summary>
-		/// Builds a PendingIntent that will display the main activity of the app. This is used when the 
-		/// user taps on the notification; it will take them to the main activity of the app.
-		/// </summary>
-		/// <returns>The content intent.</returns>
-		PendingIntent BuildIntentToShowMainActivity()
-		{
-			/**/
-			//Needs fixing. Dont want to restart the app, just switch to it...
-			//Service does not start?
-			var notificationIntent = new Intent(this, typeof(MainActivity));
+        /// <summary>
+        /// Builds a PendingIntent that will display the main activity of the app. This is used when the 
+        /// user taps on the notification; it will take them to the main activity of the app.
+        /// </summary>
+        /// <returns>The content intent.</returns>
+        PendingIntent? BuildIntentToShowMainActivity()
+        {
+            /**/
+            //Needs fixing. Dont want to restart the app, just switch to it...
+            //Service does not start?
+            var notificationIntent = new Intent(this, typeof(MainActivity));
 			notificationIntent.SetAction(PrefsActivity.ACTION_MAIN_ACTIVITY);
 			notificationIntent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTask);
 			notificationIntent.PutExtra(PrefsActivity.SERVICE_STARTED_KEY, true);
