@@ -30,6 +30,8 @@ using Mapsui.Rendering.Skia;
 using Mapsui.Styles;
 using Xamarin.Essentials;
 
+
+
 namespace hajk
 {
     class RecordTrack
