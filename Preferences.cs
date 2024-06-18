@@ -1,6 +1,9 @@
 ﻿using Android.App;
 using Android.OS;
 using Android.Preferences;
+using Serilog;
+using Xamarin.Essentials;
+using hajk.Fragments;
 
 namespace hajk
 {
@@ -57,6 +60,20 @@ namespace hajk
             {
                 AddPreferencesFromResource(Resource.Xml.Preferences);
             }
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+
+            //
+            bool LockMapRotation = Preferences.Get("MapLockNorth", false);
+            if (LockMapRotation)
+            {
+                Fragment_map.map.Navigator.RotateTo(0, 0);
+            }
+            Fragment_map.map.Navigator.RotationLock = LockMapRotation;
+            Log.Verbose($"Set map rotation (lock or not):" + LockMapRotation.ToString());
         }
     }
 }
