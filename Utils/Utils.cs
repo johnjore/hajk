@@ -11,9 +11,10 @@ using Xamarin.Essentials;
 using Mapsui.Layers;
 using hajk;
 
+
 namespace Utils
 {
-    public class Misc
+    public class Misc 
     {
         public static void ExtractInitialMap(Activity activity, string dbFile)
         {
@@ -37,57 +38,6 @@ namespace Utils
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, $"Utils - ExtractInitialMap()");
-            }
-        }
-
-        public static void BatterySaveModeNotification()
-        {
-            try
-            {
-                //Subscribe to events
-                Battery.EnergySaverStatusChanged += OnEnergySaverStatusChanged;
-
-                //Check if enabled or not
-                OnEnergySaverStatusChanged(null, null);
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, $"Utils - BatterySaveModeNotification()");
-            }
-        }
-
-        private static void OnEnergySaverStatusChanged(object? sender, EnergySaverStatusChangedEventArgs? e)
-        {
-            if (Battery.EnergySaverStatus == EnergySaverStatus.Off)
-                return;
-
-            using var alert = new AlertDialog.Builder(MainActivity.mContext);
-            alert.SetTitle(MainActivity.mContext?.Resources?.GetString(hajk.Resource.String.BatterySaveModeEnabledTitle));
-            alert.SetMessage(MainActivity.mContext?.Resources?.GetString(hajk.Resource.String.BatterySaveModeEnabledDescription));
-            alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
-            var dialog = alert.Create();
-            dialog?.Show();
-        }
-
-        public static void LocationPermissionNotification()
-        {
-            //Not required
-            /*if (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(MainActivity.mContext, Android.Manifest.Permission.AccessBackgroundLocation) != (int) Android.Content.PM.Permission.Granted)
-            {
-                MainActivity.mContext.RequestPermissions( new string[] { Android.Manifest.Permission.AccessBackgroundLocation }, 0);
-            }*/
-            if (MainActivity.mContext == null)
-                return;
-
-            if (AndroidX.Core.Content.ContextCompat.CheckSelfPermission(MainActivity.mContext, Android.Manifest.Permission.AccessBackgroundLocation) != (int)Android.Content.PM.Permission.Granted)
-            {
-                using var alert = new AlertDialog.Builder(MainActivity.mContext);
-                alert.SetTitle(MainActivity.mContext.Resources?.GetString(hajk.Resource.String.LocationPermissionTitle));
-                alert.SetMessage(MainActivity.mContext.Resources?.GetString(hajk.Resource.String.LocationPermissionDescription));
-                alert.SetNeutralButton(hajk.Resource.String.Ok, (sender, args) => { });
-                var dialog = alert.Create();
-                dialog?.SetCancelable(false);
-                dialog?.Show();
             }
         }
 
@@ -204,18 +154,23 @@ namespace Utils
 
         public static void PromptToConfirmExit()
         {
-            if (MainActivity.mContext == null || MainActivity.mContext.Resources == null)
+            if (Platform.CurrentActivity == null || Platform.CurrentActivity.Resources == null)
             {
                 Serilog.Log.Error($"Utils - PromptToConfirmExit()");
                 return;
             }
 
-            using (var alert = new AlertDialog.Builder(MainActivity.mContext))
+            using (var alert = new AlertDialog.Builder(Platform.CurrentActivity))
             {
-                alert.SetTitle(MainActivity.mContext.Resources.GetString(hajk.Resource.String.ExitTitle));
-                alert.SetMessage(MainActivity.mContext.Resources.GetString(hajk.Resource.String.ExitPrompt));
-                alert.SetPositiveButton(hajk.Resource.String.Yes, (sender, args) => { MainActivity.mContext.FinishAffinity(); });
-                alert.SetNegativeButton(hajk.Resource.String.No, (sender, args) => { });
+                alert.SetTitle(Platform.CurrentActivity?.Resources?.GetString(hajk.Resource.String.ExitTitle));
+                alert.SetMessage(Platform.CurrentActivity?.Resources?.GetString(hajk.Resource.String.ExitPrompt));
+                alert.SetPositiveButton(hajk.Resource.String.Yes, (sender, args) => 
+                { 
+                    Platform.CurrentActivity?.FinishAffinity(); 
+                });
+                alert.SetNegativeButton(hajk.Resource.String.No, (sender, args) => 
+                {
+                });
 
                 var dialog = alert.Create();
                 dialog?.Show();

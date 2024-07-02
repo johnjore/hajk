@@ -6,7 +6,7 @@ using Xamarin.Essentials;
 
 //https://forums.xamarin.com/discussion/comment/251826/#Comment_251826
 
-public class Show_Dialog
+public class Show_Dialog(Activity activity) : object()
 {
     public enum MessageResult
     {
@@ -20,33 +20,13 @@ public class Show_Dialog
         NO = 7
     }
 
-    readonly Activity mcontext;
-    public Show_Dialog(Activity activity) : base()
-    {
-        this.mcontext = activity;
-    }
-
     public Task<MessageResult> ShowDialog(string Title, string Message, int IconAttribute = Android.Resource.Attribute.AlertDialogIcon, bool SetCancelable = false, MessageResult PositiveButton = MessageResult.OK, MessageResult NegativeButton = MessageResult.NONE, MessageResult NeutralButton = MessageResult.NONE)
     {
         var tcs = new TaskCompletionSource<MessageResult>();
-        var builder = new AlertDialog.Builder(mcontext);
+        var builder = new AlertDialog.Builder(activity);
         builder.SetIconAttribute(IconAttribute);
         builder.SetTitle(Title);
         builder.SetMessage(Message);
-        /*if (Build.VERSION.SdkInt < Android.OS.BuildVersionCodes.M)
-        {
-            builder.SetInverseBackgroundForced(false);
-        }
-
-        if (System.OperatingSystem.IsAndroidVersionAtLeast(23))
-        {
-            
-        } 
-        else
-        {
-            builder.SetInverseBackgroundForced(false);
-        }*/
-
         builder.SetCancelable(SetCancelable);
 
         builder.SetPositiveButton((PositiveButton != MessageResult.NONE) ? PositiveButton.ToString() : string.Empty, (senderAlert, args) =>
@@ -62,10 +42,6 @@ public class Show_Dialog
         builder.SetNeutralButton((NeutralButton != MessageResult.NONE) ? NeutralButton.ToString() : string.Empty, delegate
         {
             tcs.SetResult(NeutralButton);
-        });
-
-        MainThread.BeginInvokeOnMainThread(() =>
-        {
         });
 
         MainThread.BeginInvokeOnMainThread(() =>

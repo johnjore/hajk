@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
+using Android.Locations;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
@@ -28,9 +29,11 @@ using Mapsui.Projections;
 using Mapsui.Providers;
 using Mapsui.Rendering.Skia;
 using Mapsui.Styles;
+using Mapsui.Tiling;
+using NetTopologySuite.Geometries;
 using Xamarin.Essentials;
-
-
+using System.Collections.Immutable;
+using Android.Content.PM;
 
 namespace hajk
 {
@@ -38,32 +41,26 @@ namespace hajk
     {
         private static bool NotificationDialogActive = false; //Is notification dialog active or not when XTE
         public static GpxClass trackGpx = new();
-        public static Timer Timer_Order;
-        private static Timer Timer_WarnIfOffRoute;
+        //public static Timer? Timer_Order;
+        private static Timer? Timer_WarnIfOffRoute;
+        private static GenericCollectionLayer<List<IFeature>>? trackLayer;
 
         public static void StartTrackTimer()
         {
             try
             {
                 Preferences.Set("RecordingTrack", true);
-                //This is plain stupid. Why not Int type in preferences
-                int freq_s = int.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
 
-                /**///Move to a proper thread?
-                Timer_Order = new Timer(new TimerCallback(GetGPSLocationEvent), null, 0, freq_s * 1000);
-
-                //This is plain stupid. Why not Int type in preferences
+                /**///Move to check when new location data is provided
                 int freq_OffRoute_s = int.Parse(Preferences.Get("freq_s_OffRoute", PrefsActivity.freq_OffRoute_s.ToString()));
-
-                /**///Move to a proper thread?
                 Timer_WarnIfOffRoute = new Timer(new TimerCallback(CheckOffRouteEvent), null, 0, freq_OffRoute_s * 1000);
 
                 //Update location marker with correct colour
                 Location.UpdateLocationFeature();
 
                 //Enable the menu item
-                AndroidX.AppCompat.Widget.Toolbar toolbar = MainActivity.mContext.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
-                toolbar.Menu.FindItem(Resource.Id.action_clearmap).SetEnabled(true);
+                AndroidX.AppCompat.Widget.Toolbar? toolbar = Platform.CurrentActivity?.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
+                toolbar?.Menu?.FindItem(Resource.Id.action_clearmap).SetEnabled(true);
             }
             catch (Exception ex)
             {
@@ -71,13 +68,14 @@ namespace hajk
             }
         }
 
-        public static async void SaveTrack()
+        public static async void EndTrackTimer()
         {
             try
             {
+                Preferences.Set("RecordingTrack", false);
+
                 //Stop the timers
-                Timer_Order.Dispose(); // Recording Track
-                Timer_WarnIfOffRoute.Dispose(); //Checking if OffRoute
+                Timer_WarnIfOffRoute?.Dispose(); //Checking if OffRoute
 
                 //Clear ActiveRoute
                 MainActivity.ActiveRoute = null;
@@ -86,9 +84,9 @@ namespace hajk
                 Preferences.Set("RecordingTrack", false);
 
                 //Update location marker with correct colour
-                Location.UpdateLocationFeature();
+                //Location.UpdateLocationFeature();
 
-                Show_Dialog msg1 = new(MainActivity.mContext);
+                Show_Dialog msg1 = new(Platform.CurrentActivity);
                 if (await msg1.ShowDialog($"Track", $"Save Track ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.NO)
                 {
                     return;
@@ -121,13 +119,13 @@ namespace hajk
                 var p = new PositionHandler();
                 for (int j = 1; j < track.Tracks[0].trkseg[0].trkpt.Count; j++)
                 {
-                    var p1 = new Position((float)track.Tracks[0].trkseg[0].trkpt[j - 1].lat, (float)track.Tracks[0].trkseg[0].trkpt[j - 1].lon, 0);
-                    var p2 = new Position((float)track.Tracks[0].trkseg[0].trkpt[j].lat, (float)track.Tracks[0].trkseg[0].trkpt[j].lon, 0);
+                    var p1 = new GPXUtils.Position((float)track.Tracks[0].trkseg[0].trkpt[j - 1].lat, (float)track.Tracks[0].trkseg[0].trkpt[j - 1].lon, 0);
+                    var p2 = new GPXUtils.Position((float)track.Tracks[0].trkseg[0].trkpt[j].lat, (float)track.Tracks[0].trkseg[0].trkpt[j].lon, 0);
                     mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                 }
 
                 //Add to routetrack DB
-                GPXDataRouteTrack r = new GPXDataRouteTrack
+                GPXDataRouteTrack r = new()
                 {
                     GPXType = GPXType.Track,
                     Name = name,
@@ -145,7 +143,7 @@ namespace hajk
             }
         }
 
-        private static void CheckOffRouteEvent(object state)
+        private static void CheckOffRouteEvent(object? state)
         {
             try
             {
@@ -169,7 +167,7 @@ namespace hajk
                 }
 
                 //Our location
-                var pos_c = new Position((float)location.Latitude, (float)location.Longitude, 0);
+                var pos_c = new GPXUtils.Position((float)location.Latitude, (float)location.Longitude, 0);
 
                 //Distance to check
                 int OffTrackDistanceWarning_m = int.Parse(Preferences.Get("OffTrackDistanceWarning_m", PrefsActivity.OffTrackDistanceWarning_m.ToString()));
@@ -187,7 +185,7 @@ namespace hajk
 
                     //Calculate Distance
                     var p = new PositionHandler();
-                    var pos_a = new Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0);
+                    var pos_a = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0);
                     double mapDistanceMeters = CrossTrackCalculations.CalculateDistance(pos_a, pos_c);
 
                     Log.Debug($"Location is: " + mapDistanceMeters.ToString("N2") + " meters from index:" + i.ToString());
@@ -244,11 +242,11 @@ namespace hajk
                         int OffTrackRouteSnooze_m = int.Parse(Preferences.Get("OffTrackRouteSnooze_m", PrefsActivity.OffRouteSnooze_m.ToString()));
 
                         //Get text to use
-                        var a = MainActivity.mContext.Resources.GetString(Resource.String.OffRouteAlarm);
-                        var b = MainActivity.mContext.Resources.GetString(Resource.String.IgnoreAlarmFor);
-                        var c = MainActivity.mContext.Resources.GetString(Resource.String.Minutes);
+                        var a = Platform.CurrentActivity?.Resources?.GetString(Resource.String.OffRouteAlarm);
+                        var b = Platform.CurrentActivity?.Resources?.GetString(Resource.String.IgnoreAlarmFor);
+                        var c = Platform.CurrentActivity?.Resources?.GetString(Resource.String.Minutes);
 
-                        Show_Dialog msg1 = new(MainActivity.mContext);
+                        Show_Dialog msg1 = new(Platform.CurrentActivity);
                         if (await msg1.ShowDialog(a, b + " " + OffTrackRouteSnooze_m.ToString() + " " + c, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                         {
                             int freq_s = int.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
@@ -257,7 +255,6 @@ namespace hajk
                         NotificationDialogActive = false;
                     });
                 }
-
 
                 //If get this far, vibrate the phone
                 try
@@ -276,7 +273,7 @@ namespace hajk
             }
         }
 
-        private static bool OffTrackXTECalculations(wptType a, wptType b, Position pos_c)
+        private static bool OffTrackXTECalculations(wptType a, wptType b, GPXUtils.Position pos_c)
         {
             try
             {
@@ -328,10 +325,14 @@ namespace hajk
             return true;
         }
 
-        private static void GetGPSLocationEvent(object state)
+        public static void GetGPSLocationEvent(Android.Locations.Location location)
         {
-            var location = Geolocation.GetLastKnownLocationAsync().Result;
             if (location == null)
+            {
+                return;
+            }
+
+            if ((DateTime.Now.Second % 5 != 0) && (trackGpx.Waypoints.Count >= 2))
             {
                 return;
             }
@@ -339,9 +340,10 @@ namespace hajk
             //Log.Information($"Updated GPS Location - Lat: {location.Latitude:N5}, Lon: {location.Longitude:N5}, Speed: {location.Speed:N5}, Altitude: {location.Altitude:N2}, DateStamp: {location.Timestamp}");
 
             //Don't use data older than 10 seconds
-            if (location.Timestamp < DateTime.UtcNow.AddSeconds(-10))
+            DateTime gpsUTCDateTime = DateTimeOffset.FromUnixTimeMilliseconds(location.Time).DateTime;
+            if (gpsUTCDateTime < DateTime.UtcNow.AddSeconds(-10))
             {
-                Log.Debug($"Discarding Location Information - Too old: {location.Timestamp.LocalDateTime}");
+                Log.Debug($"Discarding Location Information - Too old: {gpsUTCDateTime}");
                 return;
             }
 
@@ -368,20 +370,15 @@ namespace hajk
 
             try
             {
-
                 wptType waypoint = new()
                 {
                     lat = (decimal)location.Latitude,
                     lon = (decimal)location.Longitude,
+                    ele = (decimal)location.Altitude,
                     time = DateTime.Now,
                     timeSpecified = true,
                     eleSpecified = true,
                 };
-
-                if (location.Altitude != null)
-                {
-                    waypoint.ele = (decimal)location.Altitude;
-                }
 
                 trackGpx.Waypoints.Add(waypoint);
                 Log.Debug($"Recording has '{trackGpx.Waypoints.Count}' waypoints");
@@ -389,27 +386,46 @@ namespace hajk
                 if (Preferences.Get("DrawTrackOnGui", PrefsActivity.DrawTrackOnGui_b))
                 {
                     //Add tracking layer to map
-                    ILayer layer = Fragment_map.map.Layers.FindLayer("TrackLayer").FirstOrDefault();
-                    if (layer == null && Location.location != null)
+                    if (Fragment_map.map.Layers.FindLayer("tracklayer".ToLower()).FirstOrDefault() == null)
                     {
-                        ILayer lineStringLayer = Import.CreateTrackLayer($"LINESTRING({location.Latitude} {location.Longitude})", Import.CreateStyle("Red"));
-                        lineStringLayer.Tag = "tracklayer";
-                        Fragment_map.map.Layers.Add(lineStringLayer);
-                        layer = Fragment_map.map.Layers.FindLayer("TrackLayer").FirstOrDefault();
-
-                        if (layer == null)
+                        trackLayer = new GenericCollectionLayer<List<IFeature>>
                         {
-                            return;
-                        }
+                            Name = "tracklayer".ToLower(),
+                            Style = Import.CreateStyle("Red"),
+                        };
+                        Fragment_map.map.Layers.Add(trackLayer);
                     }
 
-                    //Update feature on layer
-                    var feature = layer.GetFeatures(Fragment_map.map.Extent, 99).FirstOrDefault();
-                    if (feature != null)
+                    //Add feature on layer
+                    if (trackGpx.Waypoints.Count >= 2)
                     {
-                        var lineString = new NetTopologySuite.Geometries.LineString(trackGpx.Waypoints.Select(v => SphericalMercator.FromLonLat((double)v.lon, (double)v.lat).ToCoordinate()).ToArray());
-                        feature = new GeometryFeature { Geometry = lineString };
-                        layer.DataHasChanged();
+                        var a1 = trackGpx.Waypoints[trackGpx.Waypoints.Count - 1];
+                        var b1 = trackGpx.Waypoints[trackGpx.Waypoints.Count - 2];
+                        var a2 = SphericalMercator.FromLonLat((double)a1.lon, (double)a1.lat).ToCoordinate();
+                        var b2 = SphericalMercator.FromLonLat((double)b1.lon, (double)b1.lat).ToCoordinate();
+
+                        //Lines between waypoints
+                        trackLayer?.Features.Add(new GeometryFeature 
+                        {
+                            Geometry = new LineString([a2, b2])
+                        });
+
+                        //Waypoints
+                        var feature = new GeometryFeature { Geometry = b2.ToPoint() };
+                        feature.Styles.Add(new SymbolStyle
+                        {
+                            SymbolScale = 0.7f,
+                            MaxVisible = 10.0f,
+                            MinVisible = 0.0f,
+                            RotateWithMap = true,
+                            SymbolRotation = 0,
+                            SymbolType = SymbolType.Ellipse,
+                            Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
+                            Outline = new Pen { Color = Color.Red, Width = 1.0f },
+                        });
+
+                        trackLayer?.Features.Add(feature);
+                        trackLayer?.DataHasChanged();
                     }
                 }
             }

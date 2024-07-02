@@ -44,14 +44,14 @@ namespace hajk.Fragments
         {
             try
             {
-                var activity = (FragmentActivity)MainActivity.mContext;
+                var activity = (FragmentActivity)Platform.CurrentActivity;
                 var view = inflater.Inflate(Resource.Layout.fragment_posinfo, container, false);
                 view.SetBackgroundColor(Color.White);
 
                 Button hideFragment = view.FindViewById<Button>(Resource.Id.btn_HideFragment);
                 hideFragment.Click += delegate
                 {
-                    var activity = (FragmentActivity)MainActivity.mContext;
+                    var activity = (FragmentActivity)Platform.CurrentActivity;
                     activity.SupportFragmentManager.BeginTransaction()
                         .Remove((AndroidX.Fragment.App.Fragment)activity.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo"))
                         .Commit();
@@ -60,7 +60,9 @@ namespace hajk.Fragments
 
 
                 //Make sure data does not change while calculating values
-                Xamarin.Essentials.Location GpsLocation = new GPSLocation().GetGPSLocationData();
+                //Xamarin.Essentials.Location GpsLocation = new GPSLocation().GetGPSLocationData();
+                //if (LocationForegroundService.currentLocation == null)
+                Android.Locations.Location? GpsLocation = LocationForegroundService.GetLocation();
                 GPXUtils.Position MapPosition = Fragment_map.MapPosition;
 
                 //Current Elevation (Altitude)
@@ -234,7 +236,7 @@ namespace hajk.Fragments
             return null;
         }
 
-        private void ConfigureGraph(View view, Xamarin.Essentials.Location GpsLocation, GPXUtils.Position MapPosition)
+        private void ConfigureGraph(View view, Android.Locations.Location GpsLocation, GPXUtils.Position MapPosition)
         {
             try
             {

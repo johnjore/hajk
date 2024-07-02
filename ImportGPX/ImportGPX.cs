@@ -72,7 +72,7 @@ namespace hajk
             return null;
         }
 
-        public static void GPXImportfromIntent(Android.Content.Intent intent)
+        public static void GPXImportfromIntent(Android.Content.Intent? intent)
         {
             try
             {
@@ -86,7 +86,7 @@ namespace hajk
                     var uri = intent.Data;
 
                     Serilog.Log.Verbose("Content intent detected: " + action + " : " + data.ToString() + " : " + intent.Type.ToString() + " : " + uri.Path.ToString());
-                    Stream stream = MainActivity.mContext.ContentResolver.OpenInputStream(uri);
+                    Stream? stream = Platform.CurrentActivity?.ContentResolver?.OpenInputStream(uri);
 
                     string fileContents = String.Empty;
                     using (var reader = new StreamReader(stream))
@@ -111,7 +111,7 @@ namespace hajk
 
                     MainThread.BeginInvokeOnMainThread(async () =>
                     {
-                        Show_Dialog msg = new Show_Dialog(MainActivity.mContext);
+                        Show_Dialog msg = new Show_Dialog(Platform.CurrentActivity);
                         if (await msg.ShowDialog($"{uri.LastPathSegment}", $"Found {gpxData.Routes.Count} {r}, {gpxData.Tracks.Count} {t} and {gpxData.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                         {
                             //Only ask if we have routes and/or tracks and/or Waypoints to import, and we have internet access. Most don't have a local tile server
@@ -142,7 +142,7 @@ namespace hajk
                 if ((gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0) && Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
                 {
                     //Does the user want maps downloaded for offline usage?                
-                    Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                    Show_Dialog msg1 = new Show_Dialog(Platform.CurrentActivity);
                     if (await msg1.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                     {
                         DownloadOfflineMap = true;
@@ -266,7 +266,7 @@ namespace hajk
                 RouteDatabase.SaveRoute(r);
 
                 //Update RecycleView with new entry, if the fragment exists
-                var activity = (FragmentActivity)MainActivity.mContext;
+                var activity = (FragmentActivity)Platform.CurrentActivity;
                 var gpx = activity.SupportFragmentManager.FindFragmentByTag("Fragment_gpx");
                 if (gpx != null)
                 {
@@ -353,7 +353,7 @@ namespace hajk
                 RouteDatabase.SaveRoute(r);
 
                 //Update RecycleView with new entry, if the fragment exists
-                var activity = (FragmentActivity)MainActivity.mContext;
+                var activity = (FragmentActivity)Platform.CurrentActivity;
                 var gpx = activity.SupportFragmentManager.FindFragmentByTag("Fragment_gpx");
                 if (gpx != null)
                 {
@@ -377,39 +377,38 @@ namespace hajk
         {
             try
             {
+                //Create viewport to match screen size
+                if (Platform.CurrentActivity?.Resources?.DisplayMetrics?.WidthPixels != null)
+                {
+                    var viewport = new Viewport()
+                    {
+                        Width = Platform.CurrentActivity.Resources.DisplayMetrics.WidthPixels,
+                        Height = 1000 /**///Any value large enough to not cause issues
+                    };
+
+                    //Set loction to match route/ track and change viewport to fill available size
+                    Fragment_map.mapControl?.Map.Navigator.SetViewport(viewport);
+                    //Fragment_map.mapControl?.Map.Navigator.ZoomToBox(viewport.ToExtent());  <--- Should work in 5.x?!?!?
+                }
+
                 //Overlay GPX on map and zoom
                 var bounds = newGPX.GetBounds();
-                var min = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
-                var max = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
-
-                //Set location to match route/track
+                var (min_x, min_y) = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
+                var (max_x, max_y) = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min_x, min_y, max_x, max_y), MBoxFit.Fit);
                 Fragment_map.mapControl?.Map.Navigator.RotateTo(0.0);
-                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min.x, min.y, max.x, max.y), MBoxFit.Fit);
-
-                //Create viewport to match GPX list
-                var viewport = new Viewport()
-                {
-                    Width = MainActivity.wTrackRouteMap
-                };
-
-                //Set loction to match route/ track and change viewport to fill available size
-                //Fragment_map.mapControl?.Map.Navigator.SetViewport(viewport);
-                //Fragment_map.mapControl?.Map.Navigator.RotateTo(0, 0);
-                //Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min.x, min.y, max.x, max.y), MBoxFit.Fit);
 
                 //Wait for each layer to complete
                 foreach (ILayer layer in Fragment_map.map.Layers)
                 {
                     while (layer.Busy)
                     {
-                        System.Threading.Thread.Sleep(10);
+                        System.Threading.Thread.Sleep(2);
                     }
                 }
 
                 //Create the thumbprint
-                //MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
                 MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(Fragment_map.map.Navigator.Viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
-                //MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
                 bitmap.Position = 0;
                 string ImageBase64String = Convert.ToBase64String(bitmap.ToArray());
 
@@ -426,9 +425,9 @@ namespace hajk
         public static async void GetloadOfflineMap(boundsType bounds, int id, string strFilePath, bool ShowDialog)
         {
             //Progress bar
-            LayoutInflater? layoutInflater = LayoutInflater.From(MainActivity.mContext);
+            LayoutInflater? layoutInflater = LayoutInflater.From(Platform.CurrentActivity);
             View? progressDialogBox = layoutInflater?.Inflate(Resource.Layout.progressbardialog, null);
-            AndroidX.AppCompat.App.AlertDialog.Builder alertDialogBuilder = new (MainActivity.mContext);
+            AndroidX.AppCompat.App.AlertDialog.Builder alertDialogBuilder = new (Platform.CurrentActivity);
             alertDialogBuilder.SetView(progressDialogBox);
             var progressBar = progressDialogBox?.FindViewById<ProgressBar>(Resource.Id.progressBar);
             if (progressBar != null)
@@ -439,7 +438,7 @@ namespace hajk
             var progressBarText1 = progressDialogBox?.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText1);
             if (progressBarText1 != null)
             {
-                progressBarText1.Text = $"{MainActivity.mContext.GetString(Resource.String.DownloadTiles)}";
+                progressBarText1.Text = $"{Platform.CurrentActivity.GetString(Resource.String.DownloadTiles)}";
             }
             progressBarText2 = progressDialogBox.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText2);
             dialog = alertDialogBuilder.Create();
@@ -614,7 +613,7 @@ namespace hajk
             {
                 if (UpdateMenu)
                 {
-                    AndroidX.AppCompat.Widget.Toolbar toolbar = MainActivity.mContext.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
+                    AndroidX.AppCompat.Widget.Toolbar toolbar = Platform.CurrentActivity.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
                     toolbar.Menu.FindItem(Resource.Id.action_clearmap).SetEnabled(true);
                 }
             }
@@ -804,7 +803,7 @@ namespace hajk
             return ListLatLon;
         }
 
-        private static List<GPXUtils.Position> DownloadElevationData(string LatLon)
+        private static List<GPXUtils.Position>? DownloadElevationData(string LatLon)
         {
             var Pre = $"https://api.opentopodata.org/v1/aster30m?locations=";
             var Post = $"&interpolation=bilinear&nodata_value=null";
@@ -951,7 +950,7 @@ namespace hajk
                 string t = (gpx.Tracks.Count == 1) ? "track" : "tracks";
                 string p = (gpx.Waypoints.Count == 1) ? "POI" : "POIs";
 
-                Show_Dialog msg1 = new Show_Dialog(MainActivity.mContext);
+                Show_Dialog msg1 = new Show_Dialog(Platform.CurrentActivity);
                 if (await msg1.ShowDialog($"{result.FileName}", $"Found {gpx.Routes.Count} {r}, {gpx.Tracks.Count} {t} and {gpx.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) != Show_Dialog.MessageResult.YES)
                 {
                     return null;
@@ -1067,15 +1066,13 @@ namespace hajk
             };
         }
 
-        public static ILayer CreateTrackLayer(string strTrack, IStyle? style = null)
+        public static ILayer CreateTrackLayer(wptTypeCollection Waypoints, IStyle? style = null)
         {
             var features = new List<IFeature>();
 
             try
             {
-                //Convert from string and line strings
-                var lineString = (LineString)new WKTReader().Read(strTrack);
-                lineString = new LineString(lineString.Coordinates.Select(v => SphericalMercator.FromLonLat(v.Y, v.X).ToCoordinate()).ToArray());
+                var lineString = new LineString(Waypoints.Select(v => SphericalMercator.FromLonLat((double)v.lon, (double)v.lat).ToCoordinate()).ToArray());
                 features.Add(new GeometryFeature { Geometry = lineString });
 
                 //Waypoint markers
@@ -1089,7 +1086,6 @@ namespace hajk
                         MinVisible = 0.0f,
                         RotateWithMap = true,
                         SymbolType = SymbolType.Ellipse,
-                        //Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Red, Background = Color.Transparent },
                         Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
                         Outline = new Pen { Color = Color.Red, Width = 0.2f },
                     });

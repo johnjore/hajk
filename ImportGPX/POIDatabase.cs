@@ -19,7 +19,7 @@ namespace hajk.Data
         {
             try
             {
-                string dbPath = Path.Combine(MainActivity.rootPath, Preferences.Get("POIDB", PrefsActivity.POIDB));
+                string dbPath = Path.Combine(PrefsActivity.rootPath, Preferences.Get("POIDB", PrefsActivity.POIDB));
                 database = new SQLiteAsyncConnection(dbPath);
                 database.CreateTableAsync<GPXDataPOI>().Wait();
             }

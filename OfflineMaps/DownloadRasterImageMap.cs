@@ -64,7 +64,7 @@ namespace hajk
 
                 if (ShowDialog)
                 {
-                    Show_Dialog msg3 = new(MainActivity.mContext);
+                    Show_Dialog msg3 = new(Platform.CurrentActivity);
                     await msg3.ShowDialog($"Done", $"Map Download Completed", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
                 }
 
@@ -105,7 +105,7 @@ namespace hajk
 
         private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id, int intmissingTiles, int inttotalTiles)
         {
-            string OSMServer = Preferences.Get("OSMServer", MainActivity.mContext?.GetString(Resource.String.OSMServerDefault));
+            string OSMServer = Preferences.Get("OSMServer", Platform.CurrentActivity?.GetString(Resource.String.OSMServerDefault));
 
             try
             {
@@ -258,7 +258,7 @@ namespace hajk
         {
             try
             {
-                var tileSource = TileCache.GetOSMBasemap(MainActivity.rootPath + "/" + PrefsActivity.CacheDB);
+                var tileSource = TileCache.GetOSMBasemap(PrefsActivity.rootPath + "/" + PrefsActivity.CacheDB);
                 var tileLayer = new TileLayer(tileSource)
                 {
                     Name = "OSM",
@@ -305,9 +305,8 @@ namespace hajk
                 ExportDB.Close();
                 ExportDB.Dispose();
 
-                var m = MainActivity.mContext;
-                Show_Dialog msg = new(m);
-                msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapExportCompleted), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                Show_Dialog msg = new(Platform.CurrentActivity);
+                msg.ShowDialog(Platform.CurrentActivity.GetString(Resource.String.Done), Platform.CurrentActivity.GetString(Resource.String.MapExportCompleted), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
             }
             catch (Exception ex)
             {

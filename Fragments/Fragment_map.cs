@@ -164,7 +164,7 @@ namespace hajk.Fragments
                     MapPosition = new Position(b.lon, b.lat, 0);
                     Log.Debug($"Route Object. GPS Position: " + b.ToString());
 
-                    var activity = (FragmentActivity?)MainActivity.mContext;
+                    var activity = (FragmentActivity?)Platform.CurrentActivity;
 
                     //Remove the old fragment, before creating a new one. Maybe replace this with update, instead of delete and create... /**/
                     var fragment = activity?.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo");

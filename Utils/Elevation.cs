@@ -27,18 +27,20 @@ namespace hajk
                 AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(14, gpx); //Fix zoom at 14. Best we get from S3 bucket
 
                 //Download tiles            
-                List<string> FileNames = DownloadElevationTiles(tiles);
+                List<string>? FileNames = DownloadElevationTiles(tiles);
 
                 //Test data
-                FileNames.Add(MainActivity.rootPath + "/" + "14-14796-10082.tif");
-                FileNames.Add(MainActivity.rootPath + "/" + "14-14795-10082.tif");
-                FileNames.Add(MainActivity.rootPath + "/" + "14-14796-10081.tif");
-                FileNames.Add(MainActivity.rootPath + "/" + "14-14795-10081.tif");
-                FileNames.Add(MainActivity.rootPath + "/" + "14-14796-10080.tif");
-                FileNames.Add(MainActivity.rootPath + "/" + "14-14795-10080.tif");
+                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14796-10082.tif");
+                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14795-10082.tif");
+                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14796-10081.tif");
+                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14795-10081.tif");
+                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14796-10080.tif");
+                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14795-10080.tif");
 
-                if (FileNames.Count == 0)
+                if (FileNames == null || FileNames?.Count == 0)
+                {
                     return;
+                }
 
                 //Merge to single tile
                 MergeElevationTiles(FileNames);
@@ -46,13 +48,13 @@ namespace hajk
                 //Convert Lat/Lon to Mercator
                 float lat = -37.94607f;
                 float lon = 144.40093f;
-                var tmp = SphericalMercator.FromLonLat((double)lon, (double)lat);
-                Serilog.Log.Debug($"Mercator, X:{tmp.x}, Y:{tmp.y}");
+                var (x, y) = SphericalMercator.FromLonLat((double)lon, (double)lat);
+                Serilog.Log.Debug($"Mercator, X:{x}, Y:{y}");
 
                 try
                 {
-                    GeoTiff geoTiff = new GeoTiff(MainActivity.rootPath + "/" + "14-14763-10061.tif");
-                    double value = geoTiff.GetElevationAtLatLon(tmp.y, tmp.x);
+                    GeoTiff geoTiff = new GeoTiff(PrefsActivity.rootPath + "/" + "14-14763-10061.tif");
+                    double value = geoTiff.GetElevationAtLatLon(y, x);
                     Serilog.Log.Information($"Elevaton at lat:{lat:N3}, lon:{lon:N3} is '{value}' meters");
                 }
                 catch (Exception ex)
@@ -68,8 +70,13 @@ namespace hajk
             return;
         }
 
-        private static void MergeElevationTiles(List<string> FileNames)
+        private static void MergeElevationTiles(List<string>? FileNames)
         {
+            if (FileNames == null)
+            {
+                return;
+            }
+
             try
             {
                 //var files = new List<byte[]>();
@@ -145,9 +152,9 @@ namespace hajk
             }
         }
 
-        private static List<string> DownloadElevationTiles(AwesomeTiles.TileRange range)
+        private static List<string>? DownloadElevationTiles(AwesomeTiles.TileRange range)
         {
-            List<string> FileNames = new List<string>();
+            List<string> FileNames = [];
 
             try
             {
@@ -155,11 +162,11 @@ namespace hajk
 
                 foreach (var tile in range)
                 {
-                    var LocalFileName = MainActivity.rootPath + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
+                    var LocalFileName = PrefsActivity.rootPath + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
 
                     if (Downloaded(LocalFileName) == false)
                     {
-                        byte[] data = null;
+                        byte[]? data = null;
                         for (int i = 0; i < 10; i++)
                         {
                             var url = COGGeoTiffServer + $"{tile.Zoom}/{tile.X}/{tile.Y}.tif";
@@ -186,8 +193,13 @@ namespace hajk
             }
         }
 
-        private static void WriteCOGGeoTiff(string imageUrl, byte[] data)
+        private static void WriteCOGGeoTiff(string imageUrl, byte[]? data)
         {
+            if (data == null)
+            {
+                return;
+            }
+
             try
             {
                 System.IO.File.WriteAllBytes(imageUrl, data);
@@ -218,7 +230,7 @@ namespace hajk
             return false;
         }
 
-        private static byte[] DownloadImageAsync(string imageUrl)
+        private static byte[]? DownloadImageAsync(string imageUrl)
         {
             HttpClientHandler clientHandler = new HttpClientHandler
             {

@@ -6,6 +6,7 @@ using BruTile.Predefined;
 using BruTile.Web;
 using SQLite;
 using hajk.Models;
+using Xamarin.Essentials;
 
 //From https://github.com/spaddlewit/MBTilesPersistentCache
 
@@ -182,7 +183,7 @@ namespace hajk
                 var metaList = new List<metadata>
                 {
                     //MUST 
-                    new metadata { name = "name", value = MainActivity.mContext.Resources.GetString(Resource.String.app_name) },
+                    new metadata { name = "name", value = Platform.CurrentActivity.Resources.GetString(Resource.String.app_name) },
                     new metadata { name = "format", value = format },
                     //SHOULD
                     new metadata { name = "bounds", value = "-180.0,-90.0,180.0,90.0" },                 //Whole world
@@ -191,7 +192,7 @@ namespace hajk
                     new metadata { name = "maxzoom", value = PrefsActivity.MaxZoom.ToString() },
                     //MAY
                     new metadata { name = "attribution", value = "(c) OpenStreetMap contributors https://www.openstreetmap.org/copyright" },
-                    new metadata { name = "description", value = "Offline database for " + MainActivity.mContext.Resources.GetString(Resource.String.app_name) },
+                    new metadata { name = "description", value = "Offline database for " + Platform.CurrentActivity.Resources.GetString(Resource.String.app_name) },
                     new metadata { name = "type", value = "baselayer" },
                     new metadata { name = "version", value = "1" }
                 };

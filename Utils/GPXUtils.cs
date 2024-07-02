@@ -221,7 +221,7 @@ namespace GPXUtils
             return Math.Round(distance, 2);
         }        
 
-        public double CalculateDistance(Position position1, Xamarin.Essentials.Location location2, DistanceType distanceType)
+        public double CalculateDistance(Position position1, Android.Locations.Location location2, DistanceType distanceType)
         {
             var position2 = new Position(location2.Latitude, location2.Longitude, 0);
             return CalculateDistance(position1, position2, distanceType);

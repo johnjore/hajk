@@ -19,40 +19,40 @@ namespace hajk
     class Location
     {
         private static readonly string LocationLayerName = "Location";
-        public static Xamarin.Essentials.Location? location = null;
 
         public static void UpdateLocationMarker(object state)
         {
             UpdateLocationMarker(false);
         }
 
-        public static void UpdateLocationMarker(bool navigate)
+        public static void UpdateLocationMarker(bool navigate, Android.Locations.Location location)
         {
-            if (location == null)
-            {
-                return;
-            }
-
             try
             {
-                MPoint? sphericalMercatorCoordinate = SphericalMercator.FromLonLat(location.Longitude, location.Latitude).ToMPoint();
+                MPoint? sphericalMercatorCoordinate = (SphericalMercator.FromLonLat(location.Longitude, location.Latitude)).ToMPoint();
                 if (sphericalMercatorCoordinate == null)
                 {
                     return;
                 }
 
+                //Location circle. Remove if it exists, re-create with new location. Would it be better/faster to update feature with new position?
+                ILayer? layer = Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
+                if (layer != null)
+                {
+                    Fragment_map.map.Layers.Remove(layer);
+                }
+                Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
+
                 if (navigate)
                 {
-                    /**///Zoom should be in Fragment_map.cs, OnCreateView
+                    Fragment_map.mapControl.Map.Navigator.PanLock = false;
+                    Fragment_map.mapControl.Map.Navigator.RotationLock = false;
                     Fragment_map.map.Navigator.CenterOn(sphericalMercatorCoordinate);
-                    Fragment_map.map.Navigator.ZoomToLevel(PrefsActivity.MaxZoom);
-                }
-
-                ILayer? layer = Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
-                if (layer == null)
-                {
-                    Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
-                    layer = Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
+                    if (Preferences.Get("TrackLocation", false))
+                    {
+                        Fragment_map.mapControl.Map.Navigator.PanLock = true;
+                        Fragment_map.mapControl.Map.Navigator.RotationLock = true;
+                    }
                 }
             }
             catch (Exception ex)
@@ -84,11 +84,17 @@ namespace hajk
         {
             var feature = new PointFeature(GPSLocation);
 
+            Color marker = Color.Blue;
+            if (Preferences.Get("RecordingTrack", PrefsActivity.RecordingTrack))
+            {
+                marker = Color.Red;
+            }
+
             feature.Styles.Add(new SymbolStyle
             {
                 SymbolScale = 1.5f,
                 Fill = null,
-                Outline = new Pen { Color = Color.Blue, Width = 2.0 }
+                Outline = new Pen { Color = marker, Width = 2.0 }
             });
 
             return feature;
@@ -97,17 +103,13 @@ namespace hajk
         //Set loction beacon color, red if recording, blue if not
         public static void UpdateLocationFeature()
         {
-            Color marker = Color.Blue;
-
             ILayer? layer = Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
             if (layer == null)
             {
                 Serilog.Log.Debug($"No layer?");
                 return;
             }
-            //var feature =layer.GetFeatures(MRect, double)
 
-            //var feature = layer.GetFeaturesInView(layer.Envelope, 99).FirstOrDefault();
             var feature = layer.GetFeatures(layer.Extent, 99).FirstOrDefault();
             if (feature == null)
             {
@@ -115,6 +117,8 @@ namespace hajk
                 return;
             }
 
+            //Recording or "normal"
+            Color marker = Color.Blue;
             if (Preferences.Get("RecordingTrack", PrefsActivity.RecordingTrack))
             {
                 marker = Color.Red;

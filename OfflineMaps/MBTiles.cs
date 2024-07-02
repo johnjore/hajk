@@ -188,9 +188,8 @@ namespace hajk
                         ImportDB.Dispose();
                         ImportDB = null;
 
-                        var m = MainActivity.mContext;
-                        Show_Dialog msg = new(m);
-                        await msg.ShowDialog(m.GetString(Resource.String.Done), m.GetString(Resource.String.MapTilesImported), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                        Show_Dialog msg = new(Platform.CurrentActivity);
+                        await msg.ShowDialog(Platform.CurrentActivity.GetString(Resource.String.Done), Platform.CurrentActivity.GetString(Resource.String.MapTilesImported), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
                     }
                 }
                 catch (Exception ex)
@@ -216,7 +215,7 @@ namespace hajk
 
         public static async void RefreshOldTiles()
         {
-            string OSMServer = Preferences.Get("OSMServer", MainActivity.mContext?.GetString(Resource.String.OSMServerDefault));
+            string OSMServer = Preferences.Get("OSMServer", Platform.CurrentActivity?.GetString(Resource.String.OSMServerDefault));
 
             var query = MbTileCache.sqlConn.Table<tiles>().Where(x => (DateTime.UtcNow - x.createDate).TotalDays > PrefsActivity.OfflineMaxAge);
             Log.Debug($"Query Count: " + query.Count().ToString());

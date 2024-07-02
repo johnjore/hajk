@@ -24,6 +24,7 @@ using Google.Android.Material.Navigation;
 using SharpGPX;
 using Mapsui;
 using GeoTiffCOG.Struture;
+using Xamarin.Essentials;
 
 namespace hajk.Adapter
 {
@@ -147,7 +148,7 @@ namespace hajk.Adapter
                                 RecordTrack.StartTrackTimer();
 
                                 //Update Menu Item Text
-                                NavigationView nav = MainActivity.mContext.FindViewById<NavigationView>(Resource.Id.nav_view);
+                                NavigationView nav = Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view);
                                 nav.Menu.FindItem(Resource.Id.nav_recordtrack)
                                     .SetTitle(Resource.String.Stop_Recording);
 
@@ -200,7 +201,7 @@ namespace hajk.Adapter
                             case var value when value == Resource.Id.gpx_menu_deleteroute:
                                 Log.Information($"Delete route '{vh.Name.Text}'");
 
-                                Show_Dialog msg1 = new(MainActivity.mContext);
+                                Show_Dialog msg1 = new(Platform.CurrentActivity);
                                 if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}' ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                                 {
                                     //Remove map tiles
@@ -265,7 +266,7 @@ namespace hajk.Adapter
                                     var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
                                     GpxClass gpx_to_export = GpxClass.FromXml(route_to_export.GPX);
 
-                                    string gpxPath = Path.Combine(MainActivity.rootPath, userdata.Text);
+                                    string gpxPath = Path.Combine(PrefsActivity.rootPath, userdata.Text);
                                     gpx_to_export.ToFile(gpxPath);
                                 })
                                 .SetNegativeButton(Resource.String.Cancel, delegate
