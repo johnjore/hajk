@@ -27,6 +27,7 @@ using hajk.Models;
 using SQLite;
 using SharpGPX;
 
+
 namespace hajk
 {
     [Activity(Name = "no.johnjore.hajk.MainActivity", Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
@@ -35,7 +36,7 @@ namespace hajk
         public static RouteDatabase? routedatabase;
         public static GpxClass? ActiveRoute = null;                  // Active Route / Track for calculations, inc Off-Route detection
 
-        protected override async void OnCreate(Bundle savedInstanceState)
+        protected override async void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
@@ -45,7 +46,7 @@ namespace hajk
             ServicePointManager.ServerCertificateValidationCallback = (message, certificate, chain, sslPolicyErrors) => true;
 
             //Preferences.Clear();
-            //new FileInfo(rootPath + "/" + PrefsActivity.CacheDB).Delete();            
+            //new FileInfo(rootPath + "/" + PrefsActivity.CacheDB).Delete();
 
             //Logging
             string _Path = System.IO.Path.Combine(PrefsActivity.rootPath, Preferences.Get("logFile", PrefsActivity.logFile));
@@ -80,11 +81,8 @@ namespace hajk
 
                 DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
                 ActionBarDrawerToggle toggle = new(this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
-                if (drawer != null && toggle != null)
-                {
-                    drawer.AddDrawerListener(toggle);
-                    toggle.SyncState();
-                }
+                drawer?.AddDrawerListener(toggle);
+                toggle.SyncState();
 
                 NavigationView? navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
                 navigationView?.SetNavigationItemSelectedListener(this);
@@ -124,7 +122,7 @@ namespace hajk
                 await Utilities.AppPermissions.LocationPermissionNotification(this);
 
                 //Disable battery optimization
-                Utilities.BatteryOptimization.SetDozeOptimization(this);
+                /**///Utilities.BatteryOptimization.SetDozeOptimization(this);
             }
             catch (Exception ex)
             {
@@ -178,6 +176,25 @@ namespace hajk
             {
                 return Utils.Misc.ClearTrackRoutesFromMap();
             }
+            else if (id == Resource.Id.AddRogainingPOI)
+            {
+                Android.App.FragmentTransaction fragmentTransaction = FragmentManager.BeginTransaction();
+                Android.App.Fragment fragmentPrev = FragmentManager.FindFragmentByTag("dialog");
+                if (fragmentPrev != null)
+                {
+                    fragmentTransaction?.Remove(fragmentPrev);
+                }
+
+                fragmentTransaction.AddToBackStack(null);
+
+                Fragment_markers dialogFragment = Fragment_markers.NewInstace(null);
+                dialogFragment.Show(fragmentTransaction, "dialog");
+            }
+            else if (id == Resource.Id.ExportRogainingPOI)
+            {
+                Export.ExportPOI("Rogaining");
+            }
+
             return base.OnOptionsItemSelected(item);
         }
 
@@ -270,8 +287,8 @@ namespace hajk
 
             if (id == Resource.Id.nav_import)
             {
-                //Import GPX file (routes and tracks), save to SQLite DB
-                Import.GetRoute();
+                //Import GPX file (routes, tracks and POI), save to SQLite DB
+                Import.ImportGPX();
             }
             else if (id == Resource.Id.nav_offlinemap)
             {
@@ -442,20 +459,27 @@ namespace hajk
 
                 //MBTiles
                 SQLiteConnection DBBackupConnection = TileCache.MbTileCache.sqlConn;
-                string backupFileName = DownLoadFolder + "/Backup-" + Resources.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".mbtiles";
+                string backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".mbtiles";
                 DBBackupConnection.Backup(backupFileName);
 
                 //Route DB
                 string dbPath = Path.Combine(PrefsActivity.rootPath, Preferences.Get("RouteDB", PrefsActivity.RouteDB));
                 DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
-                backupFileName = DownLoadFolder + "/Backup-" + Resources.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".db3";
+                backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".db3";
+                DBBackupConnection.Backup(backupFileName);
+                DBBackupConnection.Close();
+
+                //POI DB
+                dbPath = Path.Combine(PrefsActivity.rootPath, Preferences.Get("POIDB", PrefsActivity.POIDB));
+                DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
+                backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".poi.db3";
                 DBBackupConnection.Backup(backupFileName);
                 DBBackupConnection.Close();
 
                 //Message
                 using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(Platform.CurrentActivity);
-                alert.SetTitle(Platform.CurrentActivity?.Resources.GetString(Resource.String.Backup));
-                alert.SetMessage(Platform.CurrentActivity?.Resources.GetString(Resource.String.Done));
+                alert.SetTitle(Platform.CurrentActivity?.Resources?.GetString(Resource.String.Backup));
+                alert.SetMessage(Platform.CurrentActivity?.Resources?.GetString(Resource.String.Done));
                 alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
                 var dialog = alert.Create();
                 dialog.Show();
@@ -562,7 +586,7 @@ namespace hajk
                     }
                 });
             }
-
+            
             DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             drawer?.CloseDrawer(GravityCompat.Start);
             return true;
@@ -602,6 +626,7 @@ namespace hajk
                 case "Fragment_posinfo":
 
                     break;
+
             }
         }
 

@@ -20,6 +20,9 @@ namespace hajk.Data
             try
             {
                 string dbPath = Path.Combine(PrefsActivity.rootPath, Preferences.Get("POIDB", PrefsActivity.POIDB));
+
+                //new FileInfo(dbPath).Delete();
+
                 database = new SQLiteAsyncConnection(dbPath);
                 database.CreateTableAsync<GPXDataPOI>().Wait();
             }
@@ -35,8 +38,15 @@ namespace hajk.Data
             return database.Table<GPXDataPOI>().ToListAsync();
         }
 
+        //Get specific names (Rogaining)
+        public static Task<List<GPXDataPOI>> GetPOIAsync(string Name)
+        {
+            return database.Table<GPXDataPOI>().Where(i => i.Name == Name).ToListAsync();
+        }
+
+
         // Get a specific waypoint
-        public static Task<GPXDataPOI> GetRouteAsync(int id)
+        public static Task<GPXDataPOI> GetPOIAsync(long id)
         {
             return database.Table<GPXDataPOI>().Where(i => i.Id == id).FirstOrDefaultAsync();
         }
@@ -57,17 +67,17 @@ namespace hajk.Data
         }
 
         //Update or save a new waypoint
-        public static void SavePOI(GPXDataPOI waypoint)
+        public static int SavePOI(GPXDataPOI waypoint)
         {
             if (waypoint.Id != 0)
             {
                 // Update an existing waypoint
-                database.UpdateAsync(waypoint).Wait();
+                return (database.UpdateAsync(waypoint).Result);
             }
             else
             {
                 // Save a new waypoint
-                database.InsertAsync(waypoint).Wait();
+                return (database.InsertAsync(waypoint).Result);
             }
         }
 
@@ -78,7 +88,7 @@ namespace hajk.Data
         }
 
         // Delete a waypoint
-        public static Task<int> DeletePOIAsync(int id)
+        public static Task<int> DeletePOIAsync(long id)
         {            
             return database.DeleteAsync(database.Table<GPXDataPOI>().Where(i => i.Id == id).FirstAsync().Result);
         }

@@ -47,6 +47,7 @@ namespace hajk
         public const string ACTION_STOP_SERVICE = "hajk.action.STOP_SERVICE";
         public const string ACTION_MAIN_ACTIVITY = "hajk.action.MAIN_ACTIVITY";
 
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);

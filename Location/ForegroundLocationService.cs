@@ -217,22 +217,6 @@ namespace hajk
             Notification? notification;
             if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
-                var notificationIntent = new Android.Content.Intent(this, typeof(MainActivity));
-                notificationIntent.SetAction(PrefsActivity.ACTION_MAIN_ACTIVITY);
-                notificationIntent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTask);
-                notificationIntent.PutExtra(PrefsActivity.SERVICE_STARTED_KEY, true);
-
-                PendingIntent pendingIntent;
-                if (OperatingSystem.IsAndroidVersionAtLeast(23))
-                {
-                    pendingIntent = PendingIntent.GetActivity(this, 0, notificationIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
-                }
-                else
-                {
-                    pendingIntent = PendingIntent.GetActivity(this, 0, notificationIntent, PendingIntentFlags.UpdateCurrent);
-                }
-
-
                 notification = notificationBuilder
                 .SetOngoing(true)
                 .SetSmallIcon(Resource.Drawable.track)
@@ -240,8 +224,7 @@ namespace hajk
                 .SetAutoCancel(true)
                 .SetPriority((int)NotificationPriority.Low)
                 .SetCategory(Notification.CategoryNavigation)
-                //.SetContentIntent(BuildIntentToShowMainActivity())
-                .SetContentIntent(pendingIntent)
+                .SetContentIntent(BuildIntentToShowMainActivity())
                 .Build();
             }
             else
@@ -279,11 +262,11 @@ namespace hajk
             var notificationIntent = new Intent(this, typeof(MainActivity));
             notificationIntent.SetAction(PrefsActivity.ACTION_MAIN_ACTIVITY);
             notificationIntent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTask);
-            notificationIntent.PutExtra(PrefsActivity.SERVICE_STARTED_KEY, true);
+            //notificationIntent.PutExtra(PrefsActivity.SERVICE_STARTED_KEY, true);
 
             if (OperatingSystem.IsAndroidVersionAtLeast(23))
             {
-                return PendingIntent.GetActivity(this, 0, notificationIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+                return PendingIntent.GetActivity(this, 0, notificationIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable | PendingIntentFlags.NoCreate);
             }
             else
             {

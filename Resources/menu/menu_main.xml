@@ -9,7 +9,16 @@
 
     <item
         android:id="@+id/action_clearmap"
-        android:orderInCategory="100"
+        android:orderInCategory="90"
         android:title="@string/Clear_map_of_routes_and_tracks"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/AddRogainingPOI"
+        android:title="@string/AddRogainingPOI" />
+
+    <item
+      android:id="@+id/ExportRogainingPOI"
+      android:title="@string/ExportRogainingPOI" />
+
 </menu>

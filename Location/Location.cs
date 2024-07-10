@@ -68,7 +68,7 @@ namespace hajk
                 Name = LocationLayerName,
                 Features = CreateLocationFeatures(GPSLocation),
                 Style = null,
-                IsMapInfoLayer = true
+                IsMapInfoLayer = false,
             };
         }
 

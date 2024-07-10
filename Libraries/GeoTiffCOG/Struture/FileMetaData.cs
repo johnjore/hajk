@@ -104,7 +104,7 @@ namespace GeoTiffCOG.Struture
             return $"{System.IO.Path.GetFileName(Filename)}: {BoundingBox}";
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             FileMetadata objTyped = obj as FileMetadata;
             if (objTyped == null)

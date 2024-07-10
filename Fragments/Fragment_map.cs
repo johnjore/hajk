@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Android.OS;
 using Android.Views;
@@ -7,16 +9,21 @@ using AndroidX.Fragment.App;
 using Xamarin.Essentials;
 using Mapsui;
 using Mapsui.Extensions;
-using Mapsui.Projections;
 using Mapsui.UI;
 using Mapsui.UI.Android;
+using Mapsui.Layers;
+using Mapsui.Nts;
+using Mapsui.Projections;
 using Mapsui.Styles;
 using Mapsui.Tiling;
 using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using Serilog;
 using GPXUtils;
-using Mapsui.Layers;
+using static System.Net.Mime.MediaTypeNames;
+using hajk.Data;
+using Mapsui.Nts.Extensions;
+using hajk.Models;
 
 namespace hajk.Fragments
 {
@@ -25,6 +32,7 @@ namespace hajk.Fragments
         public static MapControl? mapControl;
         public static Mapsui.Map map = new();
         public static Position? MapPosition = null;        /**///Pass this as an argument instead of global variable
+        private static long MovingPOI = -1;               //For MapInfo, if >=0, next tap is new location for POI #
 
         public override void OnCreate(Bundle? savedInstanceState)
         {
@@ -75,7 +83,7 @@ namespace hajk.Fragments
                 {
                     MaxWidth = 300,
                     ShowEnvelop = true,
-                    Font = new Font { FontFamily = "sans serif", Size = 20 },
+                    Font = new Mapsui.Styles.Font { FontFamily = "sans serif", Size = 20 },
                     TickLength = 15,
                     TextColor = new Color(0, 0, 0, 255),
                     Halo = new Color(0, 0, 0, 0),
@@ -101,10 +109,6 @@ namespace hajk.Fragments
                     Task.Run(() => Import.AddTracksToMap());
                 }
 
-                //Log.Debug($"Set Zoom");
-                /**///Not working
-                //Fragment_map.map.Navigator.ZoomToLevel(PrefsActivity.MaxZoom);
-
                 mapControl.Info += MapOnInfo;
 
                 return view;
@@ -124,8 +128,57 @@ namespace hajk.Fragments
                 if (args == null)
                     return;
 
-                if (args.MapInfo?.Feature == null)
+                if (args.MapInfo == null)
                     return;
+
+                //Create POI?
+                if (args.MapInfo?.Feature == null && args.NumTaps >= 2 && args.MapInfo?.WorldPosition != null)
+                {
+                    Task.Run(async () =>
+                    {
+                        var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+                        var text = "GPS Coordinates:\n" + lat.ToString("0.000000") + ", " + lon.ToString("0.000000");
+
+                        Show_Dialog msg = new(Platform.CurrentActivity);
+                        var result = await msg.ShowDialog("Create POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
+                        if (result == Show_Dialog.MessageResult.YES)
+                        {
+                            Serilog.Log.Debug($"{args.MapInfo}");                            
+
+                            GPXDataPOI p = new()
+                            {
+                                Name = "Manual Entry",
+                                Description = "",
+                                Symbol = null,
+                                Lat = (decimal)lat,
+                                Lon = (decimal)lon,
+                            };
+                            
+                            var r = POIDatabase.SavePOI(p);
+                            Import.AddPOIToMap();
+                        }
+
+                        return;
+                    });
+                }
+
+                if (args.MapInfo == null)
+                    return;
+
+                //Moving POI
+                if (MovingPOI >= 0 && args.MapInfo.WorldPosition != null)
+                {
+                    GPXDataPOI p = POIDatabase.GetPOIAsync(MovingPOI).Result;
+                    var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+                    p.Lat = (decimal)lat;
+                    p.Lon = (decimal)lon;
+
+                    var r = POIDatabase.SavePOI(p);
+                    Import.AddPOIToMap();
+
+                    MovingPOI = -1;
+                }
+
 
                 if (args.MapInfo.Layer?.Name == null)
                     return;
@@ -139,15 +192,45 @@ namespace hajk.Fragments
                 //Simplify
                 var layer = args.MapInfo.Layer;
                 var style = args.MapInfo.Style;
+                var mapInfo = args.MapInfo;
 
                 //POI?
                 if (layer.Name == "Poi" && layer.Tag.ToString() == "poi")
                 {
                     Log.Debug($"POI Object");
-                    var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-                    Log.Debug($"POI Object. GPS Position: " + b.ToString());
+                    long id = Convert.ToInt64(mapInfo.Feature["id"]);
+                    var (lon, lat) = SphericalMercator.ToLonLat(mapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+                    var text = "Name:\n" + mapInfo.Feature["name"] + "\n\nDescription:\n" + mapInfo.Feature["description"] + "\n\nGPS Coordinates:\n";
+                    text += lat.ToString("0.000000") + ", " + lon.ToString("0.000000");
+                    Serilog.Log.Debug($"{text} {id}");
 
-                    //var c = args.MapInfo.Feature.Fields.GetEnumerator();
+                    Task.Run(async () =>
+                    {
+                        Show_Dialog msg = new(Platform.CurrentActivity);
+
+                        //Delete POI
+                        if (args.NumTaps == 1)
+                        {
+                            var result = await msg.ShowDialog("Delete POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
+                            if (result == Show_Dialog.MessageResult.YES)
+                            {
+                                Serilog.Log.Debug($"Deleting {id} from POI DB and MemoryLayer");
+                                var r = POIDatabase.DeletePOIAsync(id);
+                                Import.AddPOIToMap();
+                            }
+                        }
+
+                        //Move POI
+                        if (args.NumTaps == 2)
+                        {
+                            var result = await msg.ShowDialog("Move POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
+                            if (result == Show_Dialog.MessageResult.YES)
+                            {
+                                Serilog.Log.Debug($"Moving {id} ing POI DB and MemoryLayer");
+                                MovingPOI = id;
+                            }
+                        }
+                    });
                 }
 
                 //Track?
@@ -171,7 +254,7 @@ namespace hajk.Fragments
                     if (fragment != null)
                     {
                         activity?.SupportFragmentManager.BeginTransaction()
-                            .Remove((AndroidX.Fragment.App.Fragment?)activity?.SupportFragmentManager?.FindFragmentByTag("Fragment_posinfo"))
+                            .Remove(fragment)
                             .Commit();
                         activity?.SupportFragmentManager.ExecutePendingTransactions();
                     }
@@ -183,10 +266,14 @@ namespace hajk.Fragments
                     activity?.SupportFragmentManager.ExecutePendingTransactions();
 
                     //Show fragment
-                    activity?.SupportFragmentManager.BeginTransaction()
-                        .Show(activity?.SupportFragmentManager?.FindFragmentByTag("Fragment_posinfo"))
-                        .Commit();
-                    activity?.SupportFragmentManager.ExecutePendingTransactions();
+                    var frag = activity?.SupportFragmentManager?.FindFragmentByTag("Fragment_posinfo");
+                    if (frag != null)
+                    {
+                        activity?.SupportFragmentManager.BeginTransaction()
+                            .Show(frag)
+                            .Commit();
+                        activity?.SupportFragmentManager.ExecutePendingTransactions();
+                    }
                 }
             }
             catch (Exception ex)
@@ -194,5 +281,18 @@ namespace hajk.Fragments
                 Log.Error(ex, $"Fragment_map - MapInfo()");
             }
         }
+
+        public Func<IFeature?, string> FeatureToText { get; set; } = (f) =>
+        {
+            if (f is null) return string.Empty;
+
+            var result = new StringBuilder();
+            foreach (var field in f.Fields)
+            {
+                result.Append($"{field}: {f[field]} - ");
+            }
+            result.Remove(result.Length - 2, 2);
+            return result.ToString();
+        };
     }
 }

@@ -1,4 +1,9 @@
-﻿using System;
+﻿using Android.OS;
+using Android.Views;
+using Android.Widget;
+using AndroidX.AppCompat.App;
+using AndroidX.Fragment.App;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,6 +26,7 @@ using Mapsui.Providers;
 using Mapsui.Rendering.Skia;
 using Mapsui.Styles;
 using Mapsui.Tiling;
+using Mapsui.Tiling.Layers;
 using Mapsui.Utilities;
 using Mapsui.UI;
 using Mapsui.UI.Android;
@@ -36,12 +42,6 @@ using SharpGPX.GPX1_1;
 using SharpGPX.GPX1_1.Garmin;
 using SharpGPX.GPX1_1.Topografix;
 using GPXUtils;
-using Android.Widget;
-using Android.Views;
-using Android.OS;
-using AndroidX.AppCompat.App;
-using AndroidX.Fragment.App;
-using Mapsui.Tiling.Layers;
 
 namespace hajk
 {
@@ -52,24 +52,15 @@ namespace hajk
         public static int progress = 0;
         public static Google.Android.Material.TextView.MaterialTextView? progressBarText2 = null;
 
-        public static ILayer GetRoute()
+        public static void ImportGPX()
         {
-            var strRoute = string.Empty;
-
-            MainThread.BeginInvokeOnMainThread(async () =>
+            Task.Run(() =>
             {
-                try
-                {
-                    GpxClass? gpxData = await PickAndParse();
-                    ProcessGPX(gpxData);
-                }
-                catch (Exception ex)
-                {
-                    Serilog.Log.Error(ex, $"Import - GetRoute()");
-                };
+                GpxClass? gpxData = Import.PickAndParse().Result;
+                ProcessGPX(gpxData);
             });
 
-            return null;
+            return;
         }
 
         public static void GPXImportfromIntent(Android.Content.Intent? intent)
@@ -129,7 +120,7 @@ namespace hajk
             }
         }
 
-        public static async void ProcessGPX(GpxClass gpxData)
+        private static async void ProcessGPX(GpxClass gpxData)
         {
             try
             {
@@ -533,6 +524,12 @@ namespace hajk
                     Style = new SymbolStyle { Enabled = false },
                 };
 
+                var poiLayer = Fragment_map.map.Layers.FindLayer("Poi").FirstOrDefault();
+                if (poiLayer != null)
+                {
+                    Fragment_map.map.Layers.Remove(poiLayer);
+                }
+
                 Fragment_map.map.Layers.Add(POILayer);
             }
             catch (Exception ex)
@@ -551,6 +548,7 @@ namespace hajk
                     var feature = new PointFeature(point);
                     feature["name"] = c.Name;
                     feature["description"] = c.Description;
+                    feature["id"] = c.Id;
 
                     //Icon
                     string svg = "hajk.Images.Black-dot.svg";
@@ -561,6 +559,12 @@ namespace hajk
                             break;
                         case "Campground":
                             svg = "hajk.Images.Tent.svg";
+                            break;
+                        case "Rogaining":
+                            svg = "hajk.Images.RoundFlag.svg";
+                            break;
+                        case "Man Overboard":
+                            svg = "hajk.Images.RoundFlag.svg";
                             break;
                     }
 
@@ -909,7 +913,7 @@ namespace hajk
             return LineString;
         }
 
-        private static async Task<GpxClass> PickAndParse()
+        public static async Task<GpxClass> PickAndParse()
         {
             try
             {

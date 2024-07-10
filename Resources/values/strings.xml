@@ -97,4 +97,6 @@
   <string name="OSMServerTitle">OSM Server</string>
   <string name="OSMServerDescription">URL of OSM Server</string>
   <string name="OSMServerDefault">"https://cloudstorage.jore.no/tile/"</string>
+  <string name="AddRogainingPOI">"Add Rogaining POI"</string>
+  <string name="ExportRogainingPOI">"Export Rogaining POI"</string>  
 </resources>

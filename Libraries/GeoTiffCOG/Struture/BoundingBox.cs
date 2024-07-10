@@ -98,7 +98,7 @@ namespace GeoTiffCOG.Struture
                 , Math.Min(zMin, zMax), Math.Max(zMin, zMax));
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             BoundingBox objTyped = obj as BoundingBox;
 

@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TextView
+        android:id="@+id/lblPOIHeading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add POI"
+        android:textAlignment="center"
+        android:textSize="32sp"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/lblMapFeatures"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        tools:layout_editor_absoluteX="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lblPOIHeading" >
+
+        <TextView
+            android:id="@+id/lblZone"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Zone"
+            android:textSize="20sp"
+            app:layout_constraintTop_toBottomOf="@+id/lblMapFeatures" />
+
+        <TextView
+            android:id="@+id/lblScale"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Scale (1:...)"
+            android:textSize="20sp"
+            app:layout_constraintTop_toBottomOf="@+id/lblMapFeatures" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/lblMapFeatures2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal"
+        tools:layout_editor_absoluteX="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lblMapFeatures" >
+
+        <EditText
+            android:id="@+id/editUTMZone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="32dp"
+            android:layout_weight="10"
+            android:ems="10"
+            android:hint="55H"
+            android:textSize="20sp" 
+            android:inputType="text"
+            android:imeOptions="actionNext"
+            android:singleLine="true" />
+
+
+        <EditText
+            android:id="@+id/editMapScale"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_weight="10"
+            android:hint="25000"
+            android:ems="10"
+            android:textSize="20sp" 
+            android:inputType="number"
+            android:imeOptions="actionNext"
+            android:singleLine="true" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/lblUTMHeading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:text="UTM (1000)"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lblMapFeatures2" />
+
+    <LinearLayout
+        android:id="@+id/UTMXY"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lblUTMHeading" >
+
+        <TextView
+            android:id="@+id/lblUTMX"
+            android:layout_width="15dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="20dp"
+            android:text="X"
+            android:textSize="20sp"
+            android:inputType="number"
+            android:imeOptions="actionNext"
+            android:singleLine="true" />
+
+        <EditText
+            android:id="@+id/editUTMX"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="10"
+            android:layout_marginStart="20dp"
+            android:ems="10"
+            android:hint="242"
+            android:autofillHints=""
+            android:textSize="20sp"             
+            android:inputType="number"
+            android:imeOptions="actionNext"
+            android:singleLine="true"/>
+
+        <TextView
+            android:id="@+id/lblUTMY"
+            android:layout_width="15dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="20dp"
+            android:text="Y"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/editUTMY"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="10"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:ems="10"
+            android:hint="5798"
+            android:autofillHints=""
+            android:textSize="20sp"             
+            android:inputType="number"
+            android:imeOptions="actionNext"
+            android:singleLine="true"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/lblOffsetHeading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:text="Offset (mm)"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/UTMXY" />
+
+    <LinearLayout
+        android:id="@+id/OffsetXY"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lblUTMHeading"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal"
+        tools:layout_editor_absoluteX="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lblOffsetHeading" >
+
+        <TextView
+            android:id="@+id/lblOffsetX"
+            android:layout_width="15dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="20dp"
+            android:text="X"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/editOffsetX"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="10"
+            android:layout_marginStart="20dp"
+            android:ems="10"
+            android:hint="19"
+            android:autofillHints=""
+            android:textSize="20sp"
+            android:inputType="number"
+            android:imeOptions="actionNext"
+            android:singleLine="true"/>
+
+        <TextView
+            android:id="@+id/lblOffsetY"
+            android:layout_width="15dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="20dp"
+            android:text="Y"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/editOffsetY"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="10"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:ems="10"
+            android:hint="7"
+            android:autofillHints=""
+            android:textSize="20sp"
+            android:inputType="number"
+            android:imeOptions="actionNext"
+            android:singleLine="true"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayoutBtns"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/OffsetXY" >
+
+        <Button
+            android:id="@+id/btnAddPOI"
+            android:layout_width="125dp"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:textSize="14dp"
+            android:text="Add POI"
+            android:typeface="sans"
+            android:background="#ff0986be"
+            android:textColor="#ffffffff"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="5dp" />
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="125dp"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:textSize="14dp"
+            android:text="@string/Cancel"
+            android:typeface="sans"
+            android:background="#ff0986be"
+            android:layout_marginLeft="5dp"
+            android:textColor="#ffffffff"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="5dp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
