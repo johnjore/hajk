@@ -30,12 +30,12 @@ namespace hajk
                 List<string>? FileNames = DownloadElevationTiles(tiles);
 
                 //Test data
-                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14796-10082.tif");
-                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14795-10082.tif");
-                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14796-10081.tif");
-                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14795-10081.tif");
-                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14796-10080.tif");
-                FileNames?.Add(PrefsActivity.rootPath + "/" + "14-14795-10080.tif");
+                FileNames?.Add(PrefsFragment.rootPath + "/" + "14-14796-10082.tif");
+                FileNames?.Add(PrefsFragment.rootPath + "/" + "14-14795-10082.tif");
+                FileNames?.Add(PrefsFragment.rootPath + "/" + "14-14796-10081.tif");
+                FileNames?.Add(PrefsFragment.rootPath + "/" + "14-14795-10081.tif");
+                FileNames?.Add(PrefsFragment.rootPath + "/" + "14-14796-10080.tif");
+                FileNames?.Add(PrefsFragment.rootPath + "/" + "14-14795-10080.tif");
 
                 if (FileNames == null || FileNames?.Count == 0)
                 {
@@ -53,7 +53,7 @@ namespace hajk
 
                 try
                 {
-                    GeoTiff geoTiff = new GeoTiff(PrefsActivity.rootPath + "/" + "14-14763-10061.tif");
+                    GeoTiff geoTiff = new GeoTiff(PrefsFragment.rootPath + "/" + "14-14763-10061.tif");
                     double value = geoTiff.GetElevationAtLatLon(y, x);
                     Serilog.Log.Information($"Elevaton at lat:{lat:N3}, lon:{lon:N3} is '{value}' meters");
                 }
@@ -158,11 +158,11 @@ namespace hajk
 
             try
             {
-                string COGGeoTiffServer = Preferences.Get("COGGeoTiffServer", PrefsActivity.COGGeoTiffServer);
+                string COGGeoTiffServer = Preferences.Get("COGGeoTiffServer", PrefsFragment.COGGeoTiffServer);
 
                 foreach (var tile in range)
                 {
-                    var LocalFileName = PrefsActivity.rootPath + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
+                    var LocalFileName = PrefsFragment.rootPath + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
 
                     if (Downloaded(LocalFileName) == false)
                     {

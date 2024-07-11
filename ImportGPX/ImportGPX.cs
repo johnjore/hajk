@@ -443,8 +443,8 @@ namespace hajk
                 Models.Map map = new Models.Map
                 {
                     Id = id,
-                    ZoomMin = PrefsActivity.MinZoom,
-                    ZoomMax = PrefsActivity.MaxZoom,
+                    ZoomMin = PrefsFragment.MinZoom,
+                    ZoomMax = PrefsFragment.MaxZoom,
                     BoundsLeft = (double)bounds.minlat,
                     BoundsBottom = (double)bounds.maxlon,
                     BoundsRight = (double)bounds.maxlat,

@@ -266,7 +266,7 @@ namespace hajk.Adapter
                                     var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
                                     GpxClass gpx_to_export = GpxClass.FromXml(route_to_export.GPX);
 
-                                    string gpxPath = Path.Combine(PrefsActivity.rootPath, userdata.Text);
+                                    string gpxPath = Path.Combine(PrefsFragment.rootPath, userdata.Text);
                                     gpx_to_export.ToFile(gpxPath);
                                 })
                                 .SetNegativeButton(Resource.String.Cancel, delegate

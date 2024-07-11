@@ -98,13 +98,13 @@ namespace hajk.Fragments
                 });
 
                 Log.Debug($"Import POIs");
-                if (Preferences.Get("DrawPOIOnGui", PrefsActivity.DrawPOIonGui_b))
+                if (Preferences.Get("DrawPOIOnGui", PrefsFragment.DrawPOIonGui_b))
                 {
                     Task.Run(() => Import.AddPOIToMap());
                 }
 
                 Log.Debug($"Show All Tracks on Map");
-                if (Preferences.Get("DrawTracksOnGui", PrefsActivity.DrawTracksOnGui_b))
+                if (Preferences.Get("DrawTracksOnGui", PrefsFragment.DrawTracksOnGui_b))
                 {
                     Task.Run(() => Import.AddTracksToMap());
                 }

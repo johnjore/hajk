@@ -23,6 +23,7 @@
     <None Remove="Resources\layout\fragment_map.xml" />
     <None Remove="Resources\layout\fragment_markers.xml" />
     <None Remove="Resources\layout\fragment_posinfo.xml" />
+    <None Remove="Resources\layout\fragment_preferences.xml" />
     <None Remove="Resources\layout\fragment_stats.xml" />
     <None Remove="Resources\layout\get_userinput.xml" />
     <None Remove="Resources\layout\nav_header_main.xml" />

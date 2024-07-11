@@ -131,7 +131,7 @@ namespace hajk
                 return StartCommandResult.Sticky;
             }
 
-            if (intent.Action.Equals(PrefsActivity.ACTION_START_SERVICE))
+            if (intent.Action.Equals(PrefsFragment.ACTION_START_SERVICE))
             {
                 if (isStarted)
                 {
@@ -147,7 +147,7 @@ namespace hajk
                     RegisterForegroundService();
                 }
             }
-            else if (intent.Action.Equals(PrefsActivity.ACTION_STOP_SERVICE))
+            else if (intent.Action.Equals(PrefsFragment.ACTION_STOP_SERVICE))
             {
                 Serilog.Log.Information($"OnStartCommand: The location service is stopping.");
 
@@ -205,7 +205,7 @@ namespace hajk
             NotificationManager? nManager = GetSystemService(Context.NotificationService) as NotificationManager;
             if (OperatingSystem.IsAndroidVersionAtLeast(26))
             {
-                NotificationChannel nChannel = new(PrefsActivity.NOTIFICATION_CHANNEL_ID, PrefsActivity.channelName, NotificationImportance.Low)
+                NotificationChannel nChannel = new(PrefsFragment.NOTIFICATION_CHANNEL_ID, PrefsFragment.channelName, NotificationImportance.Low)
                 {
                     LockscreenVisibility = NotificationVisibility.Private,
                 };
@@ -213,7 +213,7 @@ namespace hajk
                 nManager?.CreateNotificationChannel(nChannel);
             }
 
-            NotificationCompat.Builder? notificationBuilder = new(this, PrefsActivity.NOTIFICATION_CHANNEL_ID);
+            NotificationCompat.Builder? notificationBuilder = new(this, PrefsFragment.NOTIFICATION_CHANNEL_ID);
             Notification? notification;
             if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
@@ -240,7 +240,7 @@ namespace hajk
             }
 
             // Enlist this instance as a foreground service
-            StartForeground(PrefsActivity.SERVICE_RUNNING_NOTIFICATION_ID, notification);
+            StartForeground(PrefsFragment.SERVICE_RUNNING_NOTIFICATION_ID, notification);
 
             //We have a location, update map accordingly
             LocationManager? _locationManager = GetSystemService(LocationService) as LocationManager;
@@ -248,7 +248,7 @@ namespace hajk
             if (location != null)
             {
                 Location.UpdateLocationMarker(true, location);
-                Fragment_map.map.Navigator.ZoomToLevel(PrefsActivity.MaxZoom);
+                Fragment_map.map.Navigator.ZoomToLevel(PrefsFragment.MaxZoom);
             }
         }
 
@@ -260,7 +260,7 @@ namespace hajk
         PendingIntent? BuildIntentToShowMainActivity()
         {
             var notificationIntent = new Intent(this, typeof(MainActivity));
-            notificationIntent.SetAction(PrefsActivity.ACTION_MAIN_ACTIVITY);
+            notificationIntent.SetAction(PrefsFragment.ACTION_MAIN_ACTIVITY);
             notificationIntent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTask);
             //notificationIntent.PutExtra(PrefsActivity.SERVICE_STARTED_KEY, true);
 

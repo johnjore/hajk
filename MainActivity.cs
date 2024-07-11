@@ -49,7 +49,7 @@ namespace hajk
             //new FileInfo(rootPath + "/" + PrefsActivity.CacheDB).Delete();
 
             //Logging
-            string _Path = System.IO.Path.Combine(PrefsActivity.rootPath, Preferences.Get("logFile", PrefsActivity.logFile));
+            string _Path = System.IO.Path.Combine(PrefsFragment.rootPath, Preferences.Get("logFile", PrefsFragment.logFile));
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .Enrich.FromLogContext()
@@ -64,7 +64,7 @@ namespace hajk
             try
             {
                 //Extract initial map, if not there
-                Utils.Misc.ExtractInitialMap(this, PrefsActivity.rootPath + "/" + PrefsActivity.CacheDB);
+                Utils.Misc.ExtractInitialMap(this, PrefsFragment.rootPath + "/" + PrefsFragment.CacheDB);
 
                 SetContentView(Resource.Layout.activity_main);
                 AndroidX.AppCompat.Widget.Toolbar? toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
@@ -104,7 +104,7 @@ namespace hajk
                 if (await CheckStatusAsync<LocationAlways>() == PermissionStatus.Granted || await CheckStatusAsync<LocationWhenInUse>() == PermissionStatus.Granted)
                 {
                     Intent locationServiceIntent = new(Platform.CurrentActivity, typeof(LocationForegroundService));
-                    locationServiceIntent.SetAction(PrefsActivity.ACTION_START_SERVICE);
+                    locationServiceIntent.SetAction(PrefsFragment.ACTION_START_SERVICE);
                     if (OperatingSystem.IsAndroidVersionAtLeast(26))
                     {
                         Platform.CurrentActivity.StartForegroundService(locationServiceIntent);
@@ -169,7 +169,11 @@ namespace hajk
             if (id == Resource.Id.action_settings)
             {
                 Log.Information($"Change to Settings");
-                StartActivity(new Intent(this, typeof(PrefsActivity)));
+                SetContentView(Resource.Layout.fragment_preferences);
+                var FragmentsTransaction = SupportFragmentManager.BeginTransaction();
+                FragmentsTransaction.Replace(Resource.Id.preference_container, new PrefsFragment());
+                FragmentsTransaction.Commit();
+                
                 return true;
             }
             else if (id == Resource.Id.action_clearmap)
@@ -237,7 +241,7 @@ namespace hajk
 
                 //Location Service
                 Intent locationServiceIntent = new(this, typeof(LocationForegroundService));
-                locationServiceIntent.SetAction(PrefsActivity.ACTION_STOP_SERVICE);
+                locationServiceIntent.SetAction(PrefsFragment.ACTION_STOP_SERVICE);
                 StopService(locationServiceIntent);
 
                 //Cleanup Log file
@@ -300,7 +304,7 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_recordtrack)
             {
-                if (Preferences.Get("RecordingTrack", PrefsActivity.RecordingTrack))
+                if (Preferences.Get("RecordingTrack", PrefsFragment.RecordingTrack))
                 {
                     RecordTrack.EndTrackTimer();
                     item.SetTitle(Resource.String.Record_Track);
@@ -466,14 +470,14 @@ namespace hajk
                 DBBackupConnection.Backup(backupFileName);
 
                 //Route DB
-                string dbPath = Path.Combine(PrefsActivity.rootPath, Preferences.Get("RouteDB", PrefsActivity.RouteDB));
+                string dbPath = Path.Combine(PrefsFragment.rootPath, Preferences.Get("RouteDB", PrefsFragment.RouteDB));
                 DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
                 backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".db3";
                 DBBackupConnection.Backup(backupFileName);
                 DBBackupConnection.Close();
 
                 //POI DB
-                dbPath = Path.Combine(PrefsActivity.rootPath, Preferences.Get("POIDB", PrefsActivity.POIDB));
+                dbPath = Path.Combine(PrefsFragment.rootPath, Preferences.Get("POIDB", PrefsFragment.POIDB));
                 DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
                 backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".poi.db3";
                 DBBackupConnection.Backup(backupFileName);

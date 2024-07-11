@@ -26,7 +26,7 @@ namespace hajk
                     mbTileCache = new MbTileCache(cacheFilename, "png");
                 }
 
-                HttpTileSource src = new(new GlobalSphericalMercator(PrefsActivity.MinZoom, PrefsActivity.MaxZoom),
+                HttpTileSource src = new(new GlobalSphericalMercator(PrefsFragment.MinZoom, PrefsFragment.MaxZoom),
                     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                     new[] { "a", "b", "c" }, name: "OpenStreetMap",
                     persistentCache: mbTileCache,
@@ -139,7 +139,7 @@ namespace hajk
 
                         if (oldTile != null)
                         {
-                            if ((oldTile.reference == null || oldTile.reference == string.Empty) && (DateTime.UtcNow - oldTile.createDate).TotalDays >= PrefsActivity.OfflineMaxAge)
+                            if ((oldTile.reference == null || oldTile.reference == string.Empty) && (DateTime.UtcNow - oldTile.createDate).TotalDays >= PrefsFragment.OfflineMaxAge)
                             {
                                 return null;
                             }
@@ -187,9 +187,9 @@ namespace hajk
                     new metadata { name = "format", value = format },
                     //SHOULD
                     new metadata { name = "bounds", value = "-180.0,-90.0,180.0,90.0" },                 //Whole world
-                    new metadata { name = "center", value = "0,0," + PrefsActivity.MinZoom.ToString() }, //Center of world
-                    new metadata { name = "minzoom", value = PrefsActivity.MinZoom.ToString() },
-                    new metadata { name = "maxzoom", value = PrefsActivity.MaxZoom.ToString() },
+                    new metadata { name = "center", value = "0,0," + PrefsFragment.MinZoom.ToString() }, //Center of world
+                    new metadata { name = "minzoom", value = PrefsFragment.MinZoom.ToString() },
+                    new metadata { name = "maxzoom", value = PrefsFragment.MaxZoom.ToString() },
                     //MAY
                     new metadata { name = "attribution", value = "(c) OpenStreetMap contributors https://www.openstreetmap.org/copyright" },
                     new metadata { name = "description", value = "Offline database for " + Platform.CurrentActivity.Resources.GetString(Resource.String.app_name) },

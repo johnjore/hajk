@@ -1,14 +1,15 @@
 ﻿using Android.App;
 using Android.OS;
-using Android.Preferences;
+using AndroidX.Preference;
 using Serilog;
 using Xamarin.Essentials;
 using hajk.Fragments;
+using System.Globalization;
 
 namespace hajk
 {
     [Activity(Label = "preferences")]
-    public class PrefsActivity : PreferenceActivity
+    public class PrefsFragment : PreferenceFragmentCompat
     {
         //Settings
         public readonly static int UpdateGPSLocation_s = 1;             //How often do we update the GUI with our current location
@@ -48,22 +49,12 @@ namespace hajk
         public const string ACTION_MAIN_ACTIVITY = "hajk.action.MAIN_ACTIVITY";
 
 
-        protected override void OnCreate(Bundle savedInstanceState)
+        public override void OnCreatePreferences(Bundle? savedInstanceState, string? rootKey)
         {
-            base.OnCreate(savedInstanceState);
-
-            if (OperatingSystem.IsAndroidVersionAtLeast(29))
-            {
-                /**///Fix me
-                AddPreferencesFromResource(Resource.Xml.Preferences);
-            }
-            else
-            {
-                AddPreferencesFromResource(Resource.Xml.Preferences);
-            }
+            SetPreferencesFromResource(Resource.Xml.Preferences, rootKey);
         }
 
-        protected override void OnDestroy()
+        public override void OnDestroy()
         {
             //
             bool LockMapRotation = Preferences.Get("MapLockNorth", false);

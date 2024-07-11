@@ -52,7 +52,7 @@ namespace hajk
                 Preferences.Set("RecordingTrack", true);
 
                 /**///Move to check when new location data is provided
-                int freq_OffRoute_s = int.Parse(Preferences.Get("freq_s_OffRoute", PrefsActivity.freq_OffRoute_s.ToString()));
+                int freq_OffRoute_s = int.Parse(Preferences.Get("freq_s_OffRoute", PrefsFragment.freq_OffRoute_s.ToString()));
                 Timer_WarnIfOffRoute = new Timer(new TimerCallback(CheckOffRouteEvent), null, 0, freq_OffRoute_s * 1000);
 
                 //Update location marker with correct colour
@@ -148,7 +148,7 @@ namespace hajk
             try
             {
                 //Only if enabled
-                if (Preferences.Get("EnableOffRouteWarning", PrefsActivity.EnableOffRouteWarning) == false)
+                if (Preferences.Get("EnableOffRouteWarning", PrefsFragment.EnableOffRouteWarning) == false)
                 {
                     return;
                 }
@@ -170,7 +170,7 @@ namespace hajk
                 var pos_c = new GPXUtils.Position((float)location.Latitude, (float)location.Longitude, 0);
 
                 //Distance to check
-                int OffTrackDistanceWarning_m = int.Parse(Preferences.Get("OffTrackDistanceWarning_m", PrefsActivity.OffTrackDistanceWarning_m.ToString()));
+                int OffTrackDistanceWarning_m = int.Parse(Preferences.Get("OffTrackDistanceWarning_m", PrefsFragment.OffTrackDistanceWarning_m.ToString()));
 
                 //Min distance position item
                 int pos_index_a1 = 0;           //Index to position closest to GPS Position
@@ -239,7 +239,7 @@ namespace hajk
 
                     MainThread.BeginInvokeOnMainThread(async () =>
                     {
-                        int OffTrackRouteSnooze_m = int.Parse(Preferences.Get("OffTrackRouteSnooze_m", PrefsActivity.OffRouteSnooze_m.ToString()));
+                        int OffTrackRouteSnooze_m = int.Parse(Preferences.Get("OffTrackRouteSnooze_m", PrefsFragment.OffRouteSnooze_m.ToString()));
 
                         //Get text to use
                         var a = Platform.CurrentActivity?.Resources?.GetString(Resource.String.OffRouteAlarm);
@@ -249,7 +249,7 @@ namespace hajk
                         Show_Dialog msg1 = new(Platform.CurrentActivity);
                         if (await msg1.ShowDialog(a, b + " " + OffTrackRouteSnooze_m.ToString() + " " + c, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                         {
-                            int freq_s = int.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
+                            int freq_s = int.Parse(Preferences.Get("freq", PrefsFragment.freq_s.ToString()));
                             RecordTrack.Timer_WarnIfOffRoute.Change(OffTrackRouteSnooze_m * 60 * 1000, freq_s * 1000);
                         }
                         NotificationDialogActive = false;
@@ -283,7 +283,7 @@ namespace hajk
                 var s_xt = l.Item2;
 
                 //Distance to route to check
-                int OffTrackDistanceWarning_m = int.Parse(Preferences.Get("OffTrackDistanceWarning_m", PrefsActivity.OffTrackDistanceWarning_m.ToString()));
+                int OffTrackDistanceWarning_m = int.Parse(Preferences.Get("OffTrackDistanceWarning_m", PrefsFragment.OffTrackDistanceWarning_m.ToString()));
 
                 //If s_xt is greater than OffTrackDistanceWarning_m, we dont need to know if position is between A and B
                 if (s_xt > (double)OffTrackDistanceWarning_m)
@@ -383,7 +383,7 @@ namespace hajk
                 trackGpx.Waypoints.Add(waypoint);
                 Log.Debug($"Recording has '{trackGpx.Waypoints.Count}' waypoints");
 
-                if (Preferences.Get("DrawTrackOnGui", PrefsActivity.DrawTrackOnGui_b))
+                if (Preferences.Get("DrawTrackOnGui", PrefsFragment.DrawTrackOnGui_b))
                 {
                     //Add tracking layer to map
                     if (Fragment_map.map.Layers.FindLayer("tracklayer".ToLower()).FirstOrDefault() == null)
