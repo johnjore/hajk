@@ -31,8 +31,10 @@ namespace hajk.Fragments
     {
         public static Fragment_markers NewInstace(Bundle bundle)
         {
-            var fragment = new Fragment_markers();
-            fragment.Arguments = bundle;
+            var fragment = new Fragment_markers
+            {
+                Arguments = bundle
+            };
             return fragment;
         }
 

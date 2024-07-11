@@ -192,15 +192,14 @@ namespace hajk.Fragments
                 //Simplify
                 var layer = args.MapInfo.Layer;
                 var style = args.MapInfo.Style;
-                var mapInfo = args.MapInfo;
 
                 //POI?
-                if (layer.Name == "Poi" && layer.Tag.ToString() == "poi")
+                if (layer.Name == "Poi" && layer.Tag.ToString() == "poi" && args.MapInfo != null && args.MapInfo.WorldPosition != null)
                 {
                     Log.Debug($"POI Object");
-                    long id = Convert.ToInt64(mapInfo.Feature["id"]);
-                    var (lon, lat) = SphericalMercator.ToLonLat(mapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-                    var text = "Name:\n" + mapInfo.Feature["name"] + "\n\nDescription:\n" + mapInfo.Feature["description"] + "\n\nGPS Coordinates:\n";
+                    long id = Convert.ToInt64(args.MapInfo?.Feature["id"]);
+                    var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+                    var text = "Name:\n" + args.MapInfo?.Feature["name"] + "\n\nDescription:\n" + args.MapInfo?.Feature["description"] + "\n\nGPS Coordinates:\n";
                     text += lat.ToString("0.000000") + ", " + lon.ToString("0.000000");
                     Serilog.Log.Debug($"{text} {id}");
 
@@ -241,7 +240,7 @@ namespace hajk.Fragments
 
                 /**///Need to filter out the arrows
                 //Route?
-                if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "route" && style?.ToString() == "Mapsui.Styles.SymbolStyle")
+                if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "route" && style?.ToString() == "Mapsui.Styles.SymbolStyle" && args.MapInfo != null && args.MapInfo.WorldPosition != null)
                 {
                     var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                     MapPosition = new Position(b.lon, b.lat, 0);

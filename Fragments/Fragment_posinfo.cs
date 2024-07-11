@@ -45,10 +45,10 @@ namespace hajk.Fragments
             try
             {
                 var activity = (FragmentActivity)Platform.CurrentActivity;
-                var view = inflater.Inflate(Resource.Layout.fragment_posinfo, container, false);
-                view.SetBackgroundColor(Color.White);
+                var view = inflater?.Inflate(Resource.Layout.fragment_posinfo, container, false);
+                view?.SetBackgroundColor(Color.White);
 
-                Button hideFragment = view.FindViewById<Button>(Resource.Id.btn_HideFragment);
+                Button? hideFragment = view?.FindViewById<Button>(Resource.Id.btn_HideFragment);
                 hideFragment.Click += delegate
                 {
                     var activity = (FragmentActivity)Platform.CurrentActivity;
@@ -63,7 +63,7 @@ namespace hajk.Fragments
                 //Xamarin.Essentials.Location GpsLocation = new GPSLocation().GetGPSLocationData();
                 //if (LocationForegroundService.currentLocation == null)
                 Android.Locations.Location? GpsLocation = LocationForegroundService.GetLocation();
-                GPXUtils.Position MapPosition = Fragment_map.MapPosition;
+                GPXUtils.Position? MapPosition = Fragment_map.MapPosition;
 
                 //Current Elevation (Altitude)
                 try
@@ -79,7 +79,7 @@ namespace hajk.Fragments
                 //Elevation at MapPosition (Altitude)
                 try
                 {
-                    rteType route = MainActivity.ActiveRoute.Routes.First();
+                    rteType? route = MainActivity.ActiveRoute?.Routes.First();
 
                     //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
                     var r1 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0));
