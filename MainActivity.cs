@@ -178,17 +178,20 @@ namespace hajk
             }
             else if (id == Resource.Id.AddRogainingPOI)
             {
-                Android.App.FragmentTransaction fragmentTransaction = FragmentManager.BeginTransaction();
-                Android.App.Fragment fragmentPrev = FragmentManager.FindFragmentByTag("dialog");
+                AndroidX.Fragment.App.FragmentTransaction? fragmentTransaction = SupportFragmentManager.BeginTransaction();
+                AndroidX.Fragment.App.Fragment? fragmentPrev = SupportFragmentManager.FindFragmentByTag("dialog");
                 if (fragmentPrev != null)
                 {
                     fragmentTransaction?.Remove(fragmentPrev);
                 }
 
-                fragmentTransaction.AddToBackStack(null);
+                fragmentTransaction?.AddToBackStack(null);
 
                 Fragment_markers dialogFragment = Fragment_markers.NewInstace(null);
-                dialogFragment.Show(fragmentTransaction, "dialog");
+                if (fragmentTransaction != null)
+                {
+                    dialogFragment.Show(fragmentTransaction, "dialog");
+                }
             }
             else if (id == Resource.Id.ExportRogainingPOI)
             {

@@ -27,23 +27,12 @@ using Xamarin.Essentials;
 
 namespace hajk.Fragments
 {
-    public class Fragment_markers : Android.App.DialogFragment
+    public class Fragment_markers : AndroidX.Fragment.App.DialogFragment
     {
-        public override void OnCreate(Bundle? savedInstanceState)
-        {
-            if (!OperatingSystem.IsAndroidVersionAtLeast(28))
-            {
-                base.OnCreate(savedInstanceState);
-            }
-        }
-
         public static Fragment_markers NewInstace(Bundle bundle)
         {
             var fragment = new Fragment_markers();
-            if (!OperatingSystem.IsAndroidVersionAtLeast(28))
-            {
-                fragment.Arguments = bundle;
-            }
+            fragment.Arguments = bundle;
             return fragment;
         }
 
@@ -51,12 +40,9 @@ namespace hajk.Fragments
         {
             View? view = inflater?.Inflate(Resource.Layout.fragment_markers, container, false);
             view?.SetBackgroundColor(Android.Graphics.Color.White);
-            if (!OperatingSystem.IsAndroidVersionAtLeast(28))
-            {
-                Dialog?.Window?.RequestFeature(WindowFeatures.NoTitle);
-                Dialog?.SetCanceledOnTouchOutside(false);
-            }
-
+            Dialog?.Window?.RequestFeature(WindowFeatures.NoTitle);
+            Dialog?.SetCanceledOnTouchOutside(false);
+        
             //Populate with some defaults / last uage            
             var mapUTMZone = view?.FindViewById<EditText>(Resource.Id.editUTMZone);
             if (mapUTMZone != null)
@@ -75,10 +61,7 @@ namespace hajk.Fragments
             {
                 btnCancel.Click += delegate
                 {
-                    if (!OperatingSystem.IsAndroidVersionAtLeast(28))
-                    {
-                        Dismiss();
-                    }
+                    Dismiss();
                 };
             }
 
@@ -87,10 +70,7 @@ namespace hajk.Fragments
             {
                 btnAddPOI.Click += delegate
                 {
-                    if (!OperatingSystem.IsAndroidVersionAtLeast(28))
-                    {
-                        Dismiss();
-                    }
+                    Dismiss();
 
                     try
                     {
