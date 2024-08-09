@@ -31,9 +31,9 @@ namespace hajk.Fragments
 {
     public class Fragment_gpx : AndroidX.Fragment.App.Fragment
     {
-        RecyclerView? mRecycleView;
-        RecyclerView.LayoutManager? mLayoutManager;
-        static GpxData? mGpxData;
+        private RecyclerView? mRecycleView;
+        private RecyclerView.LayoutManager? mLayoutManager;
+        private static GpxData? mGpxData;
         public static GpxAdapter? mAdapter;
         public static Models.GPXType GPXDisplay = Models.GPXType.Route;
 

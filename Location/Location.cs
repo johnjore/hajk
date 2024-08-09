@@ -85,7 +85,7 @@ namespace hajk
             var feature = new PointFeature(GPSLocation);
 
             Color marker = Color.Blue;
-            if (Preferences.Get("RecordingTrack", PrefsFragment.RecordingTrack))
+            if (Preferences.Get("RecordingTrack", Fragment_Preferences.RecordingTrack))
             {
                 marker = Color.Red;
             }
@@ -119,7 +119,7 @@ namespace hajk
 
             //Recording or "normal"
             Color marker = Color.Blue;
-            if (Preferences.Get("RecordingTrack", PrefsFragment.RecordingTrack))
+            if (Preferences.Get("RecordingTrack", Fragment_Preferences.RecordingTrack))
             {
                 marker = Color.Red;
             }

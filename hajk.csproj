@@ -16,14 +16,14 @@
     <None Remove="Images\Drinking-water.svg" />
     <None Remove="Images\RoundFlag.svg" />
     <None Remove="Images\Tent.svg" />
+    <None Remove="Resources\drawable\maps.png" />
     <None Remove="Resources\layout\activity_gpx.xml" />
     <None Remove="Resources\layout\app_bar_main.xml" />
     <None Remove="Resources\layout\content_main.xml" />
     <None Remove="Resources\layout\fragment_gpx.xml" />
     <None Remove="Resources\layout\fragment_map.xml" />
-    <None Remove="Resources\layout\fragment_markers.xml" />
     <None Remove="Resources\layout\fragment_posinfo.xml" />
-    <None Remove="Resources\layout\fragment_preferences.xml" />
+    <None Remove="Resources\layout\fragment_rogaining_poi.xml" />
     <None Remove="Resources\layout\fragment_stats.xml" />
     <None Remove="Resources\layout\get_userinput.xml" />
     <None Remove="Resources\layout\nav_header_main.xml" />
@@ -57,13 +57,13 @@
     <PackageReference Include="BlueToque.SharpGPX" Version="2.22.302" />
     <PackageReference Include="BruTile" Version="5.0.6" />
     <PackageReference Include="BruTile.MbTiles" Version="5.0.6" />
-    <PackageReference Include="CoordinateSharp" Version="2.24.1.1" />
+    <PackageReference Include="CoordinateSharp" Version="2.24.2.1" />
     <PackageReference Include="Mapsui" Version="4.1.7" />
     <PackageReference Include="Mapsui.Android" Version="4.1.7" />
     <PackageReference Include="Mapsui.Extensions" Version="4.1.7" />
     <PackageReference Include="Mapsui.Nts" Version="4.1.7" />
     <PackageReference Include="Microcharts.Android" Version="1.0.0-preview1" />
-    <PackageReference Include="Serilog" Version="4.0.0" />
+    <PackageReference Include="Serilog" Version="4.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.Xamarin" Version="1.0.0" />
     <PackageReference Include="SkiaSharp.Extended" Version="2.0.0" />
@@ -74,7 +74,7 @@
     <PackageReference Include="tilebelt" Version="2.0.0" />
     <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.6.1.10" />
     <PackageReference Include="Xamarin.AndroidX.Browser" Version="1.8.0.3" />
-    <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.28" />
+    <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.29" />
     <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.7.0.2" />
     <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.UI" Version="1.0.0.27" />
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.7.0.4" />

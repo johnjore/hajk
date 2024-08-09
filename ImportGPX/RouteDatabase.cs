@@ -18,7 +18,7 @@ namespace hajk.Data
         {
             try
             {
-                string dbPath = Path.Combine(PrefsFragment.rootPath, Preferences.Get("RouteDB", PrefsFragment.RouteDB));
+                string dbPath = Path.Combine(Fragment_Preferences.rootPath, Preferences.Get("RouteDB", Fragment_Preferences.RouteDB));
                 database = new SQLiteAsyncConnection(dbPath);
                 database.CreateTableAsync<GPXDataRouteTrack>().Wait();
             }

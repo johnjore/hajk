@@ -87,7 +87,7 @@ namespace hajk
                 {
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
                     tiles dbTile = MbTileCache.sqlConn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
-                    if ((dbTile == null) || ((DateTime.UtcNow - dbTile.createDate).TotalDays > PrefsFragment.OfflineMaxAge))
+                    if ((dbTile == null) || ((DateTime.UtcNow - dbTile.createDate).TotalDays > Fragment_Preferences.OfflineMaxAge))
                     {
                         CountMissingTiles++;
                     }
@@ -128,7 +128,7 @@ namespace hajk
                         try
                         {
                             oldTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
-                            if ((oldTile != null) && ((DateTime.UtcNow - oldTile.createDate).TotalDays < PrefsFragment.OfflineMaxAge))
+                            if ((oldTile != null) && ((DateTime.UtcNow - oldTile.createDate).TotalDays < Fragment_Preferences.OfflineMaxAge))
                             {
                                 //Tile blob is upto date. No need to download. Break out of for-loop. Update reference
                                 newTile = oldTile;
@@ -258,7 +258,7 @@ namespace hajk
         {
             try
             {
-                var tileSource = TileCache.GetOSMBasemap(PrefsFragment.rootPath + "/" + PrefsFragment.CacheDB);
+                var tileSource = TileCache.GetOSMBasemap(Fragment_Preferences.rootPath + "/" + Fragment_Preferences.CacheDB);
                 var tileLayer = new TileLayer(tileSource)
                 {
                     Name = "OSM",

@@ -29,7 +29,7 @@ namespace hajk.Fragments
 {
     public class Fragment_map : AndroidX.Fragment.App.Fragment
     {
-        public static MapControl? mapControl;
+        public static MapControl? mapControl = null;
         public static Mapsui.Map map = new();
         public static Position? MapPosition = null;        /**///Pass this as an argument instead of global variable
         private static long MovingPOI = -1;               //For MapInfo, if >=0, next tap is new location for POI #
@@ -58,6 +58,7 @@ namespace hajk.Fragments
                 view.SetBackgroundColor(Android.Graphics.Color.White);
 
                 Log.Debug($"Create mapControl");
+
                 mapControl = view.FindViewById<MapControl>(Resource.Id.mapcontrol);
                 if (mapControl == null)
                 {
@@ -98,19 +99,19 @@ namespace hajk.Fragments
                 });
 
                 Log.Debug($"Import POIs");
-                if (Preferences.Get("DrawPOIOnGui", PrefsFragment.DrawPOIonGui_b))
+                if (Preferences.Get("DrawPOIOnGui", Fragment_Preferences.DrawPOIonGui_b))
                 {
                     Task.Run(() => Import.AddPOIToMap());
                 }
 
                 Log.Debug($"Show All Tracks on Map");
-                if (Preferences.Get("DrawTracksOnGui", PrefsFragment.DrawTracksOnGui_b))
+                if (Preferences.Get("DrawTracksOnGui", Fragment_Preferences.DrawTracksOnGui_b))
                 {
                     Task.Run(() => Import.AddTracksToMap());
                 }
 
                 mapControl.Info += MapOnInfo;
-
+                
                 return view;
             }
             catch (Exception ex)

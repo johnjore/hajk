@@ -1,16 +1,22 @@
 ﻿using Android.App;
 using Android.OS;
+using Android.Views;
 using AndroidX.Preference;
+using System.Globalization;
 using Serilog;
 using Xamarin.Essentials;
 using hajk.Fragments;
-using System.Globalization;
 
 namespace hajk
 {
     [Activity(Label = "preferences")]
-    public class PrefsFragment : PreferenceFragmentCompat
+    public class Fragment_Preferences : PreferenceFragmentCompat
     {
+        //Misc
+        public const string Fragment_Map = "Fragment_Map";
+        public const string Fragment_GPX = "Fragment_GPX";
+        public const string Fragment_Settings = "Fragment_Settings";
+
         //Settings
         public readonly static int UpdateGPSLocation_s = 1;             //How often do we update the GUI with our current location
         public readonly static int freq_s = 5;                          //How often do we get/save current position for track recordings
@@ -33,6 +39,8 @@ namespace hajk
         public readonly static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
         public const int MinZoom = 0;                                   //MinZoom level to use
         public const int MaxZoom = 16;                                  //MaxZoom level to use
+        public const int LocationTimer = 1000;                          //How often new LocationData is provided
+        public const int LocationDistance = 0;                          //Minimum distance for new LocationData
         public readonly static bool RecordingTrack = false;             //True when recording a Track
         public readonly static bool TrackLocation = false;              //True when map is continiously moved to center on our location
         public readonly static int OfflineMaxAge = 90;                  //Don't refresh tiles until this threashhold in days        
@@ -53,7 +61,7 @@ namespace hajk
         {
             SetPreferencesFromResource(Resource.Xml.Preferences, rootKey);
         }
-
+        
         public override void OnDestroy()
         {
             //

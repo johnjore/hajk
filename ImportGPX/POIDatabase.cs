@@ -19,7 +19,7 @@ namespace hajk.Data
         {
             try
             {
-                string dbPath = Path.Combine(PrefsFragment.rootPath, Preferences.Get("POIDB", PrefsFragment.POIDB));
+                string dbPath = Path.Combine(Fragment_Preferences.rootPath, Preferences.Get("POIDB", Fragment_Preferences.POIDB));
 
                 //new FileInfo(dbPath).Delete();
 

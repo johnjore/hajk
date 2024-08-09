@@ -21,7 +21,7 @@ namespace hajk
     [Service(ForegroundServiceType = Android.Content.PM.ForegroundService.TypeLocation)]
     public class LocationForegroundService : Service, ILocationListener
     {
-        private static bool isStarted;  //Is ForegroundService running?
+        public static bool isStarted = false;  //Is ForegroundService running?
         private static Android.Locations.Location? currentLocation;
 
         public void OnProviderDisabled(string provider)
@@ -44,11 +44,15 @@ namespace hajk
             string lProvider = InitializeLocationManager();
             if (lProvider != null)
             {
-                var intTimer = 1000;
-                var intDistance = 0;
+                var intTimer = Fragment_Preferences.LocationTimer;
+                var intDistance = Fragment_Preferences.LocationDistance;
                 Serilog.Log.Debug($"ServiceRunning: Creating callback service for LocationUpdates, every " + intTimer.ToString() + "s and " + intDistance.ToString() + "m");
                 locationManager = GetSystemService(LocationService) as LocationManager;
                 locationManager?.RequestLocationUpdates(lProvider, intTimer, intDistance, this, Looper.MainLooper);
+            }
+            else
+            {
+                Serilog.Log.Error("Failed to create 'RequestLocationUpdates'");
             }
         }
 
@@ -59,10 +63,12 @@ namespace hajk
                 return;
             }
 
+            Serilog.Log.Debug($"Location Updated - {DateTime.Now:hh:mm:ss}: {location.Latitude:0.00000}, {location.Longitude:0.00000}");
+
             //Update location variable
             currentLocation = location;
 
-            //Only record location every 5 seconds, if recording track
+            //Recording track?
             if ((Preferences.Get("RecordingTrack", false) == true))
             {
                 Task.Run(() => RecordTrack.GetGPSLocationEvent(location));
@@ -78,7 +84,7 @@ namespace hajk
             return currentLocation;
         }
 
-        public string InitializeLocationManager()
+        private string InitializeLocationManager()
         {
             LocationManager? lm = GetSystemService(LocationService) as LocationManager;
 
@@ -131,7 +137,7 @@ namespace hajk
                 return StartCommandResult.Sticky;
             }
 
-            if (intent.Action.Equals(PrefsFragment.ACTION_START_SERVICE))
+            if (intent.Action.Equals(Fragment_Preferences.ACTION_START_SERVICE))
             {
                 if (isStarted)
                 {
@@ -147,7 +153,7 @@ namespace hajk
                     RegisterForegroundService();
                 }
             }
-            else if (intent.Action.Equals(PrefsFragment.ACTION_STOP_SERVICE))
+            else if (intent.Action.Equals(Fragment_Preferences.ACTION_STOP_SERVICE))
             {
                 Serilog.Log.Information($"OnStartCommand: The location service is stopping.");
 
@@ -205,7 +211,7 @@ namespace hajk
             NotificationManager? nManager = GetSystemService(Context.NotificationService) as NotificationManager;
             if (OperatingSystem.IsAndroidVersionAtLeast(26))
             {
-                NotificationChannel nChannel = new(PrefsFragment.NOTIFICATION_CHANNEL_ID, PrefsFragment.channelName, NotificationImportance.Low)
+                NotificationChannel nChannel = new(Fragment_Preferences.NOTIFICATION_CHANNEL_ID, Fragment_Preferences.channelName, NotificationImportance.Low)
                 {
                     LockscreenVisibility = NotificationVisibility.Private,
                 };
@@ -213,7 +219,7 @@ namespace hajk
                 nManager?.CreateNotificationChannel(nChannel);
             }
 
-            NotificationCompat.Builder? notificationBuilder = new(this, PrefsFragment.NOTIFICATION_CHANNEL_ID);
+            NotificationCompat.Builder? notificationBuilder = new(this, Fragment_Preferences.NOTIFICATION_CHANNEL_ID);
             Notification? notification;
             if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
@@ -240,7 +246,7 @@ namespace hajk
             }
 
             // Enlist this instance as a foreground service
-            StartForeground(PrefsFragment.SERVICE_RUNNING_NOTIFICATION_ID, notification);
+            StartForeground(Fragment_Preferences.SERVICE_RUNNING_NOTIFICATION_ID, notification);
 
             //We have a location, update map accordingly
             LocationManager? _locationManager = GetSystemService(LocationService) as LocationManager;
@@ -248,7 +254,7 @@ namespace hajk
             if (location != null)
             {
                 Location.UpdateLocationMarker(true, location);
-                Fragment_map.map.Navigator.ZoomToLevel(PrefsFragment.MaxZoom);
+                Fragment_map.map.Navigator.ZoomToLevel(Fragment_Preferences.MaxZoom);
             }
         }
 
@@ -259,14 +265,15 @@ namespace hajk
         /// <returns>The content intent.</returns>
         PendingIntent? BuildIntentToShowMainActivity()
         {
-            var notificationIntent = new Intent(this, typeof(MainActivity));
-            notificationIntent.SetAction(PrefsFragment.ACTION_MAIN_ACTIVITY);
-            notificationIntent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTask);
-            //notificationIntent.PutExtra(PrefsActivity.SERVICE_STARTED_KEY, true);
+            Intent notificationIntent = new Intent(this, typeof(MainActivity));
+            notificationIntent.SetAction(Fragment_Preferences.ACTION_MAIN_ACTIVITY);
+            //notificationIntent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.NewTask);
+            notificationIntent.SetFlags(ActivityFlags.ReorderToFront);
+            notificationIntent.PutExtra(Fragment_Preferences.SERVICE_STARTED_KEY, true);
 
             if (OperatingSystem.IsAndroidVersionAtLeast(23))
             {
-                return PendingIntent.GetActivity(this, 0, notificationIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable | PendingIntentFlags.NoCreate);
+                return PendingIntent.GetActivity(this, 0, notificationIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
             }
             else
             {

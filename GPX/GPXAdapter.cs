@@ -25,6 +25,7 @@ using SharpGPX;
 using Mapsui;
 using GeoTiffCOG.Struture;
 using Xamarin.Essentials;
+using hajk.GPX;
 
 namespace hajk.Adapter
 {
@@ -102,6 +103,7 @@ namespace hajk.Adapter
                         popup.Menu.FindItem(Resource.Id.gpx_menu_followroute).SetTitle(Resource.String.follow_track);
                         popup.Menu.FindItem(Resource.Id.gpx_menu_deleteroute).SetTitle(Resource.String.delete_track);
                         popup.Menu.FindItem(Resource.Id.gpx_menu_reverseroute).SetTitle(Resource.String.Reverse_track);
+                        popup.Menu.FindItem(Resource.Id.gpx_menu_optimize).SetTitle(Resource.String.optimize_track);
                     }
 
                     popup.MenuItemClick += async (s, args) =>
@@ -139,26 +141,13 @@ namespace hajk.Adapter
                                 Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min_1.x, min_1.y, max_1.x, max_1.y), MBoxFit.Fit);
 
                                 //Switch to map
-                                MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
+                                ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_Map, (FragmentActivity)parent.Context);
 
                                 //Save Route for off-route detection
                                 MainActivity.ActiveRoute = gpx;
 
                                 //Start recording
                                 RecordTrack.StartTrackTimer();
-
-                                //Update Menu Item Text
-                                NavigationView nav = Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view);
-                                nav.Menu.FindItem(Resource.Id.nav_recordtrack)
-                                    .SetTitle(Resource.String.Stop_Recording);
-
-                                //Enable the menu item for pause / resume
-                                nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack)
-                                    .SetTitle(Resource.String.PauseRecord_Track)
-                                    .SetEnabled(true);
-
-                                nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack).SetVisible(true);
-                                nav.Invalidate();
 
                                 break;
                             case var value when value == Resource.Id.gpx_menu_showonmap:
@@ -194,7 +183,7 @@ namespace hajk.Adapter
                                 //Switch to map
                                 if (parent.Context != null)
                                 {
-                                    MainActivity.SwitchFragment("Fragment_map", (FragmentActivity)parent.Context);
+                                    ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_Map, (FragmentActivity)parent.Context);
                                 }
 
                                 break;
@@ -220,7 +209,7 @@ namespace hajk.Adapter
                                 Log.Information($"Reverse route '{vh.Name.Text}'");
 
                                 //Get the route
-                                var route_to_reverse = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                                GPXDataRouteTrack route_to_reverse = RouteDatabase.GetRouteAsync(vh.Id).Result;
                                 GpxClass gpx_to_reverse = GpxClass.FromXml(route_to_reverse.GPX);
 
                                 if (route_to_reverse.GPXType == GPXType.Track)
@@ -250,6 +239,23 @@ namespace hajk.Adapter
                                 Fragment_gpx.mAdapter.NotifyDataSetChanged();
 
                                 break;
+                            case var value when value == Resource.Id.gpx_menu_optimize:
+                                Log.Information($"Optimize '{vh.Name.Text}'");
+
+                                //Get the GPX
+                                GPXDataRouteTrack item_to_optimize = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                                var GPXOptimized = GPXOptimize.Optimize(GpxClass.FromXml(item_to_optimize.GPX)).ToXml();
+
+                                //Update object
+                                item_to_optimize.GPX = GPXOptimized;
+
+                                //Save. ID is unchanged
+                                RouteDatabase.SaveRouteAsync(item_to_optimize).Wait();
+
+                                _ = Fragment_gpx.mAdapter.mGpxData.Insert(item_to_optimize);
+                                Fragment_gpx.mAdapter.NotifyDataSetChanged();
+
+                                break;
                             case var value when value == Resource.Id.gpx_menu_exportgpx:
                                 Log.Information($"Export route '{vh.Name.Text}'");
 
@@ -266,7 +272,7 @@ namespace hajk.Adapter
                                     var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
                                     GpxClass gpx_to_export = GpxClass.FromXml(route_to_export.GPX);
 
-                                    string gpxPath = Path.Combine(PrefsFragment.rootPath, userdata.Text);
+                                    string gpxPath = Path.Combine(Fragment_Preferences.rootPath, userdata.Text);
                                     gpx_to_export.ToFile(gpxPath);
                                 })
                                 .SetNegativeButton(Resource.String.Cancel, delegate

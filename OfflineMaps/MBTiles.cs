@@ -203,7 +203,7 @@ namespace hajk
         {
             lock (MbTileCache.sqlConn)
             {
-                var query = MbTileCache.sqlConn.Table<tiles>().Where(x => (DateTime.UtcNow - x.createDate).TotalDays > PrefsFragment.OfflineMaxAge);
+                var query = MbTileCache.sqlConn.Table<tiles>().Where(x => (DateTime.UtcNow - x.createDate).TotalDays > Fragment_Preferences.OfflineMaxAge);
                 Log.Debug($"Query Count: " + query.Count().ToString());
                 foreach (tiles maptile in query)
                 {
@@ -217,7 +217,7 @@ namespace hajk
         {
             string OSMServer = Preferences.Get("OSMServer", Platform.CurrentActivity?.GetString(Resource.String.OSMServerDefault));
 
-            var query = MbTileCache.sqlConn.Table<tiles>().Where(x => (DateTime.UtcNow - x.createDate).TotalDays > PrefsFragment.OfflineMaxAge);
+            var query = MbTileCache.sqlConn.Table<tiles>().Where(x => (DateTime.UtcNow - x.createDate).TotalDays > Fragment_Preferences.OfflineMaxAge);
             Log.Debug($"Query Count: " + query.Count().ToString());
 
             foreach (tiles maptile in query)

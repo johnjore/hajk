@@ -10,7 +10,7 @@
         android:id="@+id/lblPOIHeading"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add POI"
+        android:text="Add UTM POI"
         android:textAlignment="center"
         android:textSize="32sp"
         android:gravity="center"

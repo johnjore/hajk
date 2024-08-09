@@ -443,8 +443,8 @@ namespace hajk
                 Models.Map map = new Models.Map
                 {
                     Id = id,
-                    ZoomMin = PrefsFragment.MinZoom,
-                    ZoomMax = PrefsFragment.MaxZoom,
+                    ZoomMin = Fragment_Preferences.MinZoom,
+                    ZoomMax = Fragment_Preferences.MaxZoom,
                     BoundsLeft = (double)bounds.minlat,
                     BoundsBottom = (double)bounds.maxlon,
                     BoundsRight = (double)bounds.maxlat,
@@ -513,6 +513,12 @@ namespace hajk
                 if (POIs.Count == 0)
                     return;
 
+                var poiLayer = Fragment_map.map.Layers.FindLayer("Poi").FirstOrDefault();
+                if (poiLayer != null)
+                {
+                    Fragment_map.map.Layers.Remove(poiLayer);
+                }
+
                 //Add layer
                 var POILayer = new MemoryLayer
                 {
@@ -524,10 +530,13 @@ namespace hajk
                     Style = new SymbolStyle { Enabled = false },
                 };
 
-                var poiLayer = Fragment_map.map.Layers.FindLayer("Poi").FirstOrDefault();
-                if (poiLayer != null)
+                //Wait for each layer to complete
+                foreach (ILayer layer in Fragment_map.map.Layers)
                 {
-                    Fragment_map.map.Layers.Remove(poiLayer);
+                    while (layer.Busy)
+                    {
+                        Thread.Sleep(1);
+                    }
                 }
 
                 Fragment_map.map.Layers.Add(POILayer);

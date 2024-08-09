@@ -17,7 +17,11 @@
         android:id="@+id/gpx_menu_reverseroute"
         android:title="@string/reverse_route" />
 
-    <item
+  <item
+        android:id="@+id/gpx_menu_optimize"
+        android:title="@string/optimize_route" />
+
+  <item
         android:id="@+id/gpx_menu_exportgpx"
         android:title="@string/export_gpx" />
 

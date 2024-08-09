@@ -27,7 +27,7 @@ namespace Utils
                     Serilog.Log.Verbose($"Extracting embedded world map");
                     using (var writeStream = new FileStream(dbFile, FileMode.OpenOrCreate, FileAccess.Write))
                     {
-                        activity?.Assets?.Open(PrefsFragment.CacheDB).CopyTo(writeStream);
+                        activity?.Assets?.Open(Fragment_Preferences.CacheDB).CopyTo(writeStream);
                     }
                 }
                 else

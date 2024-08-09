@@ -26,6 +26,8 @@ using hajk.Fragments;
 using hajk.Models;
 using SQLite;
 using SharpGPX;
+using Android.Content.PM;
+using System.Diagnostics;
 
 
 namespace hajk
@@ -39,7 +41,7 @@ namespace hajk
         protected override async void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-
+            
             //Init
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
 
@@ -49,7 +51,7 @@ namespace hajk
             //new FileInfo(rootPath + "/" + PrefsActivity.CacheDB).Delete();
 
             //Logging
-            string _Path = System.IO.Path.Combine(PrefsFragment.rootPath, Preferences.Get("logFile", PrefsFragment.logFile));
+            string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Preferences.Get("logFile", Fragment_Preferences.logFile));
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .Enrich.FromLogContext()
@@ -64,8 +66,9 @@ namespace hajk
             try
             {
                 //Extract initial map, if not there
-                Utils.Misc.ExtractInitialMap(this, PrefsFragment.rootPath + "/" + PrefsFragment.CacheDB);
+                Utils.Misc.ExtractInitialMap(this, Fragment_Preferences.rootPath + "/" + Fragment_Preferences.CacheDB);
 
+                //GUI
                 SetContentView(Resource.Layout.activity_main);
                 AndroidX.AppCompat.Widget.Toolbar? toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
                 if (toolbar != null)
@@ -87,31 +90,31 @@ namespace hajk
                 NavigationView? navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
                 navigationView?.SetNavigationItemSelectedListener(this);
 
+                SupportFragmentManager.BeginTransaction()
+                    .Add(Resource.Id.fragment_container, new Fragment_map(), Fragment_Preferences.Fragment_Map)
+                    .Commit();
+                SupportFragmentManager.ExecutePendingTransactions();
+
                 //Sanity
                 Log.Debug($"Set RecordingTrack to false - sanity check");
                 Preferences.Set("RecordingTrack", false);
                 Preferences.Set("TrackLocation", false);
 
                 //App Permissions
-                await Utilities.AppPermissions.RequestAppPermissions(this);
-
-                Log.Debug($"Create Fragment_Map");
-                var FragmentsTransaction = SupportFragmentManager.BeginTransaction();
-                FragmentsTransaction.Add(Resource.Id.fragment_container, new Fragment_map(), "Fragment_map");
-                FragmentsTransaction.Commit();
+                await Utilities.AppPermissions.RequestAppPermissions(this);              
 
                 Log.Debug($"Create Location Service");
                 if (await CheckStatusAsync<LocationAlways>() == PermissionStatus.Granted || await CheckStatusAsync<LocationWhenInUse>() == PermissionStatus.Granted)
                 {
-                    Intent locationServiceIntent = new(Platform.CurrentActivity, typeof(LocationForegroundService));
-                    locationServiceIntent.SetAction(PrefsFragment.ACTION_START_SERVICE);
+                    Intent locationServiceIntent = new(this, typeof(LocationForegroundService));
+                    locationServiceIntent.SetAction(Fragment_Preferences.ACTION_START_SERVICE);
                     if (OperatingSystem.IsAndroidVersionAtLeast(26))
                     {
-                        Platform.CurrentActivity.StartForegroundService(locationServiceIntent);
+                        StartForegroundService(locationServiceIntent);
                     }
                     else
                     {
-                        Platform.CurrentActivity.StartService(locationServiceIntent);
+                        StartService(locationServiceIntent);
                     }
                 }
 
@@ -141,14 +144,22 @@ namespace hajk
                 }
                 else
                 {
-                    //base.OnBackPressed();
-                    Utils.Misc.PromptToConfirmExit();
+                    var c = SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_Settings);
+                    if (SupportFragmentManager.Fragments.Contains(c))
+                    {
+                        /*var FragmentsTransaction1 = SupportFragmentManager.BeginTransaction()
+                            .Remove(SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_Settings))
+                            .Commit();
+                        SupportFragmentManager.ExecutePendingTransactions();
+                        */
+                        SupportFragmentManager.PopBackStack();
+                    }
+                    else
+                    {
+                        //base.OnBackPressed();
+                        Utils.Misc.PromptToConfirmExit();
+                    }
                 }
-            }
-            else
-            {
-                //base.OnBackPressed();
-                Utils.Misc.PromptToConfirmExit();
             }
         }
 
@@ -169,11 +180,14 @@ namespace hajk
             if (id == Resource.Id.action_settings)
             {
                 Log.Information($"Change to Settings");
-                SetContentView(Resource.Layout.fragment_preferences);
-                var FragmentsTransaction = SupportFragmentManager.BeginTransaction();
-                FragmentsTransaction.Replace(Resource.Id.preference_container, new PrefsFragment());
-                FragmentsTransaction.Commit();
-                
+
+                SupportFragmentManager.BeginTransaction()
+                    .SetReorderingAllowed(true)
+                    .Replace(Resource.Id.fragment_container, new Fragment_Preferences(), Fragment_Preferences.Fragment_Settings)
+                    .AddToBackStack(Fragment_Preferences.Fragment_Settings)
+                    .Commit();
+                SupportFragmentManager.ExecutePendingTransactions();
+
                 return true;
             }
             else if (id == Resource.Id.action_clearmap)
@@ -241,7 +255,7 @@ namespace hajk
 
                 //Location Service
                 Intent locationServiceIntent = new(this, typeof(LocationForegroundService));
-                locationServiceIntent.SetAction(PrefsFragment.ACTION_STOP_SERVICE);
+                locationServiceIntent.SetAction(Fragment_Preferences.ACTION_STOP_SERVICE);
                 StopService(locationServiceIntent);
 
                 //Cleanup Log file
@@ -304,58 +318,37 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_recordtrack)
             {
-                if (Preferences.Get("RecordingTrack", PrefsFragment.RecordingTrack))
+                if (Preferences.Get("RecordingTrack", Fragment_Preferences.RecordingTrack))
                 {
                     RecordTrack.EndTrackTimer();
                     item.SetTitle(Resource.String.Record_Track);
 
                     //Disable the menu item for pause / resume
                     Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view)
-                        .Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack)
+                        .Menu?.FindItem(Resource.Id.nav_PauseResumeRecordTrack)
                         .SetTitle(Resource.String.PauseRecord_Track)
                         .SetEnabled(false);
 
-                    NavigationView nav = Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view);
-                    nav.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack).SetVisible(false);
-                    nav.Invalidate();
+                    Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view).Invalidate();
                 }
                 else
                 {
                     RecordTrack.StartTrackTimer();
-                    item.SetTitle(Resource.String.Stop_Recording);
-
-                    //Enable the menu item for pause / resume
-                    Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view)
-                        .Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack)
-                        .SetTitle(Resource.String.PauseRecord_Track)
-                        .SetEnabled(true);
-
-                    NavigationView? nav = Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view);
-                    nav?.Menu?.FindItem(Resource.Id.nav_PauseResumeRecordTrack).SetVisible(true);
-                    nav?.Invalidate();
                 }
             }
             else if (id == Resource.Id.nav_PauseResumeRecordTrack)
             {
-                NavigationView? nav = Platform.CurrentActivity?.FindViewById<NavigationView>(Resource.Id.nav_view);
-                var item_nav = nav?.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
+                var item_nav = Platform.CurrentActivity?.FindViewById<NavigationView>(Resource.Id.nav_view)?.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
 
                 if (item_nav?.TitleFormatted?.ToString() == Resources?.GetString(Resource.String.PauseRecord_Track))
                 {
-                    //Pause the timer
-                    //RecordTrack.Timer_Order.Change(Timeout.Infinite, Timeout.Infinite);
                     Preferences.Set("RecordingTrack", false);
-
                     item_nav?.SetTitle(Resource.String.ResumeRecord_Track);
                 }
                 else
                 {
-                    //Resume the timer
-                    //int freq_s = Int32.Parse(Preferences.Get("freq", PrefsActivity.freq_s.ToString()));
-                    //RecordTrack.Timer_Order.Change(0, freq_s * 1000);
                     Preferences.Set("RecordingTrack", true);
-
-                    item_nav.SetTitle(Resource.String.PauseRecord_Track);
+                    item_nav?.SetTitle(Resource.String.PauseRecord_Track);
                 }
             }
             else if (id == Resource.Id.nav_routes)
@@ -365,31 +358,30 @@ namespace hajk
                     NavigationView? nav = this?.FindViewById<NavigationView>(Resource.Id.nav_view);
                     item = nav?.Menu.FindItem(Resource.Id.nav_routes);
 
-                    if (item?.TitleFormatted?.ToString() == Resources.GetString(Resource.String.Map))
+                    if (item?.TitleFormatted?.ToString() == Resources?.GetString(Resource.String.Map))
                     {
-                        SwitchFragment("Fragment_map", item);
+                        ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_Map, item);
 
                         SupportFragmentManager.BeginTransaction()
-                            .Remove((AndroidX.Fragment.App.Fragment)SupportFragmentManager.FindFragmentByTag("Fragment_gpx"))
+                            .Remove(SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_GPX))
                             .Commit();
                         SupportFragmentManager.ExecutePendingTransactions();
                     }
                     else
                     {
-                        SupportFragmentManager.BeginTransaction()
-                            .Remove((AndroidX.Fragment.App.Fragment)SupportFragmentManager.FindFragmentByTag("Fragment_gpx"))
-                            .Commit();
-                        SupportFragmentManager.ExecutePendingTransactions();
+                        IMenuItem mi = nav?.Menu?.FindItem(Resource.Id.nav_tracks);
+                        mi?.SetTitle(Resource.String.Track);
+                        mi?.SetIcon(Resource.Drawable.track);
 
-                        nav?.Menu?.FindItem(Resource.Id.nav_tracks).SetTitle(Resource.String.Track);
                         Fragment_gpx.GPXDisplay = Models.GPXType.Route;
 
                         SupportFragmentManager.BeginTransaction()
-                            .Add(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx")
+                            .Remove(SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_GPX))
+                            .Add(Resource.Id.fragment_container, new Fragment_gpx(), Fragment_Preferences.Fragment_GPX)
                             .Commit();
                         SupportFragmentManager.ExecutePendingTransactions();
 
-                        SwitchFragment("Fragment_gpx", item);
+                        ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_GPX, item);
                     }
                 }
                 else
@@ -397,11 +389,11 @@ namespace hajk
                     Fragment_gpx.GPXDisplay = Models.GPXType.Route;
 
                     SupportFragmentManager.BeginTransaction()
-                        .Add(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx")
+                        .Add(Resource.Id.fragment_container, new Fragment_gpx(), Fragment_Preferences.Fragment_GPX)
                         .Commit();
                     SupportFragmentManager.ExecutePendingTransactions();
 
-                    SwitchFragment("Fragment_gpx", item);
+                    ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_GPX, item);
                 }
             }
             else if (id == Resource.Id.nav_tracks)
@@ -413,29 +405,28 @@ namespace hajk
 
                     if (item?.TitleFormatted?.ToString() == Resources?.GetString(Resource.String.Map))
                     {
-                        SwitchFragment("Fragment_map", item);
+                        ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_Map, item);
 
                         SupportFragmentManager.BeginTransaction()
-                            .Remove((AndroidX.Fragment.App.Fragment)SupportFragmentManager.FindFragmentByTag("Fragment_gpx"))
+                            .Remove(SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_GPX))
                             .Commit();
                         SupportFragmentManager.ExecutePendingTransactions();
                     }
                     else
                     {
-                        SupportFragmentManager.BeginTransaction()
-                            .Remove((AndroidX.Fragment.App.Fragment)SupportFragmentManager.FindFragmentByTag("Fragment_gpx"))
-                            .Commit();
-                        SupportFragmentManager.ExecutePendingTransactions();
+                        IMenuItem mi = nav?.Menu?.FindItem(Resource.Id.nav_routes);
+                        mi?.SetTitle(Resource.String.Routes);
+                        mi?.SetIcon(Resource.Drawable.route);
 
-                        nav?.Menu?.FindItem(Resource.Id.nav_routes).SetTitle(Resource.String.Routes);
                         Fragment_gpx.GPXDisplay = Models.GPXType.Track;
 
                         SupportFragmentManager.BeginTransaction()
-                            .Add(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx")
+                            .Remove(SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_GPX))
+                            .Add(Resource.Id.fragment_container, new Fragment_gpx(), Fragment_Preferences.Fragment_GPX)
                             .Commit();
                         SupportFragmentManager.ExecutePendingTransactions();
 
-                        SwitchFragment("Fragment_gpx", item);
+                        ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_GPX, item);
                     }
                 }
                 else
@@ -443,11 +434,11 @@ namespace hajk
                     Fragment_gpx.GPXDisplay = Models.GPXType.Track;
 
                     SupportFragmentManager.BeginTransaction()
-                        .Add(Resource.Id.fragment_container, new Fragment_gpx(), "Fragment_gpx")
+                        .Add(Resource.Id.fragment_container, new Fragment_gpx(), Fragment_Preferences.Fragment_GPX)
                         .Commit();
                     SupportFragmentManager.ExecutePendingTransactions();
 
-                    SwitchFragment("Fragment_gpx", item);
+                    ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_GPX, item);
                 }
             }
             else if (id == Resource.Id.about)
@@ -470,14 +461,14 @@ namespace hajk
                 DBBackupConnection.Backup(backupFileName);
 
                 //Route DB
-                string dbPath = Path.Combine(PrefsFragment.rootPath, Preferences.Get("RouteDB", PrefsFragment.RouteDB));
+                string dbPath = Path.Combine(Fragment_Preferences.rootPath, Preferences.Get("RouteDB", Fragment_Preferences.RouteDB));
                 DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
                 backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".db3";
                 DBBackupConnection.Backup(backupFileName);
                 DBBackupConnection.Close();
 
                 //POI DB
-                dbPath = Path.Combine(PrefsFragment.rootPath, Preferences.Get("POIDB", PrefsFragment.POIDB));
+                dbPath = Path.Combine(Fragment_Preferences.rootPath, Preferences.Get("POIDB", Fragment_Preferences.POIDB));
                 DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
                 backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".poi.db3";
                 DBBackupConnection.Backup(backupFileName);
@@ -596,89 +587,8 @@ namespace hajk
             
             DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             drawer?.CloseDrawer(GravityCompat.Start);
+            drawer.Invalidate();
             return true;
-        }
-
-        public void SwitchFragment(string Fragment_Tag, IMenuItem item)
-        {
-            SupportFragmentManager.BeginTransaction().Show(SupportFragmentManager.FindFragmentByTag(Fragment_Tag));
-            SupportFragmentManager.BeginTransaction().Commit();
-            NavigationView nav = this.FindViewById<NavigationView>(Resource.Id.nav_view);
-
-            switch (Fragment_Tag)
-            {
-                case "Fragment_gpx":
-                    Fragment_map.mapControl.Visibility = ViewStates.Invisible;
-                    FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
-
-                    if (item.TitleFormatted.ToString() == Resources.GetString(Resource.String.Routes))
-                    {
-                        nav.Menu.FindItem(Resource.Id.nav_routes).SetTitle(Resource.String.Map);
-                    }
-
-                    if (item.TitleFormatted.ToString() == Resources.GetString(Resource.String.Tracks))
-                    {
-                        nav.Menu.FindItem(Resource.Id.nav_tracks).SetTitle(Resource.String.Map);
-                    }
-
-                    break;
-                case "Fragment_map":
-                    Fragment_map.mapControl.Visibility = ViewStates.Visible;
-                    FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
-
-                    nav.Menu.FindItem(Resource.Id.nav_routes).SetTitle(Resource.String.Routes);
-                    nav.Menu.FindItem(Resource.Id.nav_tracks).SetTitle(Resource.String.Tracks);
-
-                    break;
-                case "Fragment_posinfo":
-
-                    break;
-
-            }
-        }
-
-        public static void SwitchFragment(string Fragment_Tag, FragmentActivity activity)
-        {
-            var sfm = activity.SupportFragmentManager;
-            sfm.BeginTransaction().Show(sfm.FindFragmentByTag(Fragment_Tag));
-            sfm.BeginTransaction().Commit();
-            sfm.ExecutePendingTransactions();
-
-            NavigationView? nav = Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view);
-            IMenuItem? item;
-
-            switch (Fragment_Tag)
-            {
-                case "Fragment_gpx":
-                    /**///This never runs?!?
-                    /*
-                    Fragment_map.mapControl.Visibility = ViewStates.Invisible;
-                    mContext.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
-
-                    item = nav.Menu.FindItem(Resource.Id.nav_routes);
-                    item.SetTitle(Resource.String.Map);
-
-                    item = nav.Menu.FindItem(Resource.Id.nav_tracks);
-                    item.SetTitle(Resource.String.Map);
-                    */
-                    break;
-                case "Fragment_map":
-                    sfm.BeginTransaction()
-                        .Remove((AndroidX.Fragment.App.Fragment)sfm.FindFragmentByTag("Fragment_gpx"))
-                        .Commit();
-                    sfm.ExecutePendingTransactions();
-
-                    Fragment_map.mapControl.Visibility = ViewStates.Visible;
-                    Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
-
-                    item = nav?.Menu.FindItem(Resource.Id.nav_routes);
-                    item?.SetTitle(Resource.String.Routes);
-
-                    item = nav?.Menu.FindItem(Resource.Id.nav_tracks);
-                    item?.SetTitle(Resource.String.Tracks);
-
-                    break;
-            }
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)

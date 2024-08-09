@@ -40,7 +40,7 @@ namespace hajk.Fragments
 
         public override View? OnCreateView(LayoutInflater? inflater, ViewGroup? container, Bundle? savedInstanceState)
         {
-            View? view = inflater?.Inflate(Resource.Layout.fragment_markers, container, false);
+            View? view = inflater?.Inflate(Resource.Layout.fragment_rogaining_poi, container, false);
             view?.SetBackgroundColor(Android.Graphics.Color.White);
             Dialog?.Window?.RequestFeature(WindowFeatures.NoTitle);
             Dialog?.SetCanceledOnTouchOutside(false);

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+	
   <PreferenceCategory android:title="Map Tile Source">
 		<EditTextPreference
 			android:title="@string/OSMServerTitle"
@@ -8,7 +9,6 @@
 			android:inputType="textUri"
 			android:defaultValue="@string/OSMServerDefault" />
   </PreferenceCategory>
-
 
   <PreferenceCategory android:title="General">
 		<SwitchPreference

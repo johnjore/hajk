@@ -14,9 +14,11 @@
   <string name="follow_route">Follow route</string>
   <string name="delete_route">Delete route</string>
   <string name="reverse_route">Reverse route</string>
+  <string name="optimize_route">Optimize route</string>
   <string name="follow_track">Follow track</string>
   <string name="delete_track">Delete track</string>
   <string name="Reverse_track">Reverse track</string>
+  <string name="optimize_track">Optimize track</string>  
   <string name="Delete">Delete</string>
   <string name="Submit">Submit</string>
   <string name="Cancel">Cancel</string>
