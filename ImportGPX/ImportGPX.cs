@@ -42,6 +42,8 @@ using SharpGPX.GPX1_1;
 using SharpGPX.GPX1_1.Garmin;
 using SharpGPX.GPX1_1.Topografix;
 using GPXUtils;
+using AndroidX.ConstraintLayout.Core.Widgets;
+using hajk.GPX;
 
 namespace hajk
 {
@@ -137,6 +139,11 @@ namespace hajk
                     if (await msg1.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                     {
                         DownloadOfflineMap = true;
+                    }
+
+                    if (await msg1.ShowDialog($"Track/Route", $"Optimize Number of Waypoints?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                    {
+                        gpxData = GPXOptimize.Optimize(gpxData);
                     }
                 }
 
