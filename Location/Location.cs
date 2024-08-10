@@ -35,13 +35,18 @@ namespace hajk
                     return;
                 }
 
-                //Location circle. Remove if it exists, re-create with new location. Would it be better/faster to update feature with new position?
-                ILayer? layer = Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
-                if (layer != null)
+                //Location circle. Clear all existing feature(s( and create new
+                var layer = (WritableLayer)Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
+                if (layer == null)
                 {
-                    Fragment_map.map.Layers.Remove(layer);
+                    Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
                 }
-                Fragment_map.map.Layers.Add(CreateLocationLayer(sphericalMercatorCoordinate));
+                else
+                {
+                    layer.Clear();
+                    layer.Add(CreateLocationMarker(sphericalMercatorCoordinate));
+                    layer?.DataHasChanged();
+                }
 
                 if (navigate)
                 {
@@ -61,23 +66,18 @@ namespace hajk
             }
         }
 
-        public static ILayer CreateLocationLayer(MPoint GPSLocation)
+        public static WritableLayer CreateLocationLayer(MPoint GPSLocation)
         {
-            return new MemoryLayer
+            var layer = new WritableLayer
             {
                 Name = LocationLayerName,
-                Features = CreateLocationFeatures(GPSLocation),
                 Style = null,
                 IsMapInfoLayer = false,
             };
-        }
 
-        private static List<IFeature> CreateLocationFeatures(MPoint GPSLocation)
-        {
-            return new List<IFeature>
-            {
-                new PointFeature(CreateLocationMarker(GPSLocation)),
-            };
+            layer.Add(CreateLocationMarker(GPSLocation));
+
+            return layer;
         }
 
         private static PointFeature CreateLocationMarker(MPoint GPSLocation)
@@ -98,39 +98,6 @@ namespace hajk
             });
 
             return feature;
-        }
-
-        //Set loction beacon color, red if recording, blue if not
-        public static void UpdateLocationFeature()
-        {
-            ILayer? layer = Fragment_map.map.Layers.FindLayer(LocationLayerName).FirstOrDefault();
-            if (layer == null)
-            {
-                Serilog.Log.Debug($"No layer?");
-                return;
-            }
-
-            var feature = layer.GetFeatures(layer.Extent, 99).FirstOrDefault();
-            if (feature == null)
-            {
-                Serilog.Log.Debug($"No features?");
-                return;
-            }
-
-            //Recording or "normal"
-            Color marker = Color.Blue;
-            if (Preferences.Get("RecordingTrack", Fragment_Preferences.RecordingTrack))
-            {
-                marker = Color.Red;
-            }
-
-            feature.Styles.Clear();
-            feature.Styles.Add(new SymbolStyle
-            {
-                SymbolScale = 1.5f,
-                Fill = null,
-                Outline = new Pen { Color = marker, Width = 2.0 }
-            });
         }
     }
 }

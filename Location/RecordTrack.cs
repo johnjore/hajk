@@ -57,9 +57,6 @@ namespace hajk
                 int freq_OffRoute_s = int.Parse(Preferences.Get("freq_s_OffRoute", Fragment_Preferences.freq_OffRoute_s.ToString()));
                 Timer_WarnIfOffRoute = new Timer(new TimerCallback(CheckOffRouteEvent), null, 0, freq_OffRoute_s * 1000);
 
-                //Update location marker with correct colour
-                Location.UpdateLocationFeature();
-
                 //Enable the menu item
                 AndroidX.AppCompat.Widget.Toolbar? toolbar = Platform.CurrentActivity?.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
                 toolbar?.Menu?.FindItem(Resource.Id.action_clearmap).SetEnabled(true);

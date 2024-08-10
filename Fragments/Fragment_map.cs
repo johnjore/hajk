@@ -111,7 +111,21 @@ namespace hajk.Fragments
                 }
 
                 mapControl.Info += MapOnInfo;
-                
+
+                /**///Not working. Can't overwrite the symbol that covers the current location with a circle around the location
+                /*
+                var a = new MyLocationLayer(Fragment_map.map)
+                {
+                    IsCentered = false,
+                    Enabled = true,
+                    Name = "XYZ",
+                    Style = null, //new SymbolStyle { SymbolScale = 1.5f, Fill = null, Outline = new Pen { Color = Color.Blue, Width = 2.0 } },
+                    IsMapInfoLayer = false,
+                    a
+                };
+                map.Layers.Add(a);
+                */
+
                 return view;
             }
             catch (Exception ex)
