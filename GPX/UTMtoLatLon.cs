@@ -9,7 +9,7 @@ namespace hajk
 {
     public class UTMtoWGS84LatLon
     {
-        public static void UTMtoLatLon(string? a, int b, long UTMX, long UTMY)
+        public static int UTMtoLatLon(string? a, int b, long UTMX, long UTMY)
         {
             UniversalTransverseMercator utm = new UniversalTransverseMercator(a, b, UTMX, UTMY);
             Coordinate c = UniversalTransverseMercator.ConvertUTMtoLatLong(utm);
@@ -26,10 +26,10 @@ namespace hajk
                 Lon = (decimal)c.Longitude.ToDouble()
             };
 
-            POIDatabase.SavePOI(p);
+            int result = POIDatabase.SavePOI(p);
             Import.AddPOIToMap();
 
-            return;
+            return result;
         }
     }
 }

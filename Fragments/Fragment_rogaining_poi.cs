@@ -72,7 +72,7 @@ namespace hajk.Fragments
             {
                 btnAddPOI.Click += delegate
                 {
-                    Dismiss();
+                    //Dismiss();
 
                     try
                     {
@@ -93,7 +93,20 @@ namespace hajk.Fragments
                         var a = mapUTMZone?.Text?[mapUTMZone.Text.Length - 1].ToString().ToUpper();
                         var b = Convert.ToInt16(mapUTMZone?.Text?.Substring(0, mapUTMZone.Text.Length - 1));
 
-                        UTMtoWGS84LatLon.UTMtoLatLon(a, b, UTM_X, UTM_Y);
+                        int result = UTMtoWGS84LatLon.UTMtoLatLon(a, b, UTM_X, UTM_Y);
+                        if (result > 0)
+                        {
+                            Toast.MakeText(Application.Context, "Added POI to database", ToastLength.Short)?.Show();
+                        }
+                        else
+                        {
+                            Toast.MakeText(Application.Context, "Failed to add POI to database", ToastLength.Long)?.Show();
+                        }
+                        
+                        //Reset GUI
+                        (view?.FindViewById<EditText>(Resource.Id.editOffsetX)).Text = string.Empty;
+                        (view?.FindViewById<EditText>(Resource.Id.editOffsetY)).Text = string.Empty;
+                        (view?.FindViewById<EditText>(Resource.Id.editUTMX)).RequestFocus();
                     }
                     catch (Exception ex)
                     {
