@@ -80,7 +80,7 @@ namespace hajk
                 FloatingActionButton? fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
                 if (fab != null)
                 {
-                    fab.Click += FabOnClick;
+                    fab.Click += FabOnClick;                    
                 }
 
                 DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
@@ -124,6 +124,9 @@ namespace hajk
 
                 Log.Debug($"Notify user if location permission does not allow background collection");
                 await Utilities.AppPermissions.LocationPermissionNotification(this);
+
+                //Enable Compass Sensor
+                CompassData.EnableCompass();
 
                 //Disable battery optimization
                 /**///Utilities.BatteryOptimization.SetDozeOptimization(this);

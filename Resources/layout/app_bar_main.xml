@@ -27,7 +27,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
+        app:fabCustomSize="80dp"
+        app:maxImageSize="75dp"
+        app:fabSize="auto"
         android:backgroundTint = "@android:color/holo_blue_light"
+        android:src="@drawable/compass"
         app:srcCompat="@drawable/baseline_language_24" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

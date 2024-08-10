@@ -63,17 +63,12 @@ namespace hajk
                     }
                 }
 
-                /**/
-                if (location.HasBearing)
+                FloatingActionButton? fab = Platform.CurrentActivity?.FindViewById<FloatingActionButton>(Resource.Id.fab);
+                if (fab != null)
                 {
-                    FloatingActionButton? fab = Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fab);
-                    if (fab != null)
-                    {
-                        Serilog.Log.Verbose($"Bearing: {location.Bearing}");
-
-                        fab.SetImageResource(Resource.Drawable.track);
-                        fab.Rotation = 360 - location.Bearing;
-                    }
+                    var rotationAngle = (float)CompassData.GetRotationAngle();
+                    fab.Rotation = rotationAngle;
+                    Serilog.Log.Debug($"RotationAngle: {rotationAngle}");
                 }
             }
             catch (Exception ex)
