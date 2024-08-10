@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Maui.Storage;
 using SQLite;
 using Serilog;
 using hajk.Models;
-using Xamarin.Essentials;
 
 //https://docs.microsoft.com/en-us/xamarin/get-started/quickstarts/database?pivots=windows
 

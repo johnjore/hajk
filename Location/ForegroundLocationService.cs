@@ -13,7 +13,7 @@ using Android.OS;
 using Android.Preferences;
 using AndroidX.Core.App;
 using AndroidX.Fragment.App;
-using Xamarin.Essentials;
+using Microsoft.Maui.Storage;
 using hajk.Fragments;
 
 namespace hajk

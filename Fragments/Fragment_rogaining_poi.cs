@@ -22,7 +22,7 @@ using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using AndroidX.RecyclerView;
 using Serilog;
-using Xamarin.Essentials;
+using Microsoft.Maui.Storage;
 
 
 namespace hajk.Fragments

@@ -6,13 +6,16 @@ using Mapsui.Styles;
 using Mapsui.Projections;
 using Mapsui.Extensions;
 using Mapsui.Nts.Extensions;
-using Xamarin.Essentials;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using hajk.Fragments;
+using Google.Android.Material.FloatingActionButton;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Storage;
+
 
 namespace hajk
 {
@@ -57,6 +60,19 @@ namespace hajk
                     {
                         Fragment_map.mapControl.Map.Navigator.PanLock = true;
                         Fragment_map.mapControl.Map.Navigator.RotationLock = true;
+                    }
+                }
+
+                /**/
+                if (location.HasBearing)
+                {
+                    FloatingActionButton? fab = Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fab);
+                    if (fab != null)
+                    {
+                        Serilog.Log.Verbose($"Bearing: {location.Bearing}");
+
+                        fab.SetImageResource(Resource.Drawable.track);
+                        fab.Rotation = 360 - location.Bearing;
                     }
                 }
             }

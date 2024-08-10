@@ -7,12 +7,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xamarin.Essentials;
 using SharpGPX;
 using BitMiracle;
 using BitMiracle.LibTiff;
 using BitMiracle.LibTiff.Classic;
 using Mapsui.Projections;
+using Microsoft.Maui.Storage;
 using GeoTiffCOG;
 
 namespace hajk

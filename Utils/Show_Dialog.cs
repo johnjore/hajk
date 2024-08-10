@@ -2,7 +2,7 @@
 using Android.OS;
 using System;
 using System.Threading.Tasks;
-using Xamarin.Essentials;
+using Microsoft.Maui.ApplicationModel;
 
 //https://forums.xamarin.com/discussion/comment/251826/#Comment_251826
 

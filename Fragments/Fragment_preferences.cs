@@ -4,8 +4,8 @@ using Android.Views;
 using AndroidX.Preference;
 using System.Globalization;
 using Serilog;
-using Xamarin.Essentials;
 using hajk.Fragments;
+using Microsoft.Maui.Storage;
 
 namespace hajk
 {

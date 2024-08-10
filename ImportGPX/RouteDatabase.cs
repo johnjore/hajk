@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using SQLite;
 using hajk.Models;
-using System.Threading.Tasks;
-using Xamarin.Essentials;
+using Microsoft.Maui.Storage;
 
 //https://docs.microsoft.com/en-us/xamarin/get-started/quickstarts/database?pivots=windows
 

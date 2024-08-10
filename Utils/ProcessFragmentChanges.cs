@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xamarin.Essentials;
 
 namespace hajk
 {
@@ -25,7 +24,7 @@ namespace hajk
     {
         public static void SwitchFragment(string Fragment_Tag, IMenuItem item)
         {
-            FragmentActivity? cActivity = (FragmentActivity)Platform.CurrentActivity;
+            FragmentActivity? cActivity = (FragmentActivity)Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
 
             if (cActivity == null || Fragment_Tag == null || Fragment_Tag == string.Empty)
             {
@@ -96,7 +95,7 @@ namespace hajk
                 sfm.ExecutePendingTransactions();
             }
 
-            NavigationView? nav = Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view);
+            NavigationView? nav = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view);
             IMenuItem? item;
 
             switch (Fragment_Tag)
@@ -121,7 +120,7 @@ namespace hajk
                     sfm.ExecutePendingTransactions();
 
                     Fragment_map.mapControl.Visibility = ViewStates.Visible;
-                    Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
+                    Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
 
                     item = nav?.Menu.FindItem(Resource.Id.nav_routes);
                     item?.SetTitle(Resource.String.Routes);

@@ -19,8 +19,6 @@ using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Navigation;
 using Google.Android.Material.Snackbar;
 using Serilog;
-using Xamarin.Essentials;
-using static Xamarin.Essentials.Permissions;
 using hajk.Data;
 using hajk.Fragments;
 using hajk.Models;
@@ -28,7 +26,9 @@ using SQLite;
 using SharpGPX;
 using Android.Content.PM;
 using System.Diagnostics;
-
+using Microsoft.Maui.Storage;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Devices;
 
 namespace hajk
 {
@@ -41,9 +41,10 @@ namespace hajk
         protected override async void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-            
+
             //Init
-            Xamarin.Essentials.Platform.Init(this, savedInstanceState);
+            Platform.Init(Application);
+            await Platform.WaitForActivityAsync();
 
             ServicePointManager.ServerCertificateValidationCallback = (message, certificate, chain, sslPolicyErrors) => true;
 
@@ -73,7 +74,7 @@ namespace hajk
                 AndroidX.AppCompat.Widget.Toolbar? toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
                 if (toolbar != null)
                 {
-                    SetSupportActionBar(toolbar);
+                    SetSupportActionBar(toolbar);                    
                 }
 
                 FloatingActionButton? fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
@@ -104,7 +105,7 @@ namespace hajk
                 await Utilities.AppPermissions.RequestAppPermissions(this);              
 
                 Log.Debug($"Create Location Service");
-                if (await CheckStatusAsync<LocationAlways>() == PermissionStatus.Granted || await CheckStatusAsync<LocationWhenInUse>() == PermissionStatus.Granted)
+                if (await Permissions.CheckStatusAsync<Permissions.LocationAlways>() == PermissionStatus.Granted || await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>() == PermissionStatus.Granted)
                 {
                     Intent locationServiceIntent = new(this, typeof(LocationForegroundService));
                     locationServiceIntent.SetAction(Fragment_Preferences.ACTION_START_SERVICE);
@@ -338,7 +339,7 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_PauseResumeRecordTrack)
             {
-                var item_nav = Platform.CurrentActivity?.FindViewById<NavigationView>(Resource.Id.nav_view)?.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
+                var item_nav = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.FindViewById<NavigationView>(Resource.Id.nav_view)?.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
 
                 if (item_nav?.TitleFormatted?.ToString() == Resources?.GetString(Resource.String.PauseRecord_Track))
                 {
@@ -443,9 +444,9 @@ namespace hajk
             }
             else if (id == Resource.Id.about)
             {
-                using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(Platform.CurrentActivity);
-                alert.SetTitle(Platform.CurrentActivity?.Resources.GetString(Resource.String.About));
-                alert.SetMessage(Platform.CurrentActivity?.Resources.GetString(Resource.String.Build) + ": " + AppInfo.Version.ToString());
+                using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity);
+                alert.SetTitle(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources.GetString(Resource.String.About));
+                alert.SetMessage(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources.GetString(Resource.String.Build) + ": " + Microsoft.Maui.ApplicationModel.AppInfo.Version.ToString());
                 alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
                 var dialog = alert.Create();
                 dialog.Show();
@@ -475,9 +476,9 @@ namespace hajk
                 DBBackupConnection.Close();
 
                 //Message
-                using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(Platform.CurrentActivity);
-                alert.SetTitle(Platform.CurrentActivity?.Resources?.GetString(Resource.String.Backup));
-                alert.SetMessage(Platform.CurrentActivity?.Resources?.GetString(Resource.String.Done));
+                using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity);
+                alert.SetTitle(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources?.GetString(Resource.String.Backup));
+                alert.SetMessage(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources?.GetString(Resource.String.Done));
                 alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
                 var dialog = alert.Create();
                 dialog.Show();
@@ -589,12 +590,6 @@ namespace hajk
             drawer?.CloseDrawer(GravityCompat.Start);
             drawer.Invalidate();
             return true;
-        }
-
-        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
-        {
-            Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-            base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 }

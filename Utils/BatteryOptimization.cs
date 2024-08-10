@@ -1,7 +1,8 @@
 ﻿using Android.Content;
 using Android.OS;
 using System;
-using Xamarin.Essentials;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Devices;
 
 namespace hajk.Utilities
 {

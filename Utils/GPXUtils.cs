@@ -5,6 +5,7 @@ using hajk.Models;
 using FFI.NVector;
 using SharpGPX;
 using SharpGPX.GPX1_1;
+using Microsoft.Maui.Devices.Sensors;
 
 //https://danielsaidi.com/blog/2011/02/04/calculate-distance-and-bearing-between-two-positions
 
@@ -350,7 +351,7 @@ namespace GPXUtils
         }
 
         //Calculate distance between two locations
-        public static double CalculateDistance(wptType wpt_a1, Xamarin.Essentials.Location a2)
+        public static double CalculateDistance(wptType wpt_a1, Location a2)
         {
             var a2_p = new Position((double)a2.Latitude, (double)a2.Longitude, 0);
             var s_AB = CalculateDistance(wpt_a1, a2_p);

@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Mapsui;
 using Mapsui.Nts;
 using Mapsui.Layers;
 using Mapsui.Projections;
@@ -21,11 +22,10 @@ using hajk.Fragments;
 using hajk.Models;
 using Serilog;
 using Google.Android.Material.Navigation;
+using Microsoft.Maui.ApplicationModel;
 using SharpGPX;
-using Mapsui;
-using GeoTiffCOG.Struture;
-using Xamarin.Essentials;
 using hajk.GPX;
+using GeoTiffCOG.Struture;
 
 namespace hajk.Adapter
 {

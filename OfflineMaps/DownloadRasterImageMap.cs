@@ -2,6 +2,9 @@
 using Dasync.Collections;
 using hajk.Models;
 using Mapsui.Layers;
+using Mapsui.Tiling.Layers;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Storage;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -12,9 +15,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using SQLite;
-using Xamarin.Essentials;
 using static hajk.TileCache;
-using Mapsui.Tiling.Layers;
 
 namespace hajk
 {

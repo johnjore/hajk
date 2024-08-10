@@ -20,7 +20,6 @@ using AndroidX.AppCompat.Widget;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using Serilog;
-using Xamarin.Essentials;
 using hajk.Data;
 using hajk.Adapter;
 using hajk.Fragments;

@@ -21,7 +21,6 @@ using AndroidX.AppCompat.Widget;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using Serilog;
-using Xamarin.Essentials;
 using hajk.Data;
 using hajk.Adapter;
 using hajk.Fragments;
@@ -30,6 +29,8 @@ using SharpGPX.GPX1_1;
 using Microcharts;
 using Microcharts.Droid;
 using SkiaSharp;
+using Microsoft.Maui.Storage;
+using Microsoft.Maui.ApplicationModel;
 
 namespace hajk.Fragments
 {

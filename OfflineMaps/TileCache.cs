@@ -4,9 +4,9 @@ using BruTile;
 using BruTile.Cache;
 using BruTile.Predefined;
 using BruTile.Web;
+using Microsoft.Maui.ApplicationModel;
 using SQLite;
 using hajk.Models;
-using Xamarin.Essentials;
 
 //From https://github.com/spaddlewit/MBTilesPersistentCache
 

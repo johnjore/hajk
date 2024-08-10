@@ -1,7 +1,6 @@
 ﻿using Android;
 using Android.Content.PM;
-using Xamarin.Essentials;
-using static Xamarin.Essentials.Permissions;
+using Microsoft.Maui.ApplicationModel;
 
 namespace hajk.Utilities
 {
@@ -14,18 +13,18 @@ namespace hajk.Utilities
         {
             //First round of location permissions
             Serilog.Log.Debug($"Check 'LocationWhenInUse' Permission");
-            if (await CheckStatusAsync<LocationWhenInUse>() != PermissionStatus.Granted)
+            if (await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>() != PermissionStatus.Granted)
             {
                 Serilog.Log.Debug($"Request'LocationWhenInUse' Permission");
-                await RequestAsync<LocationWhenInUse>();
+                await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
             }
 
             //Request AlwaysOn Permission
             Serilog.Log.Debug($"Check 'LocationAlways' Permission");
-            if (await CheckStatusAsync<LocationAlways>() != PermissionStatus.Granted)
+            if (await Permissions.CheckStatusAsync<Permissions.LocationAlways>() != PermissionStatus.Granted)
             {
                 Serilog.Log.Debug($"Request 'LocationAlways' Permission");
-                await RequestAsync<LocationAlways>();
+                await Permissions.RequestAsync<Permissions.LocationAlways>();
             }
 
             //Notifications
@@ -47,7 +46,7 @@ namespace hajk.Utilities
         /// </summary>
         public static async Task<bool> LocationPermissionNotification(Activity activity)
         {
-            if (await CheckStatusAsync<LocationAlways>() != PermissionStatus.Granted)
+            if (await Permissions.CheckStatusAsync<Permissions.LocationAlways>() != PermissionStatus.Granted)
             {
                 Serilog.Log.Debug($"We dont have 'LocationAlways' permissions. Notify user");
                 using var alert = new AlertDialog.Builder(activity);

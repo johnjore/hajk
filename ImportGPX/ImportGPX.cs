@@ -32,7 +32,10 @@ using Mapsui.UI;
 using Mapsui.UI.Android;
 using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
-using Xamarin.Essentials;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Devices;
+using Microsoft.Maui.Networking;
+using Microsoft.Maui.Storage;
 using hajk.Data;
 using hajk.Models;
 using hajk.Fragments;
@@ -109,7 +112,7 @@ namespace hajk
                         if (await msg.ShowDialog($"{uri.LastPathSegment}", $"Found {gpxData.Routes.Count} {r}, {gpxData.Tracks.Count} {t} and {gpxData.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                         {
                             //Only ask if we have routes and/or tracks and/or Waypoints to import, and we have internet access. Most don't have a local tile server
-                            if ((gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0) && Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
+                            if ((gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0) && Connectivity.NetworkAccess == NetworkAccess.Internet)
                             {
                                 Import.ProcessGPX(gpxData);
                             }
@@ -133,7 +136,7 @@ namespace hajk
                     return;
 
                 //Only ask if we have routes and/or tracks and/or Waypoints to import, and we have internet access. Most don't have a local tile server
-                if ((gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0) && Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
+                if ((gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0) && Connectivity.NetworkAccess == NetworkAccess.Internet)
                 {
                     //Does the user want maps downloaded for offline usage?                
                     Show_Dialog msg1 = new Show_Dialog(Platform.CurrentActivity);
@@ -765,7 +768,7 @@ namespace hajk
                 string mapRoute = ConvertLatLonListToLineString(ListLatLon);
 
                 //Get elevation data? (Requires internet access)
-                if (getAscentDescent && Connectivity.NetworkAccess == Xamarin.Essentials.NetworkAccess.Internet)
+                if (getAscentDescent && Connectivity.NetworkAccess == NetworkAccess.Internet)
                 {
                     ListLatLon = GetElevationData(ListLatLon);
 

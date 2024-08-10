@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 using Android.App;
 using Android.Graphics;
 using Android.Util;
-using Xamarin.Essentials;
 using Mapsui.Layers;
 using hajk;
-
+using Microsoft.Maui.ApplicationModel;
 
 namespace Utils
 {

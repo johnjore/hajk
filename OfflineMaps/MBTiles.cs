@@ -3,10 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Devices;
+using Microsoft.Maui.Storage;
 using SQLite;
 using hajk.Models;
 using static hajk.TileCache;
-using Xamarin.Essentials;
 
 //This is a partial rewrite of https://github.com/bertt/MBTiles
 

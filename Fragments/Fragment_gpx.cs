@@ -10,6 +10,7 @@ using Android.Runtime;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
+using AndroidX.RecyclerView.Widget;
 using System.Threading;
 using System.Net;
 using System.Reflection;
@@ -21,11 +22,9 @@ using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using AndroidX.RecyclerView;
 using Serilog;
-using Xamarin.Essentials;
 using hajk.Data;
 using hajk.Adapter;
 using hajk.Fragments;
-using AndroidX.RecyclerView.Widget;
 
 namespace hajk.Fragments
 {

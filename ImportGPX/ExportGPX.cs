@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Serilog;
 using hajk.Models;
-using Xamarin.Essentials;
 using Mapsui.Layers;
 using SharpGPX;
 using SharpGPX.GPX1_1;
