@@ -11,6 +11,12 @@
     <BaseOutputPath>c:\data\temp\hajk</BaseOutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <AndroidResource Remove="Resources\drawable\Arrow-up.png" />
+    <AndroidResource Remove="Resources\drawable\Black-dot.png" />
+    <AndroidResource Remove="Resources\drawable\Drinking-water.png" />
+    <AndroidResource Remove="Resources\drawable\Tent.png" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="Images\Arrow-up.svg" />
     <None Remove="Images\Black-dot.svg" />
     <None Remove="Images\Drinking-water.svg" />
@@ -52,6 +58,9 @@
     <None Remove="Resources\values\values.xml" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Images\RoundFlag.png" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="AsyncEnumerator" Version="4.0.2" />
     <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.649" />
     <PackageReference Include="BlueToque.SharpGPX" Version="2.22.302" />
@@ -89,5 +98,9 @@
     <EmbeddedResource Include="Images\Black-dot.svg" />
     <EmbeddedResource Include="Images\RoundFlag.svg" />
     <EmbeddedResource Include="Images\Tent.svg" />
+    <EmbeddedResource Include="Images\Arrow-up.png" />
+    <EmbeddedResource Include="Images\Black-dot.png" />
+    <EmbeddedResource Include="Images\Drinking-water.png" />
+    <EmbeddedResource Include="Images\Tent.png" />
   </ItemGroup>
 </Project>

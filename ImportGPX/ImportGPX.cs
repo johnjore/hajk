@@ -45,6 +45,7 @@ using GPXUtils;
 using AndroidX.ConstraintLayout.Core.Widgets;
 using hajk.GPX;
 
+
 namespace hajk
 {
     public class Import
@@ -514,11 +515,10 @@ namespace hajk
             {
                 List<GPXDataPOI> POIs = POIDatabase.GetPOIAsync().Result;
 
-                if (POIs == null)
+                if (POIs == null || POIs.Count == 0)
+                {
                     return;
-
-                if (POIs.Count == 0)
-                    return;
+                }
 
                 var poiLayer = Fragment_map.map.Layers.FindLayer("Poi").FirstOrDefault();
                 if (poiLayer != null)
@@ -554,8 +554,56 @@ namespace hajk
             }
         }
 
-        public static IEnumerable<IFeature> ConvertListToInumerable(List<GPXDataPOI> POIs)
+        public static IEnumerable<IFeature>? ConvertListToInumerable(List<GPXDataPOI> POIs)
         {
+            if (POIs == null || POIs.Count == 0)
+            {
+                return null;
+            }
+
+            var features = new List<IFeature>();
+
+            foreach (GPXDataPOI POI in POIs)
+            {
+                var mpoint = SphericalMercator.FromLonLat((double)POI.Lon, (double)POI.Lat).ToMPoint();
+                var feature = new PointFeature(mpoint);
+                feature["name"] = POI.Name;
+                feature["description"] = POI.Description;
+                feature["id"] = POI.Id;
+
+                //Icon
+                string svg = "hajk.Images.Black-dot.png";
+                switch (POI.Symbol)
+                {
+                    case "Drinking Water":
+                        svg = "hajk.Images.Drinking-water.png";
+                        break;
+                    case "Campground":
+                        svg = "hajk.Images.Tent.png";
+                        break;
+                    case "Rogaining":
+                        svg = "hajk.Images.RoundFlag.png";
+                        break;
+                    case "Man Overboard":
+                        svg = "hajk.Images.RoundFlag.png";
+                        break;
+                }
+
+                //Style
+                feature.Styles.Add(new SymbolStyle
+                {
+                    SymbolScale = 1.0f,
+                    RotateWithMap = true,
+                    BitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource(svg),
+                });
+
+                features.Add(feature);
+            }
+
+            return features;
+
+            //This never stops adding POIs?
+            /*
             try
             {
                 return POIs.Select(c =>
@@ -592,6 +640,9 @@ namespace hajk
                         BitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource(svg),
                     });
 
+                    counter++;
+                    Log.Debug("ArfArf: " + counter.ToString());
+
                     return feature;
                 });
             }
@@ -601,6 +652,7 @@ namespace hajk
             }
 
             return null;
+            */
         }
 
         public static void AddRouteToMap(string mapRoute, GPXType gpxtype, bool UpdateMenu)
@@ -1027,7 +1079,7 @@ namespace hajk
                 features.Add(FeatureStart);
 
                 //Add arrow halfway between waypoints and highlight routing points
-                var bitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource("hajk.Images.Arrow-up.svg");
+                var bitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource("hajk.Images.Arrow-up.png");
                 for (int i = 0; i < GPSlineString.NumPoints - 1; i++)
                 {
                     //End points for line

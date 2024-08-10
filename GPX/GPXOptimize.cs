@@ -48,14 +48,7 @@ namespace hajk.GPX
                 return null;
             }
             
-            Serilog.Log.Debug("From: " + points.Count().ToString("#,0") + " points");
-
-            /**///Not working
-            /*
-            // https://github.com/BobLd/RamerDouglasPeuckerNetV2/issues/1#issuecomment-2277639554
-            points.Add(points[0]);
-            List<wptType> reducedPoints = RamerDouglasPeucker.Reduce(points, (float)tolerence);
-            */
+            Serilog.Log.Debug("From: " + points.Count.ToString("#,0") + " points");
 
             //https://github.com/rohaanhamid/simplify-csharp
             bool highQualityEnabled = true;
@@ -67,7 +60,7 @@ namespace hajk.GPX
                             highQualityEnabled
                             );
 
-            Serilog.Log.Debug("To:   " + reducedPoints.Count().ToString("#,0") + " points");
+            Serilog.Log.Debug("To:   " + reducedPoints.Count.ToString("#,0") + " points");
             
             return new wptTypeCollection(reducedPoints);
         }
