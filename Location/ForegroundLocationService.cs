@@ -42,7 +42,8 @@ namespace hajk
             locationManager?.RemoveUpdates(this);
 
             string lProvider = InitializeLocationManager();
-            if (lProvider != null)
+
+            if (lProvider != null && locationManager != null)
             {
                 var intTimer = Fragment_Preferences.LocationTimer;
                 var intDistance = Fragment_Preferences.LocationDistance;

@@ -35,7 +35,7 @@ namespace hajk
         public const string POIDB = "POI.db3";                          //Database to store all POI (WayPoints)
         public const string RouteDB = "Routes.db3";                     //Database to store all routes
         public const string CacheDB = "CacheDB.mbtiles";                //Database to store offline tiles
-        public const string logFile = "hajk_.txt";                      //Log file
+        public const string logFile = "walkabout_.txt";                 //Log file
         public readonly static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
         public const int MinZoom = 0;                                   //MinZoom level to use
         public const int MaxZoom = 16;                                  //MaxZoom level to use
@@ -46,16 +46,15 @@ namespace hajk
         public readonly static int OfflineMaxAge = 90;                  //Don't refresh tiles until this threashhold in days        
 
         //Location Service
-        public const int SERVICE_RUNNING_NOTIFICATION_ID = 10000;
-        public const string NOTIFICATION_CHANNEL_ID = "no.jore.hajk";
-        public const string channelName = "hajk app service";
+        public const int SERVICE_RUNNING_NOTIFICATION_ID = 11000;
+        public const string NOTIFICATION_CHANNEL_ID = "no.jore.walkabout";
+        public const string channelName = "walkabout app service";
         public const string SERVICE_STARTED_KEY = "has_service_been_started";
         public const string BROADCAST_MESSAGE_KEY = "broadcast_message";
-        public const string NOTIFICATION_BROADCAST_ACTION = "hajk.Notification.Action";
-        public const string ACTION_START_SERVICE = "hajk.action.START_SERVICE";
-        public const string ACTION_STOP_SERVICE = "hajk.action.STOP_SERVICE";
-        public const string ACTION_MAIN_ACTIVITY = "hajk.action.MAIN_ACTIVITY";
-
+        public const string NOTIFICATION_BROADCAST_ACTION = "walkabout.Notification.Action";
+        public const string ACTION_START_SERVICE = "walkabout.action.START_SERVICE";
+        public const string ACTION_STOP_SERVICE = "walkabout.action.STOP_SERVICE";
+        public const string ACTION_MAIN_ACTIVITY = "walkabout.action.MAIN_ACTIVITY";
 
         public override void OnCreatePreferences(Bundle? savedInstanceState, string? rootKey)
         {
