@@ -1,31 +1,31 @@
 ﻿using Android.Content;
 using Android.Views;
 using Android.Widget;
-using AndroidX.Fragment;
 using AndroidX.Fragment.App;
+using AndroidX.Fragment;
 using AndroidX.RecyclerView.Widget;
-using System;
+using GeoTiffCOG.Struture;
+using Google.Android.Material.Navigation;
+using hajk.Data;
+using hajk.Fragments;
+using hajk.GPX;
+using hajk.Models;
+using Mapsui.Layers;
+using Mapsui.Nts;
+using Mapsui.Projections;
+using Mapsui.Providers;
+using Mapsui.Styles;
+using Mapsui.Utilities;
+using Mapsui;
+using Microsoft.Maui.ApplicationModel;
+using Serilog;
+using SharpGPX;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Mapsui;
-using Mapsui.Nts;
-using Mapsui.Layers;
-using Mapsui.Projections;
-using Mapsui.Providers;
-using Mapsui.Styles;
-using Mapsui.Utilities;
-using hajk.Data;
-using hajk.Fragments;
-using hajk.Models;
-using Serilog;
-using Google.Android.Material.Navigation;
-using Microsoft.Maui.ApplicationModel;
-using SharpGPX;
-using hajk.GPX;
-using GeoTiffCOG.Struture;
+using System;
 
 namespace hajk.Adapter
 {
@@ -272,8 +272,12 @@ namespace hajk.Adapter
                                     var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
                                     GpxClass gpx_to_export = GpxClass.FromXml(route_to_export.GPX);
 
-                                    string gpxPath = Path.Combine(Fragment_Preferences.rootPath, userdata.Text);
-                                    gpx_to_export.ToFile(gpxPath);
+                                    string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
+                                    if (DownLoadFolder != null)
+                                    {
+                                        string gpxPath = Path.Combine(DownLoadFolder, userdata.Text);
+                                        gpx_to_export.ToFile(gpxPath);
+                                    }
                                 })
                                 .SetNegativeButton(Resource.String.Cancel, delegate
                                 {
@@ -295,20 +299,23 @@ namespace hajk.Adapter
                                 alertbuilder2.SetCancelable(false)
                                 .SetPositiveButton(Resource.String.Submit, delegate
                                 {
-                                    string DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
-                                    string mbtTilesPath = DownLoadFolder + "/" + userdata2.Text;
-
-                                    var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                                    GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
-
-                                    if (vh.GPXType == GPXType.Track)
+                                    string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
+                                    if (DownLoadFolder != null)
                                     {
-                                        Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, mbtTilesPath, false);
-                                    }
+                                        string mbtTilesPath = DownLoadFolder + "/" + userdata2.Text;
 
-                                    if (vh.GPXType == GPXType.Route)
-                                    {
-                                        Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, mbtTilesPath, false);
+                                        var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                                        GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
+
+                                        if (vh.GPXType == GPXType.Track)
+                                        {
+                                            Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, mbtTilesPath, false);
+                                        }
+
+                                        if (vh.GPXType == GPXType.Route)
+                                        {
+                                            Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, mbtTilesPath, false);
+                                        }
                                     }
                                 })
                                 .SetNegativeButton(Resource.String.Cancel, delegate
