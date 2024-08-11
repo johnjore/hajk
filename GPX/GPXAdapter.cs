@@ -252,9 +252,6 @@ namespace hajk.Adapter
                                 //Save. ID is unchanged
                                 RouteDatabase.SaveRouteAsync(item_to_optimize).Wait();
 
-                                _ = Fragment_gpx.mAdapter.mGpxData.Insert(item_to_optimize);
-                                Fragment_gpx.mAdapter.NotifyDataSetChanged();
-
                                 break;
                             case var value when value == Resource.Id.gpx_menu_exportgpx:
                                 Log.Information($"Export route '{vh.Name.Text}'");
