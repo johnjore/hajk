@@ -18,11 +18,16 @@
 				<data android:scheme="content" android:pathPattern=".*\\.gpx" android:mimeType="application/*" />
 			</intent-filter>
 		</activity>
-    <service android:name=".LocationForegroundService"></service>
+    <service 
+			android:name=".LocationForegroundService"
+			android:foregroundServiceType="location"
+      android:exported="false">
+		</service>
 	</application>
   <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 	<uses-permission android:name="android.permission.INTERNET" />

@@ -91,6 +91,8 @@ namespace hajk
                 NavigationView? navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
                 navigationView?.SetNavigationItemSelectedListener(this);
 
+                /**/
+                Thread.Sleep(1000);
                 SupportFragmentManager.BeginTransaction()
                     .Add(Resource.Id.fragment_container, new Fragment_map(), Fragment_Preferences.Fragment_Map)
                     .Commit();
@@ -129,7 +131,7 @@ namespace hajk
                 CompassData.EnableCompass();
 
                 //Disable battery optimization
-                /**///Utilities.BatteryOptimization.SetDozeOptimization(this);
+                Utilities.BatteryOptimization.SetDozeOptimization(this);
             }
             catch (Exception ex)
             {

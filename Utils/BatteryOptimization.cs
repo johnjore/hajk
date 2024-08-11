@@ -20,26 +20,27 @@ namespace hajk.Utilities
             
             if (Build.VERSION.SdkInt < BuildVersionCodes.M)
             {
-                Serilog.Log.Debug($"BatteryOptimizations Not Support (Requires M or above)");
+                Serilog.Log.Debug($"BatteryOptimizations Not Supported (Requires M or above)");
                 return false;
             }
 
             Serilog.Log.Debug($"Request disabling BatteryOptimizations");
             var intent = new Intent();
             intent.AddFlags(ActivityFlags.NewTask);
+
             PowerManager? pm = (PowerManager?)activity.GetSystemService(Context.PowerService);
-            if (pm != null && pm.IsIgnoringBatteryOptimizations(activity.PackageName))
+            if (pm != null && pm.IsIgnoringBatteryOptimizations(activity.PackageName) == false)
             {
-                //For future reference - Fine tune BatteryOptimization
-                //intent.SetAction(Android.Provider.Settings.ActionIgnoreBatteryOptimizationSettings);
-                //activity.StartActivity(intent);
-            }
-            else
-            {
-                //intent.SetAction(Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations);
-                intent.SetAction(Android.Provider.Settings.ExtraBatterySaverModeEnabled);
+                intent.SetAction(Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations);
                 intent.SetData(Android.Net.Uri.Parse("package:" + activity.PackageName));
-                activity.StartActivity(intent);
+                try
+                {
+                    activity.StartActivity(intent);
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error("Failed to set BatteryOptimization");
+                }
             }
 
             return true;
