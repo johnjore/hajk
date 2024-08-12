@@ -23,11 +23,6 @@ namespace hajk
     {
         private static readonly string LocationLayerName = "Location";
 
-        public static void UpdateLocationMarker(object state)
-        {
-            UpdateLocationMarker(false);
-        }
-
         public static void UpdateLocationMarker(bool navigate, Android.Locations.Location location)
         {
             try
