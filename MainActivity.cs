@@ -43,7 +43,7 @@ namespace hajk
             base.OnCreate(savedInstanceState);
 
             //Init
-            Platform.Init(Application);
+            if (Application != null) Platform.Init(Application);
             await Platform.WaitForActivityAsync();
 
             ServicePointManager.ServerCertificateValidationCallback = (message, certificate, chain, sslPolicyErrors) => true;
@@ -134,7 +134,7 @@ namespace hajk
                 Utilities.BatteryOptimization.SetDozeOptimization(this);
 
                 //Create alarm
-                hajk.Utilities.Alarms.CreateAlarm();                
+                Utilities.Alarms.CreateAlarm();
             }
             catch (Exception ex)
             {
@@ -144,7 +144,7 @@ namespace hajk
 
         public override void OnBackPressed()
         {
-            DrawerLayout drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
+            DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             if (drawer != null)
             {
                 if (drawer.IsDrawerOpen(GravityCompat.Start))
@@ -154,7 +154,7 @@ namespace hajk
                 else
                 {
                     var c = SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_Settings);
-                    if (SupportFragmentManager.Fragments.Contains(c))
+                    if (c != null && SupportFragmentManager.Fragments.Contains(c))
                     {
                         /*var FragmentsTransaction1 = SupportFragmentManager.BeginTransaction()
                             .Remove(SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_Settings))
@@ -278,7 +278,7 @@ namespace hajk
             base.OnDestroy();
         }
 
-        private void FabOnClick(object sender, EventArgs eventArgs)
+        private void FabOnClick(object? sender, EventArgs? eventArgs)
         {
             //Toggle tracking
             bool currentStatus = Preferences.Get("TrackLocation", true);
@@ -333,12 +333,16 @@ namespace hajk
                     item.SetTitle(Resource.String.Record_Track);
 
                     //Disable the menu item for pause / resume
-                    Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view)
-                        .Menu?.FindItem(Resource.Id.nav_PauseResumeRecordTrack)
+                    Platform.CurrentActivity?
+                        .FindViewById<NavigationView>(Resource.Id.nav_view)?
+                        .Menu?
+                        .FindItem(Resource.Id.nav_PauseResumeRecordTrack)?
                         .SetTitle(Resource.String.PauseRecord_Track)
                         .SetEnabled(false);
 
-                    Platform.CurrentActivity.FindViewById<NavigationView>(Resource.Id.nav_view).Invalidate();
+                    Platform.CurrentActivity?
+                        .FindViewById<NavigationView>(Resource.Id.nav_view)?
+                        .Invalidate();
                 }
                 else
                 {
@@ -347,7 +351,10 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_PauseResumeRecordTrack)
             {
-                var item_nav = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.FindViewById<NavigationView>(Resource.Id.nav_view)?.Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
+                var item_nav = Microsoft.Maui.ApplicationModel.
+                    Platform.CurrentActivity?
+                    .FindViewById<NavigationView>(Resource.Id.nav_view)?
+                    .Menu.FindItem(Resource.Id.nav_PauseResumeRecordTrack);
 
                 if (item_nav?.TitleFormatted?.ToString() == Resources?.GetString(Resource.String.PauseRecord_Track))
                 {
@@ -378,7 +385,7 @@ namespace hajk
                     }
                     else
                     {
-                        IMenuItem mi = nav?.Menu?.FindItem(Resource.Id.nav_tracks);
+                        IMenuItem? mi = nav?.Menu?.FindItem(Resource.Id.nav_tracks);
                         mi?.SetTitle(Resource.String.Track);
                         mi?.SetIcon(Resource.Drawable.track);
 
@@ -423,7 +430,7 @@ namespace hajk
                     }
                     else
                     {
-                        IMenuItem mi = nav?.Menu?.FindItem(Resource.Id.nav_routes);
+                        IMenuItem? mi = nav?.Menu?.FindItem(Resource.Id.nav_routes);
                         mi?.SetTitle(Resource.String.Routes);
                         mi?.SetIcon(Resource.Drawable.route);
 
