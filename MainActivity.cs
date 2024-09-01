@@ -74,7 +74,7 @@ namespace hajk
                 AndroidX.AppCompat.Widget.Toolbar? toolbar = FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
                 if (toolbar != null)
                 {
-                    SetSupportActionBar(toolbar);                    
+                    SetSupportActionBar(toolbar);
                 }
 
                 FloatingActionButton? fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
@@ -132,6 +132,9 @@ namespace hajk
 
                 //Disable battery optimization
                 Utilities.BatteryOptimization.SetDozeOptimization(this);
+
+                //Create alarm
+                hajk.Utilities.Alarms.CreateAlarm();                
             }
             catch (Exception ex)
             {

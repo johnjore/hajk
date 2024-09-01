@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using BruTile;
 using BruTile.Cache;
 using BruTile.Predefined;
 using BruTile.Web;
 using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Storage;
 using SQLite;
 using hajk.Models;
+using Android.Systems;
+using hajk.Models.MapSource;
 
 //From https://github.com/spaddlewit/MBTilesPersistentCache
 
@@ -26,12 +30,46 @@ namespace hajk
                     mbTileCache = new MbTileCache(cacheFilename, "png");
                 }
 
-                HttpTileSource src = new(new GlobalSphericalMercator(Fragment_Preferences.MinZoom, Fragment_Preferences.MaxZoom),
-                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                    new[] { "a", "b", "c" }, name: "OpenStreetMap",
-                    persistentCache: mbTileCache,
-                    userAgent: "OpenStreetMap in Mapsui (hajk)",
-                    attribution: new Attribution("(c) OpenStreetMap contributors", "https://www.openstreetmap.org/copyright"));
+                HttpTileSource src;
+                string TileBrowseSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source), Fragment_Preferences.TileBrowseSource);
+
+                var MapSource = Fragment_Preferences.MapSources.Where(x => x.Name.Equals(TileBrowseSource, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                if (MapSource == null) 
+                {
+                    Serilog.Log.Error("No MapSource defined");
+                    return null;
+                }
+                
+                if (TileBrowseSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
+                {
+                    src = new(new GlobalSphericalMercator(Fragment_Preferences.MinZoom, Fragment_Preferences.MaxZoom),
+                        MapSource.BaseURL, new[] { "a", "b", "c" }, 
+                        name: MapSource.Name,
+                        persistentCache: mbTileCache,
+                        userAgent: MapSource.Name + " in Mapsui (hajk)",
+                        attribution: new Attribution("(c) " + MapSource.Name + " contributors", "https://www.openstreetmap.org/copyright"));
+                }
+                else if (TileBrowseSource.Equals("Custom", StringComparison.OrdinalIgnoreCase))
+                {
+                    var url = Preferences.Get(MapSource.BaseURL, "");
+                    var token = Preferences.Get(MapSource.Token, "");
+
+                    src = new(new GlobalSphericalMercator(Fragment_Preferences.MinZoom, Fragment_Preferences.MaxZoom),
+                        url + token,
+                        name: MapSource.Name,
+                        persistentCache: mbTileCache,
+                        userAgent: MapSource.Name + " in Mapsui (hajk)");
+                }
+                else //Mapbox || Thunderforest
+                {
+                    var token = Preferences.Get(MapSource.Token, "");
+
+                    src = new(new GlobalSphericalMercator(Fragment_Preferences.MinZoom, Fragment_Preferences.MaxZoom),
+                        MapSource.BaseURL + token,
+                        name: MapSource.Name,
+                        persistentCache: mbTileCache,
+                        userAgent: MapSource.Name + " in Mapsui (hajk)");
+                }
 
                 return src;
             }

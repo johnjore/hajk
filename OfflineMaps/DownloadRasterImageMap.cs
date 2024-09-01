@@ -106,7 +106,33 @@ namespace hajk
 
         private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id, int intmissingTiles, int inttotalTiles)
         {
-            string OSMServer = Preferences.Get("OSMServer", Platform.CurrentActivity?.GetString(Resource.String.OSMServerDefault));
+            string OSMServer = string.Empty;
+            string TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
+           
+            var MapSource = Fragment_Preferences.MapSources.Where(x => x.Name.Equals(TileBulkDownloadSource, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            if (MapSource == null)
+            {
+                Serilog.Log.Error("No MapSource defined");
+                return;
+            }
+
+            if (TileBulkDownloadSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
+            {
+                Serilog.Log.Error("Can't use OSM as a bulkdownload server");
+                return;
+            }
+            else if (TileBulkDownloadSource.Equals("Custom", StringComparison.OrdinalIgnoreCase))
+            {
+                var url = Preferences.Get(MapSource.BaseURL, "");
+                var token = Preferences.Get(MapSource.Token, "");
+
+                OSMServer = url + token;
+            }
+            else //Mapbox || Thunderforst
+            {
+                var token = Preferences.Get(MapSource.Token, "");
+                OSMServer = MapSource.BaseURL + token;
+            }
 
             try
             {
@@ -145,7 +171,7 @@ namespace hajk
 
                         try
                         {
-                            var url = OSMServer + $"{zoom}/{tile.X}/{tile.Y}.png";
+                            var url = OSMServer.Replace("{z}", zoom.ToString()).Replace("{x}", tile.X.ToString()).Replace("{y}", tile.Y.ToString());
                             var data = await DownloadImageAsync(url);
 
                             if (data != null)

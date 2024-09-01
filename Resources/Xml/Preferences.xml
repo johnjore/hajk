@@ -1,37 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen 
+	xmlns:android="http://schemas.android.com/apk/res/android" 
+	xmlns:app="http://schemas.android.com/apk/res-auto">
 	
-  <PreferenceCategory android:title="Map Tile Source">
-		<EditTextPreference
-			android:title="@string/OSMServerTitle"
-			android:summary="@string/OSMServerDescription"
-			android:key="OSMServer"
+  <PreferenceCategory android:title="@string/MapTileSources">
+    <ListPreference
+			android:key="@string/OSM_Browse_Source"
+      android:title="@string/OSM_Browse_Source"
+			app:useSimpleSummaryProvider="true" />
+
+    <ListPreference
+			android:key="@string/OSM_BulkDownload_Source"
+      android:title="@string/OSM_BulkDownload_Source"
+			app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+			android:title="@string/MapboxTokenTitle"
+			android:key="@string/MapboxToken"
+			android:inputType="textPassword"
+			android:summary="@string/Hidden"
+			app:useSimpleSummaryProvider="false" />
+
+    <EditTextPreference
+			android:title="@string/ThunderforestTokenTitle"
+			android:key="@string/ThunderforestToken"
+			android:inputType="textPassword"
+			android:summary="@string/Hidden"
+			app:useSimpleSummaryProvider="false" />
+  
+    <EditTextPreference
+			android:title="@string/CustomServerTitle"
+			android:key="@string/CustomServerURL"
 			android:inputType="textUri"
-			android:defaultValue="@string/OSMServerDefault" />
+			android:summary="@string/CustomServerHint"
+			android:hint="@string/CustomServerHint"
+			app:defaultValue="@string/CustomServerHint"
+			app:useSimpleSummaryProvider="false" />
+
+    <EditTextPreference
+			android:title="@string/CustomTokenTitle"
+			android:key="@string/CustomToken"
+			android:inputType="textPassword"
+			android:summary="@string/Hidden"
+			app:useSimpleSummaryProvider="false" />
   </PreferenceCategory>
 
   <PreferenceCategory android:title="General">
 		<SwitchPreference
 			android:title="@string/TrackRecordings"
-			android:summary="@string/TrackRecordingsDescription"
 			android:key="DrawTrackOnGui"
 			android:defaultValue="true" />
 
 		<EditTextPreference
 			android:title="@string/UpdateGPSLocation"
-			android:summary="@string/HowFrequentlyDoesGPSLocationUpdate"
 			android:key="UpdateGPSLocation"
 			android:inputType="numberDecimal"
 			android:digits="0123456789"
-			android:defaultValue="5" />
+			android:defaultValue="5" 
+			app:useSimpleSummaryProvider="true" />
 
 		<EditTextPreference
 			android:title="@string/TrackRecording"
-			android:summary="@string/HowFrequentlyTrackRecording"
 			android:key="freq"
 			android:inputType="numberDecimal"
 			android:digits="0123456789"
-			android:defaultValue="5" />
+			android:defaultValue="5"
+			app:useSimpleSummaryProvider="true" />
 
 		<SwitchPreference
 		  android:title="@string/DisplayPOI"
@@ -61,36 +95,26 @@
 
 		<EditTextPreference
 			android:title="@string/OffRouteNotification"
-			android:summary="@string/OffRouteNotificationDescription"
 			android:key="OffTrackDistanceWarning_m"
 			android:inputType="numberDecimal"
 			android:digits="0123456789"
-			android:defaultValue="100" />
+			android:defaultValue="100"
+			app:useSimpleSummaryProvider="true" />
 
 		<EditTextPreference
 			android:title="@string/OffRouteNotification_s"
-			android:summary="@string/OffRouteNotification_sDescription"
 			android:key="freq_s_OffRoute"
 			android:inputType="numberDecimal"
 			android:digits="0123456789"
-			android:defaultValue="60" />
+			android:defaultValue="60" 
+			app:useSimpleSummaryProvider="true" />
 
 		<EditTextPreference
 			android:title="@string/OffRouteSnooze_m"
-			android:summary="@string/OffRouteSnooze_mDescription"
 			android:key="OffTrackRouteSnooze_m"
 			android:inputType="numberDecimal"
 			android:digits="0123456789"
-			android:defaultValue="5" />
+			android:defaultValue="5"
+			app:useSimpleSummaryProvider="true" />
 	</PreferenceCategory>
 </PreferenceScreen>
-
-
-<!-- For future reference:
-PreferenceCategory android:title="Notifications">
-		<SwitchPreference 
-            android:title="Notifications"
-            android:summary="Get notifications when you receive messages"
-            android:key="notifications"
-            android:defaultValue="true" />
-	</PreferenceCategory -->

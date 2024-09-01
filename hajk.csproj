@@ -72,7 +72,7 @@
     <PackageReference Include="Mapsui.Extensions" Version="4.1.7" />
     <PackageReference Include="Mapsui.Nts" Version="4.1.7" />
     <PackageReference Include="Microcharts.Android" Version="1.0.0-preview1" />
-    <PackageReference Include="Microsoft.Maui.Essentials" Version="8.0.80" />
+    <PackageReference Include="Microsoft.Maui.Essentials" Version="8.0.82" />
     <PackageReference Include="Serilog" Version="4.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.Xamarin" Version="1.0.0" />

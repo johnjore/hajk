@@ -18,6 +18,7 @@ using Mapsui.Styles;
 using Mapsui.Utilities;
 using Mapsui;
 using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Storage;
 using Serilog;
 using SharpGPX;
 using System.Collections.Generic;
@@ -326,6 +327,16 @@ namespace hajk.Adapter
                             case var value when value == Resource.Id.gpx_menu_saveofflinemap:
                                 Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text} / {vh.Id}'");
                                 //Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
+
+                                //If using OSM, cancel out here
+                                string TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
+                                if (TileBulkDownloadSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    Log.Warning("Can't use OSM as a bulkdownload server");
+                                    Toast.MakeText(parent.Context, "Can't use OpenStreetMap Server for bulk downloading.", ToastLength.Long).Show();
+                                    
+                                    return;
+                                }
 
                                 //Clear existing GPX routes from map, else they will be included
                                 Utils.Misc.ClearTrackRoutesFromMap();

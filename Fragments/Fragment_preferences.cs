@@ -1,16 +1,25 @@
 ﻿using Android.App;
+using Android.Content;
 using Android.OS;
 using Android.Views;
 using AndroidX.Preference;
 using System.Globalization;
 using Serilog;
 using hajk.Fragments;
+using hajk.Models.MapSource;
+using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
+using Google.Android.Material.FloatingActionButton;
+using System.Diagnostics;
+using AndroidX.Fragment.App;
+using Android.Widget;
+using Java.Lang;
+using Google.Android.Material.TextField;
 
 namespace hajk
 {
     [Activity(Label = "preferences")]
-    public class Fragment_Preferences : PreferenceFragmentCompat
+    public class Fragment_Preferences : PreferenceFragmentCompat, ISharedPreferencesOnSharedPreferenceChangeListener
     {
         //Misc
         public const string Fragment_Map = "Fragment_Map";
@@ -43,7 +52,7 @@ namespace hajk
         public const int LocationDistance = 0;                          //Minimum distance for new LocationData
         public readonly static bool RecordingTrack = false;             //True when recording a Track
         public readonly static bool TrackLocation = false;              //True when map is continiously moved to center on our location
-        public readonly static int OfflineMaxAge = 90;                  //Don't refresh tiles until this threashhold in days        
+        public readonly static int OfflineMaxAge = 90;                  //Don't refresh tiles until this threashhold in days
 
         //Location Service
         public const int SERVICE_RUNNING_NOTIFICATION_ID = 11000;
@@ -56,11 +65,85 @@ namespace hajk
         public const string ACTION_STOP_SERVICE = "walkabout.action.STOP_SERVICE";
         public const string ACTION_MAIN_ACTIVITY = "walkabout.action.MAIN_ACTIVITY";
 
+        //Tile / MapSources
+        public const string TileBulkDownloadSource = "OpenStreetMap";   //Default Tile Server for Bulk Dowloads
+        public const string TileBrowseSource = "OpenStreetMap";         //Default Tile Server for Browsing
+
+        public static List<MapSource> MapSources = [
+            new MapSource("OpenStreetMap", @"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", ""),
+            new MapSource("Mapbox", @"https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=", "MapBoxToken"),
+            new MapSource("Thunderforest", @"https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=", "ThunderforestToken"),
+            new MapSource("Custom", "CustomServerURL", "CustomToken"),
+        ];
+
         public override void OnCreatePreferences(Bundle? savedInstanceState, string? rootKey)
         {
+            //Load Preference layout
             SetPreferencesFromResource(Resource.Xml.Preferences, rootKey);
+
+            //Populate the ListPreference's
+            CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source)));
+            CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source)));
+
+            //Hide FloatingActionButton
+            Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
+
+            //Create callback for when a setting is changed
+            PreferenceManager.GetDefaultSharedPreferences(Platform.AppContext)?.RegisterOnSharedPreferenceChangeListener(this);
         }
-        
+
+        private static void CreateArrayList(ListPreference? lp)
+        {
+            if (lp == null)
+            {
+                return;
+            }
+
+            string[] entries = MapSources.Select(x => x.Name).ToArray();
+
+            lp.SetEntries(entries);
+            lp.SetEntryValues(entries);
+            lp.SetDefaultValue(MapSources[0].Name);
+
+            /*
+            //Using app:useSimpleSummaryProvider="true" instead
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
+            if (prefs != null && prefs.Contains(lp.DialogTitle))
+            {
+                lp.Summary = prefs.GetString(lp.DialogTitle, MapSources[0].Name);
+            }
+            */
+        }
+
+
+        public void OnSharedPreferenceChanged(ISharedPreferences? prefs, string? key)
+        {
+            if (prefs == null || key == null)
+            {
+                return;
+            }
+
+            //Using app:useSimpleSummaryProvider="true" instead
+            /*
+            Preference? pref = FindPreference(key);
+
+            if (pref is ListPreference)
+            {
+                ListPreference listPref = (ListPreference)pref;
+                listPref.Summary = listPref.Entry;
+            }
+            else if (pref is EditTextPreference)
+            {
+                EditTextPreference editTextPref = (EditTextPreference)pref;
+
+                if (prefs.Contains(key))
+                {
+                    editTextPref.Summary = prefs.GetString(key, "");
+                }
+            }
+            */
+        }
+
         public override void OnDestroy()
         {
             //
@@ -71,6 +154,9 @@ namespace hajk
             }
             Fragment_map.map.Navigator.RotationLock = LockMapRotation;
             Log.Verbose($"Set map rotation (lock or not):" + LockMapRotation.ToString());
+
+            //Show FloatingActionButton
+            Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
 
             base.OnDestroy();
         }

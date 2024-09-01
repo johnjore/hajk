@@ -56,24 +56,20 @@
   <string name="MapExportCompleted">Map export completed"</string>
   <string name="TrackRecordings">Track Recordings</string>
   <string name="TrackRecordingsDescription">Show Recorded Track</string>
-  <string name="UpdateGPSLocation">Update GPS Location</string>
-  <string name="HowFrequentlyDoesGPSLocationUpdate">How frequently does GPS location update (seconds)</string>
-  <string name="TrackRecording">Track Recording</string>
-  <string name="HowFrequentlyTrackRecording">How frequently does Track recording save current postion (seconds)</string>
+  <string name="UpdateGPSLocation">Update GPS Location (seconds)</string>
+  <string name="TrackRecording">Track Recording (seconds)</string>
   <string name="EnableOffrouteWarning">Enable Off-Route Warning</string>
   <string name="EnableOffrouteWarningDescription">Vibrate phone when off-route</string>
-  <string name="OffRouteNotification">Off-Route Notification</string>
-  <string name="OffRouteNotificationDescription">Vibrate phone when more than n meters from route (meters)</string>
-  <string name="OffRouteNotification_s">Off-Route Notification</string>
-  <string name="OffRouteNotification_sDescription">How often to check if OffRoute (seconds)"</string>
-  <string name="OffRouteSnooze_m">Off-Route Alert Snooze</string>
-  <string name="OffRouteSnooze_mDescription">How long to snooze Alert when OffRoute (minutes)</string>
-  <string name="OffRouteAlarm">Off-Route Alarm</string>
+  <string name="OffRouteNotification">Vibrate every n seconds</string>
+  <string name="OffRouteNotification_s">Alert every n seconds</string>
+  <string name="OffRouteSnooze_m">Alert Snooze (minutes)</string>
+  <string name="OffRouteAlarm">Alarm</string>
   <string name="IgnoreAlarmFor">Ignore alarm for</string>
   <string name="Minutes">Minutes</string>
   <string name="MapTilesImported">Map tiles imported</string>
   <string name="Ascent">Ascent</string>
   <string name="Descent">Descent</string>
+  <string name="Hidden">Hidden</string>
   <string name="DisplayPOI">Display POIs</string>
   <string name="DisplayPOIDescription">Display POIs on Map</string>
   <string name="DisplayTracks">Show Tracks</string>
@@ -96,9 +92,28 @@
   <string name="MapLockNorthDescription">Disable rotation of map</string>
   <string name="RestoreActivitys">Restore Activities</string>
   <string name="ActivitiesImported">Activities imported"</string>
-  <string name="OSMServerTitle">OSM Server</string>
-  <string name="OSMServerDescription">URL of OSM Server</string>
-  <string name="OSMServerDefault">"https://cloudstorage.jore.no/tile/"</string>
   <string name="AddRogainingPOI">"Add Rogaining POI"</string>
-  <string name="ExportRogainingPOI">"Export Rogaining POI"</string>  
+  <string name="ExportRogainingPOI">"Export Rogaining POI"</string>
+
+  <!-- Map Tile provider Start -->
+    <string name="MapTileSources">"Map Tile Sources"</string>
+    <string name="OSM_Browse_Source">"Tile Browsing Source"</string>
+    <string name="OSM_BulkDownload_Source">"Tile Bulk Download Source"</string>
+
+    <!-- Mapbox -->
+    <string name="MapboxTokenTitle">Mapbox Token</string>
+    <string name="MapboxToken">MapboxToken</string>
+
+    <!-- Thunderforest -->
+    <string name="ThunderforestTokenTitle">Thunderforest Token</string>
+    <string name="ThunderforestToken">ThunderforestToken</string>
+
+    <!-- Custom -->
+    <string name="CustomServerTitle">Custom Tile Server</string>
+    <string name="CustomServerHint">https://servername.domain.com/tile/{z}/{x}/{y}.png</string>
+    <string name="CustomServerURL">"CustomServerURL"</string>
+    <string name="CustomTokenTitle">Custom Token</string>
+    <string name="CustomToken">CustomToken</string>
+  <!-- Map Tile provider End -->
+  
 </resources>

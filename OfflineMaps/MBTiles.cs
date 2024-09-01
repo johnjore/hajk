@@ -210,6 +210,7 @@ namespace hajk
                 foreach (tiles maptile in query)
                 {
                     Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+                    /**/
                     //MbTileCache.sqlConn.Delete(maptile);
                 }
             }
@@ -217,7 +218,33 @@ namespace hajk
 
         public static async void RefreshOldTiles()
         {
-            string OSMServer = Preferences.Get("OSMServer", Platform.CurrentActivity?.GetString(Resource.String.OSMServerDefault));
+            string OSMServer = string.Empty;
+            string TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
+
+            var MapSource = Fragment_Preferences.MapSources.Where(x => x.Name.Equals(TileBulkDownloadSource, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            if (MapSource == null) 
+            {
+                Serilog.Log.Error("No MapSource defined");
+                return;
+            }
+                
+            if (TileBulkDownloadSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
+            {
+                Serilog.Log.Error("Can't use OSM as a bulkdownload server");
+                return;
+            }
+            else if (TileBulkDownloadSource.Equals("Custom", StringComparison.OrdinalIgnoreCase))
+            {
+                var url = Preferences.Get(MapSource.BaseURL, "");
+                var token = Preferences.Get(MapSource.Token, "");
+
+                OSMServer = url + token;
+            }
+            else //Mapbox || Thunderforest
+            {
+                var token = Preferences.Get(MapSource.Token, "");
+                OSMServer = MapSource.BaseURL + token;
+            }
 
             var query = MbTileCache.sqlConn.Table<tiles>().Where(x => (DateTime.UtcNow - x.createDate).TotalDays > Fragment_Preferences.OfflineMaxAge);
             Log.Debug($"Query Count: " + query.Count().ToString());
