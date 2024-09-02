@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SQLite;
 using static hajk.TileCache;
+using Microsoft.Maui.Networking;
 
 namespace hajk
 {
@@ -131,7 +132,18 @@ namespace hajk
             else //Mapbox || Thunderforst
             {
                 var token = Preferences.Get(MapSource.Token, "");
-                OSMServer = MapSource.BaseURL + token;
+
+                if (token == string.Empty || token == "")
+                {
+                    Show_Dialog msg = new Show_Dialog(Platform.CurrentActivity);
+                    var a = $"{TileBulkDownloadSource} requires the token to be set";
+                    await msg.ShowDialog($"Token Required", a, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.CANCEL, Show_Dialog.MessageResult.NONE);
+
+                    return;
+                }
+
+
+                //OSMServer = MapSource.BaseURL + token;
             }
 
             try

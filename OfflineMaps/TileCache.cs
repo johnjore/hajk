@@ -64,6 +64,18 @@ namespace hajk
                 {
                     var token = Preferences.Get(MapSource.Token, "");
 
+                    if (token == string.Empty || token == "")
+                    {
+                        Show_Dialog msg = new Show_Dialog(Platform.CurrentActivity);
+
+                        var a = $"{TileBrowseSource} requires the token to be set";
+                        msg.ShowDialog($"Token Required", a, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.CANCEL, Show_Dialog.MessageResult.NONE);
+
+                        return null;
+                    }
+
+
+
                     src = new(new GlobalSphericalMercator(Fragment_Preferences.MinZoom, Fragment_Preferences.MaxZoom),
                         MapSource.BaseURL + token,
                         name: MapSource.Name,

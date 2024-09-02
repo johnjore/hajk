@@ -243,6 +243,16 @@ namespace hajk
             else //Mapbox || Thunderforest
             {
                 var token = Preferences.Get(MapSource.Token, "");
+
+                if (token == string.Empty || token == "")
+                {
+                    Show_Dialog msg = new Show_Dialog(Platform.CurrentActivity);
+                    var a = $"{TileBulkDownloadSource} requires the token to be set";
+                    await msg.ShowDialog($"Token Required", a, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.CANCEL, Show_Dialog.MessageResult.NONE);
+
+                    return;
+                }
+
                 OSMServer = MapSource.BaseURL + token;
             }
 
