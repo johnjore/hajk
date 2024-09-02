@@ -36,7 +36,7 @@ namespace hajk.Fragments
 {
     public class Fragment_posinfo : AndroidX.Fragment.App.Fragment
     {
-        public override void OnCreate(Bundle savedInstanceState)
+        public override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
         }

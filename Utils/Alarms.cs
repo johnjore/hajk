@@ -45,7 +45,7 @@ namespace hajk.Utilities
         [BroadcastReceiver]
         public class AlarmReceiver : BroadcastReceiver
         {
-            public override void OnReceive(Context context, Intent intent)
+            public override void OnReceive(Context? context, Intent? intent)
             {
                 Serilog.Log.Debug("Alarm going Off: " + (DateTime.Now).ToString("HH:mm:ss") + "  -----------------------------------------------------------------------------------------------------------------");
                 Android.Locations.Location? GpsLocation = LocationForegroundService.GetLocation();
@@ -125,7 +125,7 @@ namespace hajk.Utilities
                 _callback = callback;
             }
 
-            public void Accept(Java.Lang.Object location)
+            public void Accept(Java.Lang.Object? location)
             {
 //                Microsoft.Maui.Devices.Sensors.Location gpslocation = (Microsoft.Maui.Devices.Sensors.Location)location;
                 if (location != null)

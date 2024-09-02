@@ -25,7 +25,7 @@ namespace GeoTiffCOG
 
         public static void SaveRaster(MetaDataRaster metaDataRaster, string fileOutput, RasterOutputType outputType)
         {
-            string directory = Path.GetDirectoryName(fileOutput);
+            string? directory = Path.GetDirectoryName(fileOutput);
             if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
             switch (outputType)

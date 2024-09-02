@@ -86,11 +86,11 @@ namespace hajk.Adapter
 
         }
 
-        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
+        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup? parent, int viewType)
         {
             try
             {
-                View itemView = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.activity_gpx, parent, false);
+                View? itemView = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.activity_gpx, parent, false);
                 GPXViewHolder vh = new(itemView, OnClick);
 
                 vh.Img_more.Click += (o, e) =>
@@ -142,7 +142,7 @@ namespace hajk.Adapter
                                 Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min_1.x, min_1.y, max_1.x, max_1.y), MBoxFit.Fit);
 
                                 //Switch to map
-                                ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_Map, (FragmentActivity)parent.Context);
+                                ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_Map, (FragmentActivity)parent?.Context);
 
                                 //Save Route for off-route detection
                                 MainActivity.ActiveRoute = gpx;
@@ -329,7 +329,7 @@ namespace hajk.Adapter
                                 //Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
 
                                 //If using OSM, cancel out here
-                                string TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
+                                string? TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
                                 if (TileBulkDownloadSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
                                 {
                                     Log.Warning("Can't use OSM as a bulkdownload server");

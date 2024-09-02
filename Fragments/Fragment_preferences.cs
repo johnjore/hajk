@@ -10,11 +10,6 @@ using hajk.Models.MapSource;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
 using Google.Android.Material.FloatingActionButton;
-using System.Diagnostics;
-using AndroidX.Fragment.App;
-using Android.Widget;
-using Java.Lang;
-using Google.Android.Material.TextField;
 
 namespace hajk
 {
@@ -85,6 +80,12 @@ namespace hajk
             CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source)));
             CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source)));
 
+            //Set Summary to "Not Set" or "Hidden" for sensitive fields
+            SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.MapboxToken)));
+            SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.ThunderforestToken)));
+            SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.CustomServerURL)));
+            SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.CustomToken)));
+
             //Hide FloatingActionButton
             Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
 
@@ -115,6 +116,23 @@ namespace hajk
             */
         }
 
+        private static void SetSummary(EditTextPreference? etp)
+        {
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
+            if (prefs == null || etp == null)
+            {
+                return;
+            }
+            
+            if (etp.Text == string.Empty || etp.Text == "")
+            {
+                etp.Summary = Platform.CurrentActivity?.GetString(Resource.String.NotSet);
+            }
+            else
+            {
+                etp.Summary = Platform.CurrentActivity?.GetString(Resource.String.Hidden);
+            }
+        }
 
         public void OnSharedPreferenceChanged(ISharedPreferences? prefs, string? key)
         {
@@ -123,25 +141,31 @@ namespace hajk
                 return;
             }
 
-            //Using app:useSimpleSummaryProvider="true" instead
-            /*
             Preference? pref = FindPreference(key);
 
-            if (pref is ListPreference)
+            /*if (pref is ListPreference)
             {
                 ListPreference listPref = (ListPreference)pref;
                 listPref.Summary = listPref.Entry;
-            }
-            else if (pref is EditTextPreference)
+            }*/
+            if (pref is EditTextPreference)
             {
                 EditTextPreference editTextPref = (EditTextPreference)pref;
 
-                if (prefs.Contains(key))
+                if (prefs.Contains(key) && key.Contains("Token") || key.Contains("CustomServerURL"))
                 {
-                    editTextPref.Summary = prefs.GetString(key, "");
+                    var preference_setting = prefs.GetString(key, "");
+                    if (preference_setting == string.Empty || preference_setting == "")
+                    {
+                        editTextPref.Summary = Platform.CurrentActivity?.GetString(Resource.String.NotSet);
+                    }
+                    else 
+                    {
+                        editTextPref.Summary = Platform.CurrentActivity?.GetString(Resource.String.Hidden);
+                    }
                 }
             }
-            */
+
         }
 
         public override void OnDestroy()

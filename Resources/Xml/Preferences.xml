@@ -5,21 +5,21 @@
 	
   <PreferenceCategory android:title="@string/MapTileSources">
     <ListPreference
-			android:key="@string/OSM_Browse_Source"
-      android:title="@string/OSM_Browse_Source"
-			app:useSimpleSummaryProvider="true" />
+		android:key="@string/OSM_Browse_Source"
+		android:title="@string/OSM_Browse_Source"
+		app:useSimpleSummaryProvider="true" />
 
-    <ListPreference
-			android:key="@string/OSM_BulkDownload_Source"
-      android:title="@string/OSM_BulkDownload_Source"
-			app:useSimpleSummaryProvider="true" />
+	<ListPreference
+		android:key="@string/OSM_BulkDownload_Source"
+		android:title="@string/OSM_BulkDownload_Source"
+		app:useSimpleSummaryProvider="true" />
 
     <EditTextPreference
-			android:title="@string/MapboxTokenTitle"
-			android:key="@string/MapboxToken"
-			android:inputType="textPassword"
-			android:summary="@string/Hidden"
-			app:useSimpleSummaryProvider="false" />
+		android:title="@string/MapboxTokenTitle"
+		android:key="@string/MapboxToken"
+		android:inputType="textPassword"
+		android:summary="@string/Hidden"
+		app:useSimpleSummaryProvider="false" />
 
     <EditTextPreference
 			android:title="@string/ThunderforestTokenTitle"

@@ -70,6 +70,7 @@
   <string name="Ascent">Ascent</string>
   <string name="Descent">Descent</string>
   <string name="Hidden">Hidden</string>
+  <string name="NotSet">Not Set</string>
   <string name="DisplayPOI">Display POIs</string>
   <string name="DisplayPOIDescription">Display POIs on Map</string>
   <string name="DisplayTracks">Show Tracks</string>

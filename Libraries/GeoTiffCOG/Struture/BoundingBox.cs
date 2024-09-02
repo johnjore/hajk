@@ -203,9 +203,13 @@ namespace GeoTiffCOG.Struture
                 , xMin, xMax, yMin, yMax, zMin, zMax, Center[0], Center[1], Center[2]);
         }
 
-        public bool Equals(BoundingBox other)
+        public bool Equals(BoundingBox? other)
         {
-            if (other == null) return false;
+            if (other is null || other == null)
+            {
+                return false;
+            }
+
             return xMin == other.xMin
                     && xMax == other.xMax
                     && yMin == other.yMin
