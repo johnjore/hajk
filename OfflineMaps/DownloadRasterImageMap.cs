@@ -142,8 +142,7 @@ namespace hajk
                     return;
                 }
 
-
-                //OSMServer = MapSource.BaseURL + token;
+                OSMServer = MapSource.BaseURL + token;
             }
 
             try

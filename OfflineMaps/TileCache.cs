@@ -74,8 +74,6 @@ namespace hajk
                         return null;
                     }
 
-
-
                     src = new(new GlobalSphericalMercator(Fragment_Preferences.MinZoom, Fragment_Preferences.MaxZoom),
                         MapSource.BaseURL + token,
                         name: MapSource.Name,
