@@ -14,6 +14,8 @@ using BitMiracle.LibTiff.Classic;
 using Mapsui.Projections;
 using Microsoft.Maui.Storage;
 using GeoTiffCOG;
+using Org.W3c.Dom.LS;
+using Android.Util;
 
 namespace hajk
 {
@@ -21,6 +23,19 @@ namespace hajk
     {
         public static void GetElevationData(GpxClass gpx)
         {
+            string GeoTiffFolder = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/";
+
+            //Make sure GeoTiffFolder exists 
+            string? directory = Path.GetDirectoryName(GeoTiffFolder);
+            if (!Directory.Exists(GeoTiffFolder)) Directory.CreateDirectory(GeoTiffFolder);
+
+            //Contents
+            Serilog.Log.Error("Files in GeoTiff Folder");
+            var a = Directory.GetFiles(GeoTiffFolder);
+            foreach (string fileName in a)
+                Serilog.Log.Error(fileName);
+
+
             try
             {
                 //Range of tiles
@@ -30,20 +45,17 @@ namespace hajk
                 List<string>? FileNames = DownloadElevationTiles(tiles);
 
                 //Test data
-                FileNames?.Add(Fragment_Preferences.rootPath + "/" + "14-14796-10082.tif");
-                FileNames?.Add(Fragment_Preferences.rootPath + "/" + "14-14795-10082.tif");
-                FileNames?.Add(Fragment_Preferences.rootPath + "/" + "14-14796-10081.tif");
-                FileNames?.Add(Fragment_Preferences.rootPath + "/" + "14-14795-10081.tif");
-                FileNames?.Add(Fragment_Preferences.rootPath + "/" + "14-14796-10080.tif");
-                FileNames?.Add(Fragment_Preferences.rootPath + "/" + "14-14795-10080.tif");
+                FileNames?.Add(GeoTiffFolder + "14-14796-10082.tif");
+                FileNames?.Add(GeoTiffFolder + "14-14795-10082.tif");
+                FileNames?.Add(GeoTiffFolder + "14-14796-10081.tif");
+                FileNames?.Add(GeoTiffFolder + "14-14795-10081.tif");
+                FileNames?.Add(GeoTiffFolder + "14-14796-10080.tif");
+                FileNames?.Add(GeoTiffFolder + "14-14795-10080.tif");
 
                 if (FileNames == null || FileNames?.Count == 0)
                 {
                     return;
                 }
-
-                //Merge to single tile
-                MergeElevationTiles(FileNames);
 
                 //Convert Lat/Lon to Mercator
                 float lat = -37.56364f;
@@ -53,7 +65,7 @@ namespace hajk
 
                 try
                 {
-                    GeoTiff geoTiff = new GeoTiff(Fragment_Preferences.rootPath + "/" + "14-14763-10061.tif");
+                    GeoTiff geoTiff = new GeoTiff(GeoTiffFolder + "14-14763-10061.tif");
                     double value = geoTiff.GetElevationAtLatLon(y, x);
                     Serilog.Log.Information($"Elevaton at lat:{lat:N3}, lon:{lon:N3} is '{value}' meters");
                 }
@@ -70,88 +82,6 @@ namespace hajk
             return;
         }
 
-        private static void MergeElevationTiles(List<string>? FileNames)
-        {
-            if (FileNames == null)
-            {
-                return;
-            }
-
-            try
-            {
-                //var files = new List<byte[]>();
-                foreach (var file in FileNames)
-                {
-                    using (Tiff image = Tiff.Open(file, "r"))
-                    {
-                        if (image == null)
-                        {
-                            Serilog.Log.Error("Could not open incoming image");
-                            return;
-                        }
-
-                        // Check that it is of a type that we support
-                        FieldValue[] value = image.GetField(TiffTag.BITSPERSAMPLE);
-                        if (value == null)
-                        {
-                            Serilog.Log.Error("Undefined number of bits per sample");
-                            return;
-                        }
-
-                        short bps = value[0].ToShort();
-                        /*if (bps != 1)
-                        {
-                            Serilog.Log.Error("Unsupported number of bits per sample");
-                            return;
-                        }*/
-
-                        value = image.GetField(TiffTag.SAMPLESPERPIXEL);
-                        if (value == null)
-                        {
-                            Serilog.Log.Error("Undefined number of samples per pixel");
-                            return;
-                        }
-
-                        short spp = value[0].ToShort();
-                        if (spp != 1)
-                        {
-                            Serilog.Log.Error("Unsupported number of samples per pixel");
-                            return;
-                        }
-
-                        // Read in the possibly multiple strips
-                        int stripSize = image.StripSize();
-                        int stripMax = image.NumberOfStrips();
-                        Serilog.Log.Information($"stripSize: {stripSize}. stripMax: {stripMax}");
-
-                        //Tiff image = Tiff.Open(file, "r"))
-                        image.Close();
-                    }
-
-                    //files.Add(File.ReadAllBytes(file));
-                }
-
-                /*
-                var tif = Tiff.Open(@"file", "r");
-                var num = tif.NumberOfDirectories();
-                for (short i = 0; i < num; i++)
-                {
-                    //set current page
-                    tif.SetDirectory(i);
-
-                    Bitmap bmp = GetBitmapFormTiff(tif);
-                    bmp.Save(string.Format(@"newfile{0}.bmp", i));
-                }*/
-
-                //var targetFileData = TiffHelper.MergeTiff(files.ToArray());
-                //File.WriteAllBytes(MainActivity.rootPath + "/" + ElevationData, targetFileData);
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, $"COGGeoTIFF - MergeElevationTiles()");
-            }
-        }
-
         private static List<string>? DownloadElevationTiles(AwesomeTiles.TileRange range)
         {
             List<string> FileNames = [];
@@ -162,7 +92,7 @@ namespace hajk
 
                 foreach (var tile in range)
                 {
-                    var LocalFileName = Fragment_Preferences.rootPath + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
+                    var LocalFileName = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
 
                     if (Downloaded(LocalFileName) == false)
                     {
@@ -171,6 +101,7 @@ namespace hajk
                         {
                             var url = COGGeoTiffServer + $"{tile.Zoom}/{tile.X}/{tile.Y}.tif";
                             data = DownloadImageAsync(url);
+
                             if (data != null)
                                 break;
 
@@ -193,15 +124,16 @@ namespace hajk
             }
         }
 
-        private static void WriteCOGGeoTiff(string imageUrl, byte[]? data)
+        private static void WriteCOGGeoTiff(string? imageUrl, byte[]? data)
         {
-            if (data == null)
+            if (data == null || imageUrl == null)
             {
                 return;
             }
 
             try
             {
+                Serilog.Log.Information("Saving: ${ImageUrl}");
                 System.IO.File.WriteAllBytes(imageUrl, data);
             }
             catch (Exception ex)

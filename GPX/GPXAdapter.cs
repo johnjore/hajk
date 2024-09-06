@@ -366,6 +366,9 @@ namespace hajk.Adapter
                                 route_to_download.ImageBase64String = ImageBase64String;
                                 RouteDatabase.SaveRouteAsync(route_to_download).Wait();
 
+                                //Elevation data
+                                Elevation.GetElevationData(gpx_to_download);
+
                                 //Update RecycleView with new entry
                                 vh.TrackRouteMap.SetImageResource(0);
                                 if (ImageBase64String != null)

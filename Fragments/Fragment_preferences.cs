@@ -40,6 +40,7 @@ namespace hajk
         public const string RouteDB = "Routes.db3";                     //Database to store all routes
         public const string CacheDB = "CacheDB.mbtiles";                //Database to store offline tiles
         public const string logFile = "walkabout_.txt";                 //Log file
+        public const string GeoTiffFolder = "GeoTiff";                  //Folder for all GeoTiff Files
         public readonly static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
         public const int MinZoom = 0;                                   //MinZoom level to use
         public const int MaxZoom = 16;                                  //MaxZoom level to use
