@@ -46,8 +46,8 @@ namespace hajk
                 MergeElevationTiles(FileNames);
 
                 //Convert Lat/Lon to Mercator
-                float lat = -37.94607f;
-                float lon = 144.40093f;
+                float lat = -37.56364f;
+                float lon = 144.37729f;
                 var (x, y) = SphericalMercator.FromLonLat((double)lon, (double)lat);
                 Serilog.Log.Debug($"Mercator, X:{x}, Y:{y}");
 

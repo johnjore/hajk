@@ -603,7 +603,7 @@ namespace hajk
             
             DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             drawer?.CloseDrawer(GravityCompat.Start);
-            drawer.Invalidate();
+            drawer?.Invalidate();
             return true;
         }
     }

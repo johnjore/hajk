@@ -124,7 +124,7 @@ namespace hajk
                 return;
             }
             
-            if (etp.Text == string.Empty || etp.Text == "")
+            if (etp.Text == null || etp.Text == string.Empty || etp.Text == "")
             {
                 etp.Summary = Platform.CurrentActivity?.GetString(Resource.String.NotSet);
             }
