@@ -53,11 +53,6 @@ namespace hajk
 {
     public class Import
     {
-        /**///Why do we need this as global variables
-        public static Android.App.Dialog? dialog = null;
-        public static int progress = 0;
-        public static Google.Android.Material.TextView.MaterialTextView? progressBarText2 = null;
-
         public static void ImportGPX()
         {
             Task.Run(() =>
@@ -424,34 +419,11 @@ namespace hajk
             return null;
         }
 
-        public static async void GetloadOfflineMap(boundsType bounds, int id, string strFilePath, bool ShowDialog)
+        public static async Task GetloadOfflineMap(boundsType bounds, int id, string strFilePath, bool ShowDialog)
         {
-            //Progress bar
-            LayoutInflater? layoutInflater = LayoutInflater.From(Platform.CurrentActivity);
-            Android.Views.View? progressDialogBox = layoutInflater?.Inflate(Resource.Layout.progressbardialog, null);
-            AndroidX.AppCompat.App.AlertDialog.Builder alertDialogBuilder = new (Platform.CurrentActivity);
-            alertDialogBuilder.SetView(progressDialogBox);
-            Android.Widget.ProgressBar progressBar = progressDialogBox?.FindViewById<Android.Widget.ProgressBar>(Resource.Id.progressBar);
-            if (progressBar != null)
-            {
-                progressBar.Max = 100;
-                progressBar.Progress = 0;
-            }
-            var progressBarText1 = progressDialogBox?.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText1);
-            if (progressBarText1 != null)
-            {
-                progressBarText1.Text = $"{Platform.CurrentActivity.GetString(Resource.String.DownloadTiles)}";
-            }
-            progressBarText2 = progressDialogBox.FindViewById<Google.Android.Material.TextView.MaterialTextView>(Resource.Id.progressBarText2);
-            dialog = alertDialogBuilder.Create();
-            dialog.SetCancelable(false);
-            dialog.Show();
-            UpdatePB uptask = new UpdatePB(progressBar);
-            uptask?.Execute(0);
-
             try
             {
-                Models.Map map = new Models.Map
+                Models.Map map = new()
                 {
                     Id = id,
                     ZoomMin = Fragment_Preferences.MinZoom,
@@ -1136,30 +1108,6 @@ namespace hajk
                 Outline = null,
                 Line = { Color = Mapsui.Styles.Color.FromString(colour), Width = 4, PenStyle = PenStyle.Solid }
             };
-        }
-
-        public class UpdatePB : AsyncTask<int, int, string>
-        {
-            readonly Android.Widget.ProgressBar mpb;
-
-            public UpdatePB(Android.Widget.ProgressBar pb)
-            {
-                this.mpb = pb;
-            }
-
-            protected override string RunInBackground(params int[] @params)
-            {
-                if (OperatingSystem.IsAndroidVersionAtLeast(24))
-                {
-                    while (progress < 100)
-                    {
-                        mpb.SetProgress(progress, false);
-                    }
-                }
-
-                Import.dialog?.Cancel();
-                return "finish";
-            }
         }
     }
 }

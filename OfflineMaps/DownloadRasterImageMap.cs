@@ -22,31 +22,36 @@ namespace hajk
 {
     class DownloadRasterImageMap
     {
-        static int done = 0;
-        static int missingTilesCount = 0;
-        static int totalTilesCount = 0;
+        private static int doneCount = 0;
+        private static int missingTilesCount = 0;
+        private static int totalTilesCount = 0;
 
         public static async Task DownloadMap(Models.Map map, bool ShowDialog)
         {
             try
             {
                 //Reset counters for download
-                done = 0;
+                doneCount = 0;
                 missingTilesCount = 0;
                 totalTilesCount = 0;
 
-                await Task.Run(() =>
-                {
-                    for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
-                    {
-                        AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
-                        (int TotalTiles, int MissingTiles) = CountTiles(tiles, zoom);
-                        totalTilesCount += TotalTiles;
-                        missingTilesCount += MissingTiles;
-                        Log.Information($"Need to download '{MissingTiles}' tiles for zoom level '{zoom}', total to download '{missingTilesCount}'");
-                    }
-                });
+                //Progress bar
+                Progressbar.UpdateProgressBar.CreateGUI(Platform.CurrentActivity.GetString(Resource.String.DownloadTiles));
+                Progressbar.UpdateProgressBar.Progress = 0;
+                Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount} - ({missingTilesCount})";
 
+                //Count required tiles to download
+                for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
+                {
+                    AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
+                    (int TotalTiles, int MissingTiles) = CountTiles(tiles, zoom);
+                    totalTilesCount += TotalTiles;
+                    missingTilesCount += MissingTiles;
+                    Progressbar.UpdateProgressBar.Progress = zoom - map.ZoomMin+1;
+                    Log.Information($"Need to download '{MissingTiles}' tiles for zoom level '{zoom}', total to download '{missingTilesCount}'");
+                }
+
+                //Download  missing tiles
                 for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
                 {
                     AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
@@ -60,16 +65,14 @@ namespace hajk
                     }
                 }
 
-                Import.progress = 999;
+                Progressbar.UpdateProgressBar.Progress = 100;
                 Log.Verbose($"Done downloading map for {map.Id}");
 
                 if (ShowDialog)
                 {
                     Show_Dialog msg3 = new(Platform.CurrentActivity);
                     await msg3.ShowDialog($"Done", $"Map Download Completed", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
-                }
-
-                Import.progress = 0;
+                }               
             }
             catch (Exception ex)
             {
@@ -148,14 +151,6 @@ namespace hajk
             {
                 await range.ParallelForEachAsync(async tile =>
                 {
-                    //Update Progressbar
-                    Import.progress = (int)Math.Floor((decimal)done * 100 / inttotalTiles);
-
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        Import.progressBarText2.Text = $"{done} of {inttotalTiles} - ({intmissingTiles})";
-                    });
-
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
                     tiles newTile = new();
 
@@ -218,9 +213,6 @@ namespace hajk
                         }
                     }
 
-                    //Update progress counter as the tile is processed, even if unsuccessful
-                    ++done;
-
                     //If no blob, exit here
                     if (newTile.tile_data == null)
                     {
@@ -254,14 +246,21 @@ namespace hajk
                     }
                     else
                     {
-                        Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{done}/{missingTilesCount}");
+                        Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{doneCount}/{missingTilesCount}");
                     }
+
+                    //Update progress counter as the tile is processed, even if unsuccessful
+                    Progressbar.UpdateProgressBar.Progress = (int)Math.Ceiling((100 - Fragment_Preferences.MaxZoom) / (inttotalTiles) * (decimal)++doneCount + Fragment_Preferences.MaxZoom);
+                    Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {inttotalTiles} - ({intmissingTiles})";
                 });
             }
             catch (Exception ex)
             {
                 Log.Error(ex, $"DownloadRasterImageMap - DownloadTiles()");
             }
+
+            //Clear the progressbar
+            Progressbar.UpdateProgressBar.Progress = 100;
         }
 
         public static async Task<byte[]> DownloadImageAsync(string imageUrl)

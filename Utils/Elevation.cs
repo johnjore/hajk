@@ -156,10 +156,6 @@ namespace hajk
                                     Serilog.Log.Information($"Failed to download Elevation Tile: x/y: {tile.X}/{tile.Y}, ID: {tile.Id} on attempt '{i}'");
                                 }
                             }
-
-                            //Update progress bar
-                            Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / intMissingtiles);
-                            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {intMissingtiles}";
                         }
                     };
                 });               

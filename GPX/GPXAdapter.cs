@@ -326,7 +326,6 @@ namespace hajk.Adapter
                                 break;
                             case var value when value == Resource.Id.gpx_menu_saveofflinemap:
                                 Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text} / {vh.Id}'");
-                                //Toast.MakeText(parent.Context, "save offline map " + vh.AdapterPosition.ToString(), ToastLength.Short).Show();
 
                                 //If using OSM, cancel out here
                                 string? TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
@@ -337,7 +336,7 @@ namespace hajk.Adapter
                                     
                                     return;
                                 }
-
+                                                                
                                 //Clear existing GPX routes from map, else they will be included
                                 Utils.Misc.ClearTrackRoutesFromMap();
 
@@ -347,7 +346,7 @@ namespace hajk.Adapter
                                 string mapRouteGPX = string.Empty;
                                 if (vh.GPXType == GPXType.Track)
                                 {
-                                    Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null, true);
+                                    await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null, true);
 
                                     mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0], false).Item1;
                                     Import.AddRouteToMap(mapRouteGPX, GPXType.Track, true);
@@ -355,7 +354,7 @@ namespace hajk.Adapter
 
                                 if (vh.GPXType == GPXType.Route)
                                 {
-                                    Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null, false);
+                                    await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null, false);
 
                                     mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Routes[0], false).Item1;
                                     Import.AddRouteToMap(mapRouteGPX, GPXType.Route, true);
