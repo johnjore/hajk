@@ -117,7 +117,7 @@ namespace hajk
             int doneCount = 0;
 
             //Progress bar
-            Progressbar.UpdateProgressBar.CreateGUI($"Downloading elevation tiles");
+            Progressbar.UpdateProgressBar.CreateGUIAsync($"Downloading elevation tiles");
             Progressbar.UpdateProgressBar.Progress = 0;
             Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {intMissingtiles}";
 

@@ -36,7 +36,7 @@ namespace hajk
                 totalTilesCount = 0;
 
                 //Progress bar
-                Progressbar.UpdateProgressBar.CreateGUI(Platform.CurrentActivity.GetString(Resource.String.DownloadTiles));
+                Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.DownloadTiles));
                 Progressbar.UpdateProgressBar.Progress = 0;
                 Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount} - ({missingTilesCount})";
 
@@ -250,7 +250,7 @@ namespace hajk
                     }
 
                     //Update progress counter as the tile is processed, even if unsuccessful
-                    Progressbar.UpdateProgressBar.Progress = (int)Math.Ceiling((100 - Fragment_Preferences.MaxZoom) / (inttotalTiles) * (decimal)++doneCount + Fragment_Preferences.MaxZoom);
+                    Progressbar.UpdateProgressBar.Progress = (int)Math.Ceiling((decimal)(Fragment_Preferences.MaxZoom + (++doneCount) * (100 - Fragment_Preferences.MaxZoom) / inttotalTiles));
                     Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {inttotalTiles} - ({intmissingTiles})";
                 });
             }
@@ -258,9 +258,6 @@ namespace hajk
             {
                 Log.Error(ex, $"DownloadRasterImageMap - DownloadTiles()");
             }
-
-            //Clear the progressbar
-            Progressbar.UpdateProgressBar.Progress = 100;
         }
 
         public static async Task<byte[]> DownloadImageAsync(string imageUrl)
