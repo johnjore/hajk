@@ -136,9 +136,8 @@ namespace hajk
                             for (int i = 0; i < 10; i++)
                             {
                                 var url = COGGeoTiffServer + $"{tile.Zoom}/{tile.X}/{tile.Y}.tif";
-                                //data = DownloadImageAsync(url);
-                                Thread.Sleep(100);
-                                
+                                data = DownloadImageAsync(url);
+                                                                
                                 if (data != null)
                                 {
                                     Serilog.Log.Information($"Downloaded Elevation Tile: x/y: {tile.X}/{tile.Y}, ID: {tile.Id} from '{url}'");
