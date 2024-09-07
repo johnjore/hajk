@@ -90,7 +90,7 @@ namespace hajk.Adapter
         {
             try
             {
-                View? itemView = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.activity_gpx, parent, false);
+                Android.Views.View? itemView = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.activity_gpx, parent, false);
                 GPXViewHolder vh = new(itemView, OnClick);
 
                 vh.Img_more.Click += (o, e) =>
@@ -257,7 +257,7 @@ namespace hajk.Adapter
                             case var value when value == Resource.Id.gpx_menu_exportgpx:
                                 Log.Information($"Export route '{vh.Name.Text}'");
 
-                                View view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
+                                Android.Views.View view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
                                 AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder = new(parent.Context);
                                 alertbuilder.SetView(view);
                                 var userdata = view.FindViewById<EditText>(Resource.Id.editText);
@@ -288,7 +288,7 @@ namespace hajk.Adapter
                             case var value when value == Resource.Id.gpx_menu_exportmap:
                                 Log.Information($"Export Map '{vh.Name.Text}'");
 
-                                View view2 = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
+                                Android.Views.View view2 = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
                                 AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder2 = new(parent.Context);
                                 alertbuilder2.SetView(view2);
                                 var userdata2 = view2.FindViewById<EditText>(Resource.Id.editText);
@@ -343,7 +343,7 @@ namespace hajk.Adapter
 
                                 var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
                                 GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
-
+                                
                                 string mapRouteGPX = string.Empty;
                                 if (vh.GPXType == GPXType.Track)
                                 {

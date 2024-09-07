@@ -3,6 +3,8 @@ using Android.OS;
 using System;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Devices;
+using AndroidX.AppCompat.App;
+using Android.App;
 
 namespace hajk.Utilities
 {
@@ -68,7 +70,7 @@ namespace hajk.Utilities
                 return;
             }
 
-            using var alert = new AlertDialog.Builder(Platform.CurrentActivity);
+            using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(Platform.CurrentActivity);
             alert.SetTitle(Platform.CurrentActivity.Resources?.GetString(Resource.String.BatterySaveModeEnabledTitle));
             alert.SetMessage(Platform.CurrentActivity.Resources?.GetString(Resource.String.BatterySaveModeEnabledDescription));
             alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });

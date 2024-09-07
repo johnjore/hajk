@@ -119,7 +119,7 @@ namespace hajk
 
         private static void SetSummary(EditTextPreference? etp)
         {
-            var prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(Android.App.Application.Context);
             if (prefs == null || etp == null)
             {
                 return;

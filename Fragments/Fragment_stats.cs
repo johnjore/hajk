@@ -33,7 +33,7 @@ namespace hajk.Fragments
             base.OnCreate(savedInstanceState);
         }
 
-        public override View OnCreateView(LayoutInflater? inflater, ViewGroup? container, Bundle? savedInstanceState)
+        public override Android.Views.View OnCreateView(LayoutInflater? inflater, ViewGroup? container, Bundle? savedInstanceState)
         {
             try
             {

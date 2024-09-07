@@ -12,67 +12,56 @@ using BitMiracle;
 using BitMiracle.LibTiff;
 using BitMiracle.LibTiff.Classic;
 using Mapsui.Projections;
-using Microsoft.Maui.Storage;
 using GeoTiffCOG;
-using Org.W3c.Dom.LS;
-using Android.Util;
+using GPXUtils;
+using Android.Widget;
 
 namespace hajk
 {
     internal class Elevation
     {
-        public static void GetElevationData(GpxClass gpx)
+        public static async void GetElevationData(GpxClass gpx)
         {
-            string GeoTiffFolder = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/";
-
-            //Make sure GeoTiffFolder exists 
-            string? directory = Path.GetDirectoryName(GeoTiffFolder);
-            if (!Directory.Exists(GeoTiffFolder)) Directory.CreateDirectory(GeoTiffFolder);
-
-            //Contents
-            Serilog.Log.Error("Files in GeoTiff Folder");
-            var a = Directory.GetFiles(GeoTiffFolder);
-            foreach (string fileName in a)
-                Serilog.Log.Error(fileName);
-
-
             try
             {
+                string GeoTiffFolder = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/";
+
+                //Make sure GeoTiff folder exists 
+                string? directory = Path.GetDirectoryName(GeoTiffFolder);
+                if (!Directory.Exists(GeoTiffFolder)) Directory.CreateDirectory(GeoTiffFolder);
+
+                //Current contents
+                Serilog.Log.Verbose("Files in GeoTiff Folder:");
+                foreach (string fileName in Directory.GetFiles(GeoTiffFolder))
+                    Serilog.Log.Verbose(fileName);
+
                 //Range of tiles
-                AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(14, gpx); //Fix zoom at 14. Best we get from S3 bucket
+                AwesomeTiles.TileRange? tiles = GPXUtils.GPXUtils.GetTileRange(14, gpx); //Fix zoom at 14. Best we get from S3 bucket
 
-                //Download tiles            
-                List<string>? FileNames = DownloadElevationTiles(tiles);
-
-                //Test data
-                FileNames?.Add(GeoTiffFolder + "14-14796-10082.tif");
-                FileNames?.Add(GeoTiffFolder + "14-14795-10082.tif");
-                FileNames?.Add(GeoTiffFolder + "14-14796-10081.tif");
-                FileNames?.Add(GeoTiffFolder + "14-14795-10081.tif");
-                FileNames?.Add(GeoTiffFolder + "14-14796-10080.tif");
-                FileNames?.Add(GeoTiffFolder + "14-14795-10080.tif");
-
-                if (FileNames == null || FileNames?.Count == 0)
+                //Count missing tiles
+                int intMissingTiles = 0;
+                foreach (var tile in tiles)
                 {
+                    var LocalFileName = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
+                    if (Downloaded(LocalFileName) == false)
+                    {
+                        Serilog.Log.Information($"Need to download elevation tile: '{LocalFileName}'");
+                        intMissingTiles++;
+                    }
+                }
+                Serilog.Log.Information($"Need to download '{intMissingTiles}' elevation tiles");
+
+                //Nothing to download?
+                if (intMissingTiles == 0)
+                {
+                    Toast.MakeText(Platform.AppContext, "Elevation tiles already downloaded", ToastLength.Short)?.Show();
                     return;
                 }
 
-                //Convert Lat/Lon to Mercator
-                float lat = -37.56364f;
-                float lon = 144.37729f;
-                var (x, y) = SphericalMercator.FromLonLat((double)lon, (double)lat);
-                Serilog.Log.Debug($"Mercator, X:{x}, Y:{y}");
+                //Download tiles
+                await DownloadElevationTilesAsync(tiles, intMissingTiles);
 
-                try
-                {
-                    GeoTiff geoTiff = new GeoTiff(GeoTiffFolder + "14-14763-10061.tif");
-                    double value = geoTiff.GetElevationAtLatLon(y, x);
-                    Serilog.Log.Information($"Elevaton at lat:{lat:N3}, lon:{lon:N3} is '{value}' meters");
-                }
-                catch (Exception ex)
-                {
-                    Serilog.Log.Error(ex, $"COGGeoTIFF - Elevation data not in tif file");
-                }
+                return;
             }
             catch (Exception ex)
             {
@@ -82,46 +71,109 @@ namespace hajk
             return;
         }
 
-        private static List<string>? DownloadElevationTiles(AwesomeTiles.TileRange range)
+        public static double LookupElevationData(Position? pos)
         {
-            List<string> FileNames = [];
+            if (pos == null)
+            {
+                return 99999;
+            }
 
             try
             {
-                string COGGeoTiffServer = Preferences.Get("COGGeoTiffServer", Fragment_Preferences.COGGeoTiffServer);
+                var tiles = GPXUtils.GPXUtils.GetTileRange(14, new Position(pos.Latitude, pos.Longitude, 0));                
+                var tile = tiles.FirstOrDefault();      //Should only be a single tile for a single GPS Position
+                var LocalFileName = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tiles.Zoom}-{tile?.X}-{tile?.Y}.tif";
 
-                foreach (var tile in range)
+                if (!File.Exists(LocalFileName))
                 {
-                    var LocalFileName = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
+                    Serilog.Log.Error($"COGGeoTIFF - Missing Elevation file: '{tiles.Zoom}-{tile?.X}-{tile?.Y}.tif' for Lat/Lng: '{pos.Latitude} {pos.Longitude}'");
+                    return 99998;
+                }
 
-                    if (Downloaded(LocalFileName) == false)
+                var geoTiff = new GeoTiff(LocalFileName);
+                var (x, y) = SphericalMercator.FromLonLat((double)pos.Longitude, (double)pos.Latitude);
+                double value = geoTiff.GetElevationAtLatLon(y, x);
+                Serilog.Log.Information($"Elevaton at lat:{pos.Latitude:N4}, lon:{pos.Longitude:N4} is '{value}' meters");
+
+                return value;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"COGGeoTIFF - Elevation data not in tif file");
+                return 999997;
+            }
+        }
+
+        private static async Task<List<string>>? DownloadElevationTilesAsync(AwesomeTiles.TileRange? range, int intMissingtiles)
+        {
+            if (range == null)
+            {
+                return [];
+            }
+
+            //Misc
+            List<string> FileNames = [];
+            string COGGeoTiffServer = Preferences.Get("COGGeoTiffServer", Fragment_Preferences.COGGeoTiffServer);
+            int doneCount = 0;
+
+            //Progress bar
+            Progressbar.UpdateProgressBar.CreateGUI($"Downloading elevation tiles");
+            Progressbar.UpdateProgressBar.Progress = 0;
+            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {intMissingtiles}";
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    foreach (var tile in range)
                     {
-                        byte[]? data = null;
-                        for (int i = 0; i < 10; i++)
+                        var LocalFileName = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
+
+                        if (Downloaded(LocalFileName) == false)
                         {
-                            var url = COGGeoTiffServer + $"{tile.Zoom}/{tile.X}/{tile.Y}.tif";
-                            data = DownloadImageAsync(url);
+                            Serilog.Log.Information($"Going to download {LocalFileName}");
+                            byte[]? data = null;
+                            for (int i = 0; i < 10; i++)
+                            {
+                                var url = COGGeoTiffServer + $"{tile.Zoom}/{tile.X}/{tile.Y}.tif";
+                                //data = DownloadImageAsync(url);
+                                Thread.Sleep(100);
+                                
+                                if (data != null)
+                                {
+                                    Serilog.Log.Information($"Downloaded Elevation Tile: x/y: {tile.X}/{tile.Y}, ID: {tile.Id} from '{url}'");
 
-                            if (data != null)
-                                break;
+                                    FileNames.Add(LocalFileName);
+                                    WriteCOGGeoTiff(LocalFileName, data);
 
-                            //Thread.Sleep(10000);
+                                    //Update progress bar
+                                    Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / intMissingtiles);
+                                    Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {intMissingtiles}";
+
+                                    break;
+                                }
+                                else
+                                {
+                                    Serilog.Log.Information($"Failed to download Elevation Tile: x/y: {tile.X}/{tile.Y}, ID: {tile.Id} on attempt '{i}'");
+                                }
+                            }
+
+                            //Update progress bar
+                            Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / intMissingtiles);
+                            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {intMissingtiles}";
                         }
-
-                        FileNames.Add(LocalFileName);
-
-                        Serilog.Log.Information($"x/y: {tile.X}/{tile.Y}, ID: {tile.Id}");
-                        WriteCOGGeoTiff(LocalFileName, data);
-                    }
-                };
-
-                return FileNames;
+                    };
+                });               
             }
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, $"COGGeoTIFF - DownloadElevationTiles()");
-                return null;
             }
+
+            //Anything above 99 will close the ProgressBar GUI
+            Progressbar.UpdateProgressBar.Progress = 100;
+
+            return FileNames;
         }
 
         private static void WriteCOGGeoTiff(string? imageUrl, byte[]? data)
@@ -133,7 +185,7 @@ namespace hajk
 
             try
             {
-                Serilog.Log.Information("Saving: ${ImageUrl}");
+                Serilog.Log.Information($"Saving: {imageUrl}");
                 System.IO.File.WriteAllBytes(imageUrl, data);
             }
             catch (Exception ex)
@@ -156,7 +208,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"COGGeoTIFF - Downloaded()");
+                Serilog.Log.Error(ex, "COGGeoTIFF - Downloaded()");
             }
 
             return false;
@@ -164,7 +216,7 @@ namespace hajk
 
         private static byte[]? DownloadImageAsync(string imageUrl)
         {
-            HttpClientHandler clientHandler = new HttpClientHandler
+            var clientHandler = new HttpClientHandler
             {
                 ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }
             };

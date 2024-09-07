@@ -41,15 +41,15 @@ namespace hajk.Fragments
             base.OnCreate(savedInstanceState);
         }
 
-        public override View OnCreateView(LayoutInflater? inflater, ViewGroup? container, Bundle? savedInstanceState)
+        public override Android.Views.View OnCreateView(LayoutInflater? inflater, ViewGroup? container, Bundle? savedInstanceState)
         {
             try
             {
                 var activity = (FragmentActivity)Platform.CurrentActivity;
                 var view = inflater?.Inflate(Resource.Layout.fragment_posinfo, container, false);
-                view?.SetBackgroundColor(Color.White);
+                view?.SetBackgroundColor(Android.Graphics.Color.White);
 
-                Button? hideFragment = view?.FindViewById<Button>(Resource.Id.btn_HideFragment);
+                Android.Widget.Button? hideFragment = view?.FindViewById<Android.Widget.Button>(Resource.Id.btn_HideFragment);
                 hideFragment.Click += delegate
                 {
                     var activity = (FragmentActivity)Platform.CurrentActivity;
@@ -237,7 +237,7 @@ namespace hajk.Fragments
             return null;
         }
 
-        private void ConfigureGraph(View view, Android.Locations.Location GpsLocation, GPXUtils.Position MapPosition)
+        private void ConfigureGraph(Android.Views.View view, Android.Locations.Location GpsLocation, GPXUtils.Position MapPosition)
         {
             try
             {

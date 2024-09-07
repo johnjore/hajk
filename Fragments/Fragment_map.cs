@@ -40,7 +40,7 @@ namespace hajk.Fragments
             base.OnCreate(savedInstanceState);
         }
 
-        public override View? OnCreateView(LayoutInflater? inflater, ViewGroup? container, Bundle? savedInstanceState)
+        public override Android.Views.View? OnCreateView(LayoutInflater? inflater, ViewGroup? container, Bundle? savedInstanceState)
         {
             if (inflater == null)
             {
@@ -87,10 +87,10 @@ namespace hajk.Fragments
                     ShowEnvelop = true,
                     Font = new Mapsui.Styles.Font { FontFamily = "sans serif", Size = 20 },
                     TickLength = 15,
-                    TextColor = new Color(0, 0, 0, 255),
-                    Halo = new Color(0, 0, 0, 0),
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    VerticalAlignment = VerticalAlignment.Bottom,
+                    TextColor = new Mapsui.Styles.Color(0, 0, 0, 255),
+                    Halo = new Mapsui.Styles.Color(0, 0, 0, 0),
+                    HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Left,
+                    VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Bottom,
                     TextAlignment = Alignment.Left,
                     ScaleBarMode = ScaleBarMode.Both,
                     UnitConverter = MetricUnitConverter.Instance,

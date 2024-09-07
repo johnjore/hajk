@@ -63,7 +63,7 @@ namespace hajk
                 {
                     var rotationAngle = (float)CompassData.GetRotationAngle();
                     fab.Rotation = rotationAngle;
-                    Serilog.Log.Debug($"RotationAngle: {rotationAngle}");
+                    //Serilog.Log.Debug($"RotationAngle: {rotationAngle}");
                 }
             }
             catch (Exception ex)
@@ -90,10 +90,10 @@ namespace hajk
         {
             var feature = new PointFeature(GPSLocation);
 
-            Color marker = Color.Blue;
+            Mapsui.Styles.Color marker = Mapsui.Styles.Color.Blue;
             if (Preferences.Get("RecordingTrack", Fragment_Preferences.RecordingTrack))
             {
-                marker = Color.Red;
+                marker = Mapsui.Styles.Color.Red;
             }
 
             feature.Styles.Add(new SymbolStyle

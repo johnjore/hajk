@@ -38,9 +38,9 @@ namespace hajk.Fragments
             return fragment;
         }
 
-        public override View? OnCreateView(LayoutInflater? inflater, ViewGroup? container, Bundle? savedInstanceState)
+        public override Android.Views.View? OnCreateView(LayoutInflater? inflater, ViewGroup? container, Bundle? savedInstanceState)
         {
-            View? view = inflater?.Inflate(Resource.Layout.fragment_rogaining_poi, container, false);
+            Android.Views.View? view = inflater?.Inflate(Resource.Layout.fragment_rogaining_poi, container, false);
             view?.SetBackgroundColor(Android.Graphics.Color.White);
             Dialog?.Window?.RequestFeature(WindowFeatures.NoTitle);
             Dialog?.SetCanceledOnTouchOutside(false);
@@ -58,7 +58,7 @@ namespace hajk.Fragments
             }
 
             //Buttons
-            Button? btnCancel = view?.FindViewById<Button>(Resource.Id.btnCancel);
+            Android.Widget.Button? btnCancel = view?.FindViewById<Android.Widget.Button>(Resource.Id.btnCancel);
             if (btnCancel != null)
             {
                 btnCancel.Click += delegate
@@ -67,7 +67,7 @@ namespace hajk.Fragments
                 };
             }
 
-            Button? btnAddPOI = view?.FindViewById<Button>(Resource.Id.btnAddPOI);
+            Android.Widget.Button? btnAddPOI = view?.FindViewById<Android.Widget.Button>(Resource.Id.btnAddPOI);
             if (btnAddPOI != null)
             {
                 btnAddPOI.Click += delegate
@@ -96,11 +96,11 @@ namespace hajk.Fragments
                         int result = UTMtoWGS84LatLon.UTMtoLatLon(a, b, UTM_X, UTM_Y);
                         if (result > 0)
                         {
-                            Toast.MakeText(Application.Context, "Added POI to database", ToastLength.Short)?.Show();
+                            Toast.MakeText(Android.App.Application.Context, "Added POI to database", ToastLength.Short)?.Show();
                         }
                         else
                         {
-                            Toast.MakeText(Application.Context, "Failed to add POI to database", ToastLength.Long)?.Show();
+                            Toast.MakeText(Android.App.Application.Context, "Failed to add POI to database", ToastLength.Long)?.Show();
                         }
                         
                         //Reset GUI

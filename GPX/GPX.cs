@@ -73,7 +73,7 @@ namespace hajk
         public TextView Img_more { get; set; }
         public ImageView TrackRouteMap { get; set; }
 
-        public GPXViewHolder(View itemview, Action<int> listener) : base(itemview)
+        public GPXViewHolder(Android.Views.View itemview, Action<int> listener) : base(itemview)
         {
             GPXTypeLogo = itemview.FindViewById<ImageView>(Resource.Id.GPXTypeLogo);
             Name = itemview.FindViewById<TextView>(Resource.Id.Name);

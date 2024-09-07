@@ -30,7 +30,7 @@ namespace hajk.Utilities
 
             Intent intent = new Intent(Platform.CurrentActivity, typeof(AlarmReceiver));
             PendingIntent? pi = PendingIntent.GetBroadcast(Platform.CurrentActivity, 0, intent, PendingIntentFlags.Immutable);
-            AlarmManager? alarmManager = Application.Context.GetSystemService(Context.AlarmService) as AlarmManager;
+            AlarmManager? alarmManager = Android.App.Application.Context.GetSystemService(Context.AlarmService) as AlarmManager;
 
             if (pi != null && alarmManager != null)
             {

@@ -436,8 +436,8 @@ namespace hajk
                             RotateWithMap = true,
                             SymbolRotation = 0,
                             SymbolType = SymbolType.Ellipse,
-                            Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
-                            Outline = new Pen { Color = Color.Red, Width = 1.0f },
+                            Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Dotted, Color = Mapsui.Styles.Color.Transparent, Background = Mapsui.Styles.Color.Transparent },
+                            Outline = new Pen { Color = Mapsui.Styles.Color.Red, Width = 1.0f },
                         });
 
                         trackLayer?.Features.Add(feature);

@@ -428,10 +428,10 @@ namespace hajk
         {
             //Progress bar
             LayoutInflater? layoutInflater = LayoutInflater.From(Platform.CurrentActivity);
-            View? progressDialogBox = layoutInflater?.Inflate(Resource.Layout.progressbardialog, null);
+            Android.Views.View? progressDialogBox = layoutInflater?.Inflate(Resource.Layout.progressbardialog, null);
             AndroidX.AppCompat.App.AlertDialog.Builder alertDialogBuilder = new (Platform.CurrentActivity);
             alertDialogBuilder.SetView(progressDialogBox);
-            var progressBar = progressDialogBox?.FindViewById<ProgressBar>(Resource.Id.progressBar);
+            Android.Widget.ProgressBar progressBar = progressDialogBox?.FindViewById<Android.Widget.ProgressBar>(Resource.Id.progressBar);
             if (progressBar != null)
             {
                 progressBar.Max = 100;
@@ -604,58 +604,6 @@ namespace hajk
             }
 
             return features;
-
-            //This never stops adding POIs?
-            /*
-            try
-            {
-                return POIs.Select(c =>
-                {
-                    var point = SphericalMercator.FromLonLat((double)c.Lon, (double)c.Lat).ToMPoint();
-                    var feature = new PointFeature(point);
-                    feature["name"] = c.Name;
-                    feature["description"] = c.Description;
-                    feature["id"] = c.Id;
-
-                    //Icon
-                    string svg = "hajk.Images.Black-dot.svg";
-                    switch (c.Symbol)
-                    {
-                        case "Drinking Water":
-                            svg = "hajk.Images.Drinking-water.svg";
-                            break;
-                        case "Campground":
-                            svg = "hajk.Images.Tent.svg";
-                            break;
-                        case "Rogaining":
-                            svg = "hajk.Images.RoundFlag.svg";
-                            break;
-                        case "Man Overboard":
-                            svg = "hajk.Images.RoundFlag.svg";
-                            break;
-                    }
-
-                    //Style
-                    feature.Styles.Add(new SymbolStyle
-                    {
-                        SymbolScale = 1.0f,
-                        RotateWithMap = true,
-                        BitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource(svg),
-                    });
-
-                    counter++;
-                    Log.Debug("ArfArf: " + counter.ToString());
-
-                    return feature;
-                });
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, $"Import - ConverTListToInumerable()");
-            }
-
-            return null;
-            */
         }
 
         public static void AddRouteToMap(string mapRoute, GPXType gpxtype, bool UpdateMenu)
@@ -666,12 +614,12 @@ namespace hajk
                 ILayer lineStringLayer;
                 if (gpxtype == GPXType.Route)
                 {
-                    lineStringLayer = CreateRouteLayer(mapRoute, Color.Blue, CreateStyle("Blue"));
+                    lineStringLayer = CreateRouteLayer(mapRoute, Mapsui.Styles.Color.Blue, CreateStyle("Blue"));
                     lineStringLayer.Tag = "route";
                 }
                 else
                 {
-                    lineStringLayer = CreateRouteLayer(mapRoute, Color.Red, CreateStyle("Red"));
+                    lineStringLayer = CreateRouteLayer(mapRoute, Mapsui.Styles.Color.Red, CreateStyle("Red"));
                     lineStringLayer.Tag = "track";
                 }
                 lineStringLayer.IsMapInfoLayer = true;
@@ -1062,8 +1010,8 @@ namespace hajk
                     MinVisible = 0.0f,
                     RotateWithMap = true,
                     SymbolType = SymbolType.Ellipse,
-                    Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Red, Background = Color.Transparent },
-                    Outline = new Pen { Color = Color.Red, Width = 1.5f }
+                    Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Cross, Color = Mapsui.Styles.Color.Red, Background = Mapsui.Styles.Color.Transparent },
+                    Outline = new Pen { Color = Mapsui.Styles.Color.Red, Width = 1.5f }
                 });
                 features.Add(FeatureEnd);
 
@@ -1076,8 +1024,8 @@ namespace hajk
                     MinVisible = 0.0f,
                     RotateWithMap = true,
                     SymbolType = SymbolType.Ellipse,
-                    Fill = new Brush { FillStyle = FillStyle.Cross, Color = Color.Green, Background = Color.Transparent },
-                    Outline = new Pen { Color = Color.Green, Width = 1.5f }
+                    Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Cross, Color = Mapsui.Styles.Color.Green, Background = Mapsui.Styles.Color.Transparent },
+                    Outline = new Pen { Color = Mapsui.Styles.Color.Green, Width = 1.5f }
                 });
                 features.Add(FeatureStart);
 
@@ -1107,7 +1055,7 @@ namespace hajk
                         SymbolRotation = angle,
                         SymbolOffset = new Offset(0, 0),
                         SymbolType = SymbolType.Triangle,
-                        Fill = new Brush { FillStyle = FillStyle.Solid, Color = sColor, Background = sColor },
+                        Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Solid, Color = sColor, Background = sColor },
                         Outline = new Pen { Color = sColor, Width = 1.5f },
                     });
                     features.Add(FeatureArrow);
@@ -1122,7 +1070,7 @@ namespace hajk
                         RotateWithMap = true,
                         SymbolRotation = 0,
                         SymbolType = SymbolType.Ellipse,
-                        Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
+                        Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Dotted, Color = Mapsui.Styles.Color.Transparent, Background = Mapsui.Styles.Color.Transparent },
                         Outline = new Pen { Color = sColor, Width = 1.5f },
                     });
                     features.Add(FeatureWaypoint);
@@ -1161,8 +1109,8 @@ namespace hajk
                         MinVisible = 0.0f,
                         RotateWithMap = true,
                         SymbolType = SymbolType.Ellipse,
-                        Fill = new Brush { FillStyle = FillStyle.Dotted, Color = Color.Transparent, Background = Color.Transparent },
-                        Outline = new Pen { Color = Color.Red, Width = 0.2f },
+                        Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Dotted, Color = Mapsui.Styles.Color.Transparent, Background = Mapsui.Styles.Color.Transparent },
+                        Outline = new Pen { Color = Mapsui.Styles.Color.Red, Width = 0.2f },
                     });
                     features.Add(feature);
                 }
@@ -1186,15 +1134,15 @@ namespace hajk
             {
                 Fill = null,
                 Outline = null,
-                Line = { Color = Color.FromString(colour), Width = 4, PenStyle = PenStyle.Solid }
+                Line = { Color = Mapsui.Styles.Color.FromString(colour), Width = 4, PenStyle = PenStyle.Solid }
             };
         }
 
         public class UpdatePB : AsyncTask<int, int, string>
         {
-            readonly ProgressBar mpb;
+            readonly Android.Widget.ProgressBar mpb;
 
-            public UpdatePB(ProgressBar pb)
+            public UpdatePB(Android.Widget.ProgressBar pb)
             {
                 this.mpb = pb;
             }

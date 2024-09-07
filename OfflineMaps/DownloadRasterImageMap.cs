@@ -52,13 +52,14 @@ namespace hajk
                     AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
                     if (totalTilesCount > 0 && tiles != null)
                     {
+                        /**/
+                        Thread.Sleep(1000);
                         await DownloadTiles(tiles, zoom, TileCache.MbTileCache.sqlConn, map.Id, missingTilesCount, totalTilesCount);
                     }
                     else
                     {
                         throw new Exception("How can this be?!?");
                     }
-
                 }
 
                 Import.progress = 999;
