@@ -6,7 +6,6 @@ using Android.Locations;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
-using Android.Widget;
 using AndroidX.Activity;
 using AndroidX.Core.App;
 using AndroidX.Core.Content;
@@ -34,7 +33,8 @@ namespace hajk.Utilities
 
             if (pi != null && alarmManager != null)
             {
-                Serilog.Log.Debug("Current Date: " + (DateTime.Now).ToString("HH:mm:ss") + ". Alarm set for: " + (DateTime.Now.AddSeconds(time)).ToString("HH:mm:ss"));
+                /**/
+                //Serilog.Log.Debug("Current Date: " + (DateTime.Now).ToString("HH:mm:ss") + ". Alarm set for: " + (DateTime.Now.AddSeconds(time)).ToString("HH:mm:ss"));
                 long AlermTimeInMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() + (time * 1000);
 
                 alarmManager.Set(AlarmType.RtcWakeup, AlermTimeInMilliseconds, pi);
@@ -47,18 +47,20 @@ namespace hajk.Utilities
         {
             public override void OnReceive(Context? context, Intent? intent)
             {
-                Serilog.Log.Debug("Alarm going Off: " + (DateTime.Now).ToString("HH:mm:ss") + "  -----------------------------------------------------------------------------------------------------------------");
+                /**/
+                //Serilog.Log.Debug("Alarm going Off: " + (DateTime.Now).ToString("HH:mm:ss") + "  -----------------------------------------------------------------------------------------------------------------");
                 Android.Locations.Location? GpsLocation = LocationForegroundService.GetLocation();
 
                 if (GpsLocation != null)
                 {
                     DateTime gpsUTCDateTime = DateTimeOffset.FromUnixTimeMilliseconds(GpsLocation.Time).DateTime;
-                    Serilog.Log.Debug($"gpsUTCDateTime: {gpsUTCDateTime}");
-                    Serilog.Log.Debug($"Now           : {DateTime.UtcNow}");
+                    /**/
+                    //Serilog.Log.Debug($"gpsUTCDateTime: {gpsUTCDateTime}");
+                    //Serilog.Log.Debug($"Now           : {DateTime.UtcNow}");
 
                     if (gpsUTCDateTime.AddSeconds(Fragment_Preferences.freq_s * 2) < DateTime.UtcNow && (Preferences.Get("RecordingTrack", false) == true))
                     {
-                        Serilog.Log.Debug("Add location to Recording");
+                        //Serilog.Log.Debug("Add location to Recording");
 
                         var _locationManager = (LocationManager)Platform.CurrentActivity.GetSystemService(Context.LocationService);
 /*                        _locationManager.GetCurrentLocation(
