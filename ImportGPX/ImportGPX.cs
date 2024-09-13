@@ -901,12 +901,12 @@ namespace hajk
                     FeatureWaypoint.Styles.Add(new SymbolStyle
                     {
                         SymbolScale = 0.7f,
-                        MaxVisible = 2.0f,
+                        MaxVisible = 1.5f,
                         MinVisible = 0.0f,
                         RotateWithMap = true,
                         SymbolRotation = 0,
                         SymbolType = SymbolType.Ellipse,
-                        Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Dotted, Color = Mapsui.Styles.Color.Transparent, Background = Mapsui.Styles.Color.Transparent },
+                        Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Hollow, Color = Mapsui.Styles.Color.Transparent, Background = Mapsui.Styles.Color.Transparent },
                         Outline = new Pen { Color = sColor, Width = 1.5f },
                     });
                     features.Add(FeatureWaypoint);

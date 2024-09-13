@@ -431,12 +431,12 @@ namespace hajk
                         feature.Styles.Add(new SymbolStyle
                         {
                             SymbolScale = 0.7f,
-                            MaxVisible = 10.0f,
+                            MaxVisible = 3.0f,
                             MinVisible = 0.0f,
                             RotateWithMap = true,
                             SymbolRotation = 0,
                             SymbolType = SymbolType.Ellipse,
-                            Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Dotted, Color = Mapsui.Styles.Color.Transparent, Background = Mapsui.Styles.Color.Transparent },
+                            Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Hollow, Color = Mapsui.Styles.Color.Transparent, Background = Mapsui.Styles.Color.Transparent },
                             Outline = new Pen { Color = Mapsui.Styles.Color.Red, Width = 1.0f },
                         });
 
