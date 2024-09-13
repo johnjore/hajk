@@ -21,6 +21,9 @@ namespace hajk
         public const string Fragment_GPX = "Fragment_GPX";
         public const string Fragment_Settings = "Fragment_Settings";
 
+        //GeoTiff
+        public readonly static int Elevation_Tile_Zoom = 14;            //Best AWS bucket has
+
         //Settings
         public readonly static int UpdateGPSLocation_s = 1;             //How often do we update the GUI with our current location
         public readonly static int freq_s = 5;                          //How often do we get/save current position for track recordings

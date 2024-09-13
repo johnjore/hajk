@@ -36,7 +36,7 @@ namespace hajk
                 totalTilesCount = 0;
 
                 //Progress bar
-                Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.DownloadTiles));
+                _ = Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.DownloadTiles));
                 Progressbar.UpdateProgressBar.Progress = 0;
                 Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount} - ({missingTilesCount})";
 

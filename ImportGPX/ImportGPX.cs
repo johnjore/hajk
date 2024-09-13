@@ -627,12 +627,12 @@ namespace hajk
             {
                 float mapDistance_m = 0.0f;
                 var p = new PositionHandler();
-                var p2 = new GPXUtils.Position(0, 0, 0);
+                var p2 = new GPXUtils.Position(0, 0, 0, null);
                 List<GPXUtils.Position> ListLatLon = new List<GPXUtils.Position>();
 
                 for (int i = 0; i < route.rtept.Count; i++)
                 {
-                    ListLatLon.Add(new GPXUtils.Position((double)route.rtept[i].lat, (double)route.rtept[i].lon, 0));
+                    ListLatLon.Add(new GPXUtils.Position((double)route.rtept[i].lat, (double)route.rtept[i].lon, 0, null));
 
                     var rtePteExt = route.rtept[i].GetExt<RoutePointExtension>();
                     if (rtePteExt != null)
@@ -641,28 +641,28 @@ namespace hajk
 
                         for (int j = 0; j < rtePteExt.rpt.Count; j++)
                         {
-                            ListLatLon.Add(new GPXUtils.Position((double)rtePteExt.rpt[j].lat, (double)rtePteExt.rpt[j].lon, 0));
+                            ListLatLon.Add(new GPXUtils.Position((double)rtePteExt.rpt[j].lat, (double)rtePteExt.rpt[j].lon, 0, null));
 
                             //Previous leg
                             if (j == 0 && p2.Latitude != 0 && p2.Longitude != 0)
                             {
-                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
+                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, null);
                                 mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
 
                             //First leg
                             if (j == 0)
                             {
-                                var p1 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0);
-                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
+                                var p1 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0, null);
+                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, null);
                                 mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
 
                             //All other legs
                             if (j >= 1)
                             {
-                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j - 1].lat, (float)rtePteExt.rpt[j - 1].lon, 0);
-                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0);
+                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j - 1].lat, (float)rtePteExt.rpt[j - 1].lon, 0, null);
+                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, null);
                                 mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
                         }
@@ -677,8 +677,8 @@ namespace hajk
                         //Previous leg
                         if (i >= 1)
                         {
-                            var p1 = new GPXUtils.Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, 0);
-                            p2 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0);
+                            var p1 = new GPXUtils.Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, 0, null);
+                            p2 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0, null);
                             mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                         }
                     }
@@ -687,16 +687,15 @@ namespace hajk
                 //Convert the list to a string
                 string mapRoute = ConvertLatLonListToLineString(ListLatLon);
 
-                //Get elevation data? (Requires internet access)
-                if (getAscentDescent && Connectivity.NetworkAccess == NetworkAccess.Internet)
+                //Get elevation data?
+                if (getAscentDescent)
                 {
-                    ListLatLon = GetElevationData(ListLatLon);
-
-                    if (ListLatLon != null)
+                    //Populate with elevation date, if we have the tiles
+                    List<GPXUtils.Position>? tmp = Elevation.LookupElevationData(ListLatLon).Result;
+                    if (tmp != null)
                     {
-                        var a = CalculateAscentDescent(ListLatLon);
-                        ascent = a.Item1;
-                        descent = a.Item2;
+                        ListLatLon = tmp;
+                        (ascent, descent) = CalculateAscentDescent(ListLatLon);
                     }
                 }
 
@@ -739,142 +738,7 @@ namespace hajk
                 return (0, 0);
             }
         }
-
-        private static List<GPXUtils.Position> GetElevationData(List<GPXUtils.Position> ListLatLon)
-        {
-            List<GPXUtils.Position> ElevationData = new List<GPXUtils.Position>();
-            var LatLon = String.Empty;
-
-            try
-            {
-                for (int i = 0; i < ListLatLon.Count - 1; i++)
-                {
-                    //Max 100 at a time
-                    if ((i != 0) && (i % 100 == 0))
-                    {
-                        //API is rate limited. Unless this is the first API call, add a sleep now
-                        if (i != 100)
-                        {
-                            System.Threading.Thread.Sleep(1000);
-                        }
-
-                        var a = DownloadElevationData(LatLon);
-
-                        //Do we have elevation datae?
-                        if (a == null)
-                            return ListLatLon;
-
-                        ElevationData = ElevationData.Concat(a).ToList();
-                        LatLon = String.Empty;
-                    }
-
-                    if (i % 100 != 0)
-                    {
-                        LatLon += "|";
-                    }
-
-                    LatLon += ListLatLon[i].Latitude + "," + ListLatLon[i].Longitude;
-                }
-
-                //The rest
-                if (LatLon != String.Empty)
-                {
-                    var a = DownloadElevationData(LatLon);
-
-                    //Do we have elevation datae?
-                    if (a == null)
-                        return ListLatLon;
-
-                    ElevationData = ElevationData.Concat(a).ToList();
-                }
-
-                return ElevationData;
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"Import - GetElevationData()");
-            }
-
-            return ListLatLon;
-        }
-
-        private static List<GPXUtils.Position>? DownloadElevationData(string LatLon)
-        {
-            var Pre = $"https://api.opentopodata.org/v1/aster30m?locations=";
-            var Post = $"&interpolation=bilinear&nodata_value=null";
-            List<GPXUtils.Position> ElevationData = new List<GPXUtils.Position>();
-
-            try
-            {
-                //Get the data
-                var eleJSON = DownloadElevationDataAsync(Pre + LatLon + Post);
-
-                //Do we have elevation data?
-                if (eleJSON == null)
-                {
-                    return null;
-                }
-
-                //Convert from string to JSON
-                Models.Elevation.ElevationData elevationData = JsonSerializer.Deserialize<Models.Elevation.ElevationData>(eleJSON);
-
-                //Data is ok?
-                if (elevationData?.status != "OK")
-                {
-                    return null;
-                }
-
-                //Any data?
-                if (elevationData.results.Count < 1)
-                {
-                    return null;
-                }
-
-                //Convert from JSON to List
-                foreach (var result in elevationData.results)
-                {
-                    var a = new GPXUtils.Position(result.location.lat, result.location.lng, result.elevation);
-                    ElevationData.Add(a);
-                }
-
-                return ElevationData;
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"Import - DownloadElevationData()");
-            }
-
-            return null;
-        }
-
-        private static string DownloadElevationDataAsync(string ElevationUrl)
-        {
-            HttpClientHandler clientHandler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }
-            };
-            var _httpClient = new HttpClient(clientHandler)
-            {
-                Timeout = TimeSpan.FromSeconds(60)
-            };
-
-            try
-            {
-                using var httpResponse = _httpClient.GetAsync(ElevationUrl).Result;
-                if (httpResponse.StatusCode == HttpStatusCode.OK)
-                {
-                    return httpResponse.Content.ReadAsStringAsync().Result;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"Import - DownloadElevationDataAsync()");
-            }
-
-            Log.Error($"DownloadElevationDataAsync(...) failed to download elevation data");
-            return null;
-        }
-
+        
         private static string ConvertLatLonListToLineString(List<GPXUtils.Position> ListLatLon)
         {
             var LineString = "LINESTRING(";
@@ -1006,8 +870,8 @@ namespace hajk
                 for (int i = 0; i < GPSlineString.NumPoints - 1; i++)
                 {
                     //End points for line
-                    GPXUtils.Position p1 = new (GPSlineString.Coordinates[i].X, GPSlineString.Coordinates[i].Y, 0);
-                    GPXUtils.Position p2 = new (GPSlineString.Coordinates[i + 1].X, GPSlineString.Coordinates[i + 1].Y, 0);
+                    GPXUtils.Position p1 = new (GPSlineString.Coordinates[i].X, GPSlineString.Coordinates[i].Y, 0, null);
+                    GPXUtils.Position p2 = new (GPSlineString.Coordinates[i + 1].X, GPSlineString.Coordinates[i + 1].Y, 0, null);
 
                     //Quarter point on line for arrow
                     MPoint p_quarter = Utils.Misc.CalculateQuarter(lineString.Coordinates[i].Y, lineString.Coordinates[i].X, lineString.Coordinates[i + 1].Y, lineString.Coordinates[i + 1].X);

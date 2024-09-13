@@ -116,8 +116,8 @@ namespace GPXUtils
                         ascent += j1 - j0;
                     }
                     
-                    var p1 = new Position((float)Waypoints[j].lat, (float)Waypoints[j + 1].lon, 0);
-                    var p2 = new Position((float)Waypoints[j].lat, (float)Waypoints[j + 1].lon, 0);
+                    var p1 = new Position((float)Waypoints[j].lat, (float)Waypoints[j + 1].lon, 0, null);
+                    var p2 = new Position((float)Waypoints[j].lat, (float)Waypoints[j + 1].lon, 0, null);
                     var p = new PositionHandler();
                     distance += (decimal)p.CalculateDistance(p1, p2, DistanceType.Meters);
                 }
@@ -167,16 +167,18 @@ namespace GPXUtils
 
     public class Position
     {
-        public Position(double latitude, double longitude, double elevation)
+        public Position(double latitude, double longitude, double elevation, string? geotifffilename)
         {
             Latitude = latitude;
             Longitude = longitude;
             Elevation = elevation;
+            GeoTiffFileName = geotifffilename;
         }
 
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public double Elevation { get; set; }
+        public string? GeoTiffFileName { get; set; }
     }
 
     public interface IBearingCalculator
@@ -249,7 +251,7 @@ namespace GPXUtils
 
         public double CalculateDistance(Position position1, Android.Locations.Location location2, DistanceType distanceType)
         {
-            var position2 = new Position(location2.Latitude, location2.Longitude, 0);
+            var position2 = new Position(location2.Latitude, location2.Longitude, 0, null);
             return CalculateDistance(position1, position2, distanceType);
         }
 
@@ -335,7 +337,7 @@ namespace GPXUtils
             var n_EC_E = Utilities.VecMul(Math.Sign(Utilities.Dot(n_EC_E_tmp, n_EA1_E)), n_EC_E_tmp);
 
             // Convert to lat, lon in Degrees
-            var pos_EC = new Position(_NV.deg(_NV.n_E2lat(n_EC_E)), _NV.deg(_NV.n_E2long(n_EC_E)), 0);
+            var pos_EC = new Position(_NV.deg(_NV.n_E2lat(n_EC_E)), _NV.deg(_NV.n_E2long(n_EC_E)), 0, null);
 
             return pos_EC;
         }
@@ -360,7 +362,7 @@ namespace GPXUtils
         //Calculate distance between two locations
         public static double CalculateDistance(wptType wpt_a1, wptType a2)
         {
-            var a2_p = new Position((double)a2.lat, (double)a2.lon, 0);
+            var a2_p = new Position((double)a2.lat, (double)a2.lon, 0, null);
             var s_AB = CalculateDistance(wpt_a1, a2_p);
 
             return s_AB;
@@ -378,7 +380,7 @@ namespace GPXUtils
         //Calculate distance between two locations
         public static double CalculateDistance(wptType wpt_a1, Location a2)
         {
-            var a2_p = new Position((double)a2.Latitude, (double)a2.Longitude, 0);
+            var a2_p = new Position((double)a2.Latitude, (double)a2.Longitude, 0, null);
             var s_AB = CalculateDistance(wpt_a1, a2_p);
 
             return s_AB;
@@ -410,7 +412,7 @@ namespace GPXUtils
                     }
                 }
 
-                var pos_w = new Position((float)route.rtept[pos_index_i].lat, (float)route.rtept[pos_index_i].lon, 0);
+                var pos_w = new Position((float)route.rtept[pos_index_i].lat, (float)route.rtept[pos_index_i].lon, 0, null);
                 return (pos_w, pos_index_i);
             }
             catch (Exception ex)

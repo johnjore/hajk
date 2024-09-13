@@ -8,9 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SharpGPX;
-using BitMiracle;
-using BitMiracle.LibTiff;
-using BitMiracle.LibTiff.Classic;
 using Mapsui.Projections;
 using GeoTiffCOG;
 using GPXUtils;
@@ -20,6 +17,9 @@ namespace hajk
 {
     internal class Elevation
     {
+        /// <summary>
+        /// Download Elevation data files (GeoTiff) from AWS S3 bucket
+        /// </summary>
         public static async void GetElevationData(GpxClass gpx)
         {
             try
@@ -27,8 +27,8 @@ namespace hajk
                 string GeoTiffFolder = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/";
 
                 //Make sure GeoTiff folder exists 
-                string? directory = Path.GetDirectoryName(GeoTiffFolder);
-                if (!Directory.Exists(GeoTiffFolder)) Directory.CreateDirectory(GeoTiffFolder);
+                if (!Directory.Exists(GeoTiffFolder)) 
+                    Directory.CreateDirectory(GeoTiffFolder);
 
                 //Current contents
                 Serilog.Log.Verbose("Files in GeoTiff Folder:");
@@ -36,7 +36,7 @@ namespace hajk
                     Serilog.Log.Verbose(fileName);
 
                 //Range of tiles
-                AwesomeTiles.TileRange? tiles = GPXUtils.GPXUtils.GetTileRange(14, gpx); //Fix zoom at 14. Best we get from S3 bucket
+                AwesomeTiles.TileRange? tiles = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, gpx);
 
                 //Count missing tiles
                 int intMissingTiles = 0;
@@ -71,40 +71,87 @@ namespace hajk
             return;
         }
 
-        public static double LookupElevationData(Position? pos)
+        /// <summary>
+        /// Lookup elevation data from a List of Position and return same list with Elevation field populated
+        /// </summary>
+        public static async Task<List<Position>?>? LookupElevationData(List<Position>? ListLatLon)
         {
-            if (pos == null)
-            {
-                return 99999;
-            }
+            //Any data to process?
+            if (ListLatLon == null)
+                return null;
 
-            try
+            //Progressbar
+            int doneCount = 0;
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                var tiles = GPXUtils.GPXUtils.GetTileRange(14, new Position(pos.Latitude, pos.Longitude, 0));                
-                var tile = tiles.FirstOrDefault();      //Should only be a single tile for a single GPS Position
-                var LocalFileName = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tiles.Zoom}-{tile?.X}-{tile?.Y}.tif";
+                _ = Progressbar.UpdateProgressBar.CreateGUIAsync($"Looking up elevation data");
+                Progressbar.UpdateProgressBar.Progress = 0;
+                Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {ListLatLon.Count * 2}";
+            });
 
-                if (!File.Exists(LocalFileName))
+            await Task.Run(() =>
+            {
+                //Add the GeoTiffFile name to the GPS position
+                for (int i = 0; i < ListLatLon.Count; i++)
                 {
-                    Serilog.Log.Error($"COGGeoTIFF - Missing Elevation file: '{tiles.Zoom}-{tile?.X}-{tile?.Y}.tif' for Lat/Lng: '{pos.Latitude} {pos.Longitude}'");
-                    return 99998;
+                    //Data
+                    var tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position(ListLatLon[i].Latitude, ListLatLon[i].Longitude, 0, null)).FirstOrDefault();
+                    ListLatLon[i].GeoTiffFileName = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{Fragment_Preferences.Elevation_Tile_Zoom}-{tmp1?.X}-{tmp1?.Y}.tif";
+
+                    //Update progress bar
+                    Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / ListLatLon.Count * 2);
+                    Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {ListLatLon.Count * 2}";
+
+                    Thread.Sleep(200);
                 }
 
-                var geoTiff = new GeoTiff(LocalFileName);
-                var (x, y) = SphericalMercator.FromLonLat((double)pos.Longitude, (double)pos.Latitude);
-                double value = geoTiff.GetElevationAtLatLon(y, x);
-                Serilog.Log.Information($"Elevaton at lat:{pos.Latitude:N4}, lon:{pos.Longitude:N4} is '{value}' meters");
+                //Unique filenames
+                var FileNames = ListLatLon.Select(x => x.GeoTiffFileName).AsParallel().Distinct();
 
-                return value;
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, $"COGGeoTIFF - Elevation data not in tif file");
-                return 999997;
-            }
+                //Loop through each filename and extract the relevant elvation data
+                foreach (var FileName in FileNames)
+                {
+                    if (FileName == null || File.Exists(FileName) == false)
+                    {
+                        Serilog.Log.Error($"COGGeoTIFF - FileName is Null, or does not exist: '{FileName}'");
+                        throw new InvalidOperationException("Filename is null, or does not exist");
+                    }
+
+                    //Loop through identical FileNames
+                    var geoTiff = new GeoTiff(FileName);
+
+                    foreach (var e in ListLatLon.Where(p => (p.GeoTiffFileName == FileName)))
+                    {
+                        var (y, x) = SphericalMercator.FromLonLat((double)e.Longitude, (double)e.Latitude);
+                        try
+                        {
+                            e.Elevation = geoTiff.GetElevationAtLatLon(x, y);
+                            Serilog.Log.Information($"Elevaton at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                        }
+                        catch (Exception ex)
+                        {
+                            Serilog.Log.Error(ex, "Failed to lookup ElevationData");
+                            throw new InvalidOperationException("Failed to lookup ElevationData");
+                        }
+
+                        //Update progress bar
+                        Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / ListLatLon.Count * 2);
+                        Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {ListLatLon.Count * 2}";
+
+                        Thread.Sleep(200);
+                    }
+
+                    geoTiff.Dispose();
+                }
+            });
+
+            //Anything above 99 will close the ProgressBar GUI
+            Progressbar.UpdateProgressBar.Progress = 100;
+
+            return ListLatLon;
         }
 
-        private static async Task<List<string>>? DownloadElevationTilesAsync(AwesomeTiles.TileRange? range, int intMissingtiles)
+        private static async Task<List<string>?>? DownloadElevationTilesAsync(AwesomeTiles.TileRange? range, int intMissingtiles)
         {
             if (range == null)
             {
@@ -117,7 +164,7 @@ namespace hajk
             int doneCount = 0;
 
             //Progress bar
-            Progressbar.UpdateProgressBar.CreateGUIAsync($"Downloading elevation tiles");
+            _ = Progressbar.UpdateProgressBar.CreateGUIAsync($"Downloading elevation tiles");
             Progressbar.UpdateProgressBar.Progress = 0;
             Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {intMissingtiles}";
 
@@ -158,7 +205,7 @@ namespace hajk
                             }
                         }
                     };
-                });               
+                });
             }
             catch (Exception ex)
             {

@@ -62,7 +62,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AsyncEnumerator" Version="4.0.2" />
-    <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.649" />
     <PackageReference Include="BlueToque.SharpGPX" Version="2.22.302" />
     <PackageReference Include="BruTile" Version="5.0.6" />
     <PackageReference Include="BruTile.MbTiles" Version="5.0.6" />

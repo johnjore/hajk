@@ -259,7 +259,7 @@ namespace hajk.Fragments
                 if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "route" && style?.ToString() == "Mapsui.Styles.SymbolStyle" && args.MapInfo != null && args.MapInfo.WorldPosition != null)
                 {
                     var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-                    MapPosition = new Position(b.lon, b.lat, 0);
+                    MapPosition = new Position(b.lon, b.lat, 0, null);
                     Log.Debug($"Route Object. GPS Position: " + b.ToString());
 
                     var activity = (FragmentActivity?)Platform.CurrentActivity;
