@@ -14,8 +14,8 @@ namespace hajk.Utilities
         {
             return await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                TPermission permission = new TPermission();
-                Serilog.Log.Debug($"Requesting Permission: '{permission.ToString()}'");
+                TPermission permission = new();
+                Serilog.Log.Debug($"Requesting Permission: '{permission}'");
                 PermissionStatus status = await permission.CheckStatusAsync();
 
                 if (status != PermissionStatus.Granted)
@@ -23,11 +23,11 @@ namespace hajk.Utilities
                     status = await permission.RequestAsync();
                     if (status != PermissionStatus.Granted)
                     {
-                        Serilog.Log.Information($"Failed to get requested permission '{permission.ToString()}'");
+                        Serilog.Log.Information($"Failed to get requested permission '{permission}'");
                     }
                     else
                     {
-                        Serilog.Log.Debug($"Permission '{permission.ToString()}' granted");
+                        Serilog.Log.Debug($"Permission '{permission}' granted");
                     }
                 }
 
