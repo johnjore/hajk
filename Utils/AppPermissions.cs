@@ -23,7 +23,7 @@ namespace hajk.Utilities
                     status = await permission.RequestAsync();
                     if (status != PermissionStatus.Granted)
                     {
-                        Serilog.Log.Information("Failed to get requested permission '{permission.ToString()}'");
+                        Serilog.Log.Information($"Failed to get requested permission '{permission.ToString()}'");
                     }
                     else
                     {
