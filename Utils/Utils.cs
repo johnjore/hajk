@@ -19,11 +19,11 @@ namespace Utils
         {
             try
             {
-                Serilog.Log.Verbose($"Checking if '{dbFile}' exists");
+                Serilog.Log.Debug($"Checking if '{dbFile}' exists");
 
                 if (File.Exists(dbFile) == false)
                 {
-                    Serilog.Log.Verbose($"Extracting embedded world map");
+                    Serilog.Log.Debug($"Extracting embedded world map");
                     using (var writeStream = new FileStream(dbFile, FileMode.OpenOrCreate, FileAccess.Write))
                     {
                         activity?.Assets?.Open(Fragment_Preferences.CacheDB).CopyTo(writeStream);
@@ -31,12 +31,12 @@ namespace Utils
                 }
                 else
                 {
-                    Serilog.Log.Verbose($"Embedded world map already exists");
+                    Serilog.Log.Debug($"Embedded world map already exists");
                 }
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Utils - ExtractInitialMap()");
+                Serilog.Log.Fatal(ex, $"Utils - ExtractInitialMap()");
             }
         }
 
@@ -55,7 +55,7 @@ namespace Utils
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Utils - ConverBitMapToString()");
+                Serilog.Log.Fatal(ex, $"Utils - ConverBitMapToString()");
             }
 
             return null;
@@ -80,7 +80,7 @@ namespace Utils
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "ConvertStringToBitmap");
+                Serilog.Log.Fatal(ex, "ConvertStringToBitmap");
             }
 
             return null;
@@ -95,7 +95,7 @@ namespace Utils
 
                 if (image == null)
                 {
-                    Serilog.Log.Error($"Utils - GetBitmapIdForEmbeddedResource() is null for {imagePath}");
+                    Serilog.Log.Fatal($"Utils - GetBitmapIdForEmbeddedResource() is null for {imagePath}");
                     return 0;
                 }
 
@@ -104,7 +104,7 @@ namespace Utils
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Utils - GetBitmapIdForEmbeddedResource()");
+                Serilog.Log.Fatal(ex, $"Utils - GetBitmapIdForEmbeddedResource()");
                 return 0;
             }
         }
@@ -146,7 +146,7 @@ namespace Utils
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Utils - ClearTrackRoutesFromMap()");
+                Serilog.Log.Fatal(ex, $"Utils - ClearTrackRoutesFromMap()");
                 return false;
             }
         }

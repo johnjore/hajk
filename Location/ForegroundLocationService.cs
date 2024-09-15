@@ -195,7 +195,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error($"Crashed: " + ex.ToString());
+                Serilog.Log.Fatal($"Crashed: " + ex.ToString());
             }
 
             base.OnDestroy();

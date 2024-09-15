@@ -74,7 +74,7 @@ namespace hajk.Fragments
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Error(ex, "posinfo - Crashed calculating 'CurrentElevation_m'");
+                    Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'CurrentElevation_m'");
                 }
 
                 //Elevation at MapPosition (Altitude)
@@ -92,7 +92,7 @@ namespace hajk.Fragments
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Error(ex, "posinfo - Crashed calculating 'ElevationMap_m'");
+                    Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'ElevationMap_m'");
                 }
 
                 //Distance Straight Line from GPSLocation to MapPosition
@@ -105,7 +105,7 @@ namespace hajk.Fragments
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Error(ex, "posinfo - Crashed calculating 'DistanceStraightLine_m'");
+                    Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'DistanceStraightLine_m'");
                 }
 
                 //Ascent, Descent and Distance Along Route From GPSLocation to MapPosition
@@ -141,7 +141,7 @@ namespace hajk.Fragments
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Error(ex, "posinfo - Crashed calculating 'Ascent, Descent and Distance from GPS Location to Map Position'");
+                    Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'Ascent, Descent and Distance from GPS Location to Map Position'");
                 }
 
 
@@ -155,7 +155,7 @@ namespace hajk.Fragments
                     }
                     catch (Exception ex)
                     {
-                        Serilog.Log.Error(ex, "posinfo - Crashed calculating 'DurationTime'");
+                        Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'DurationTime'");
                     }
 
                     //Distance Straight Line from Start to Map Position
@@ -170,7 +170,7 @@ namespace hajk.Fragments
                     }
                     catch (Exception ex)
                     {
-                        Serilog.Log.Error(ex, "posinfo - Crashed calculating 'DistanceStraightLineFromStart_m'");
+                        Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'DistanceStraightLineFromStart_m'");
                     }
 
                     //Distance Straight Line from Start to Current Position
@@ -185,7 +185,7 @@ namespace hajk.Fragments
                     }
                     catch (Exception ex)
                     {
-                        Serilog.Log.Error(ex, "posinfo - Crashed calculating 'DistanceStraightLineFromStartGPS_m'");
+                        Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'DistanceStraightLineFromStartGPS_m'");
                     }
 
                     //Calculate Ascent / Descent from Start to Current Position
@@ -204,7 +204,7 @@ namespace hajk.Fragments
                     }
                     catch (Exception ex)
                     {
-                        Serilog.Log.Error(ex, "posinfo - Crashed calculating 'Ascent / Descent'");
+                        Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'Ascent / Descent'");
                     }
                 }
 
@@ -221,7 +221,7 @@ namespace hajk.Fragments
                     }
                     catch (Exception ex)
                     {
-                        Serilog.Log.Error(ex, "posinfo - Crashed while setting empty values");
+                        Serilog.Log.Fatal(ex, "posinfo - Crashed while setting empty values");
                     }
                 }
 
@@ -231,7 +231,7 @@ namespace hajk.Fragments
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Fragment_posinfo Crashed");
+                Serilog.Log.Fatal(ex, $"Fragment_posinfo Crashed");
             }
 
             return null;
@@ -342,7 +342,7 @@ namespace hajk.Fragments
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "posinfo - Crashed while creating elevation graph");
+                Serilog.Log.Fatal(ex, "posinfo - Crashed while creating elevation graph");
             }
         }
     }

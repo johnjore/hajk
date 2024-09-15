@@ -23,7 +23,7 @@ namespace hajk.Data
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"RouteDatabase - RouteDatabase()");
+                Serilog.Log.Fatal(ex, $"RouteDatabase - RouteDatabase()");
             }
         }
 

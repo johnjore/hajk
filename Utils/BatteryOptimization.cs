@@ -41,7 +41,7 @@ namespace hajk.Utilities
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Error("Failed to set BatteryOptimization");
+                    Serilog.Log.Fatal("Failed to set BatteryOptimization");
                 }
             }
 

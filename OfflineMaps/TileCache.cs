@@ -85,7 +85,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"TileCache - GetOSMBasemap()");
+                Serilog.Log.Fatal(ex, $"TileCache - GetOSMBasemap()");
                 return null;
             }
         }
@@ -130,7 +130,7 @@ namespace hajk
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Error(ex, $"TileCache - Add()");
+                    Serilog.Log.Fatal(ex, $"TileCache - Add()");
                 }
             }
 
@@ -171,7 +171,7 @@ namespace hajk
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Error(ex, $"TileCache - Dispose()");
+                    Serilog.Log.Fatal(ex, $"TileCache - Dispose()");
                 }
             }
 
@@ -200,7 +200,7 @@ namespace hajk
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Error(ex, $"TileCache - Find()");
+                    Serilog.Log.Fatal(ex, $"TileCache - Find()");
                 }
 
                 return null;
@@ -218,7 +218,7 @@ namespace hajk
             }
         }
 
-        public static SQLiteConnection InitializeTileCache(string filename, string format)
+        public static SQLiteConnection? InitializeTileCache(string? filename, string? format)
         {
             try
             {
@@ -257,7 +257,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"TileCache - MBTileCache()");
+                Serilog.Log.Fatal(ex, $"TileCache - MBTileCache()");
             }
 
             return null;

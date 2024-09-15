@@ -110,7 +110,7 @@ namespace hajk.Fragments
                     }
                     catch (Exception ex)
                     {
-                        Serilog.Log.Error(ex, "Failed to create UTMPOI");
+                        Serilog.Log.Fatal(ex, "Failed to create UTMPOI");
                     }
                 };
             }

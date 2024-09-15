@@ -64,7 +64,7 @@ namespace hajk.Fragments
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Fragment_gpx - OnCreateView()");
+                Serilog.Log.Fatal(ex, $"Fragment_gpx - OnCreateView()");
             }
 
             return null;

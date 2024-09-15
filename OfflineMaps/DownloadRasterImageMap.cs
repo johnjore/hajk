@@ -66,7 +66,7 @@ namespace hajk
                 }
 
                 Progressbar.UpdateProgressBar.Progress = 100;
-                Log.Verbose($"Done downloading map for {map.Id}");
+                Log.Debug($"Done downloading map for {map.Id}");
 
                 if (ShowDialog)
                 {
@@ -76,7 +76,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"DownloadRasterImageMap - DownloadMap()");
+                Log.Fatal(ex, $"DownloadRasterImageMap - DownloadMap()");
             }
         }
 
@@ -101,7 +101,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Crashed CountTiles");
+                Log.Fatal(ex, $"Crashed CountTiles");
             }
 
             return (CountTotalTiles, CountMissingTiles);
@@ -170,7 +170,7 @@ namespace hajk
                         }
                         catch (Exception ex)
                         {
-                            Log.Error($"Crashed: {ex}");
+                            Log.Fatal($"Crashed: {ex}");
                             break;
                         }
 
@@ -208,7 +208,7 @@ namespace hajk
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(ex, $"Crashed: {ex}");
+                            Log.Fatal(ex, $"Crashed: {ex}");
                             break;
                         }
                     }
@@ -229,7 +229,7 @@ namespace hajk
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(ex, $"Crashed. Clear reference: {ex}");
+                            Log.Fatal(ex, $"Crashed");
                             r.Clear();
                         }
                     }
@@ -256,7 +256,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"DownloadRasterImageMap - DownloadTiles()");
+                Log.Fatal(ex, $"DownloadRasterImageMap - DownloadTiles()");
             }
         }
 
@@ -281,7 +281,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"DownloadRasterIamgeMap - DownloadImageAsync()");
+                Log.Fatal(ex, $"DownloadRasterIamgeMap - DownloadImageAsync()");
             }
 
             return null;
@@ -300,7 +300,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"DownloadRasterIamgeMap - LoadOSMLayer()");
+                Log.Fatal(ex, $"DownloadRasterIamgeMap - LoadOSMLayer()");
             }
         }
 
@@ -343,7 +343,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"DownloadRasterIamgeMap - ExportMapTiles()");
+                Log.Fatal(ex, $"DownloadRasterIamgeMap - ExportMapTiles()");
             }
         }
     }

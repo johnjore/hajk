@@ -33,7 +33,7 @@ namespace hajk
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, $"MBTilesWriter - CreateDatabaseConnection() - Open");
+                    Log.Fatal(ex, $"MBTilesWriter - CreateDatabaseConnection() - Open");
                 }
             }
 
@@ -62,7 +62,7 @@ namespace hajk
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, $"MBTilesWriter - WriteTile()");
+                    Log.Fatal(ex, $"MBTilesWriter - WriteTile()");
                     return 0;
                 }
             }
@@ -122,7 +122,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "PurgeMapDb()");
+                Log.Fatal(ex, "PurgeMapDb()");
             }
         }
 
@@ -181,7 +181,7 @@ namespace hajk
                                 }
                                 catch (Exception ex)
                                 {
-                                    Log.Error($"Crashed: {ex}");
+                                    Log.Fatal($"Crashed: {ex}");
                                 }
                             }
                         }
@@ -196,7 +196,7 @@ namespace hajk
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Failed to import map file: '{ex}'");
+                    Log.Fatal($"Failed to import map file: '{ex}'");
                 }
             });
         }

@@ -44,7 +44,7 @@ namespace hajk.Fragments
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Fragment_stats Crashed");
+                Serilog.Log.Fatal(ex, $"Fragment_stats Crashed");
             }
 
             return null;

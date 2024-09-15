@@ -19,6 +19,9 @@ using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Storage;
 using Serilog;
+using Sentry;
+using Sentry.Android;
+using Sentry.Serilog;
 using SharpGPX;
 using SQLite;
 using System.Collections.Generic;
@@ -29,6 +32,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
+using Serilog.Events;
 
 namespace hajk
 {
@@ -50,15 +54,30 @@ namespace hajk
 
             //Preferences.Clear();
             //new FileInfo(rootPath + "/" + PrefsActivity.CacheDB).Delete();
-
+                                    
             //Logging
             string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Preferences.Get("logFile", Fragment_Preferences.logFile));
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .Enrich.FromLogContext()
-                .WriteTo.AndroidLog(outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}")
-                .WriteTo.File(_Path, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 2, outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}{NewLine}"
-                ).CreateLogger();
+                .WriteTo.AndroidLog(
+                    outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}"
+                )
+                .WriteTo.File(
+                    _Path, 
+                    rollingInterval: RollingInterval.Day, 
+                    retainedFileCountLimit: 2, 
+                    outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}{NewLine}"
+                )
+                .WriteTo.Sentry(options =>
+                {
+                    options.Dsn = Resources?.GetString(Resource.String.Sentry_APIKey);
+                    options.Debug = true;
+                    options.TracesSampleRate = 1.0;
+                    options.MinimumBreadcrumbLevel = LogEventLevel.Debug;
+                    options.MinimumEventLevel = LogEventLevel.Warning;
+                })
+                .CreateLogger();
             Log.Information($"Logging to '{_Path}'");
 
             //Enable Mapsui logging
@@ -138,7 +157,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Debug(ex, $"MainActivity - OnCreate");
+                Log.Fatal(ex, $"MainActivity - OnCreate");
             }
         }
 
@@ -272,7 +291,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Debug(ex, $"OnDestroy()");
+                Log.Fatal(ex, $"OnDestroy()");
             }
 
             base.OnDestroy();
@@ -563,7 +582,7 @@ namespace hajk
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"Failed to import map file: '{ex}'");
+                        Log.Fatal($"Failed to import map file: '{ex}'");
                     }
                 });
             }

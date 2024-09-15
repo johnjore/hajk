@@ -68,7 +68,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Location - UpdateLocationMarker()");
+                Serilog.Log.Fatal(ex, $"Location - UpdateLocationMarker()");
             }
         }
 

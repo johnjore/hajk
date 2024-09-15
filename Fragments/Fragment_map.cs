@@ -131,7 +131,7 @@ namespace hajk.Fragments
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Fragment_map - OnCreateView() Crashed");
+                Serilog.Log.Fatal(ex, $"Fragment_map - OnCreateView() Crashed");
             }
 
             return null;
@@ -293,7 +293,7 @@ namespace hajk.Fragments
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Fragment_map - MapInfo()");
+                Log.Fatal(ex, $"Fragment_map - MapInfo()");
             }
         }
 

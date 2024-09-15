@@ -28,7 +28,7 @@ namespace hajk.Data
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"POIDatabase - POIDatabase()");
+                Serilog.Log.Fatal(ex, $"POIDatabase - POIDatabase()");
             }
         }
     

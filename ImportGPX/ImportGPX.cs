@@ -77,7 +77,7 @@ namespace hajk
                     var data = intent.DataString;
                     var uri = intent.Data;
 
-                    Serilog.Log.Verbose("Content intent detected: " + action + " : " + data.ToString() + " : " + intent.Type.ToString() + " : " + uri.Path.ToString());
+                    Serilog.Log.Debug("Content intent detected: " + action + " : " + data.ToString() + " : " + intent.Type.ToString() + " : " + uri.Path.ToString());
                     Stream? stream = Platform.CurrentActivity?.ContentResolver?.OpenInputStream(uri);
 
                     string fileContents = String.Empty;
@@ -117,7 +117,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Import - GPXImportfromIntent()");
+                Serilog.Log.Fatal(ex, $"Import - GPXImportfromIntent()");
             }
         }
 
@@ -171,7 +171,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Import - GetRoute()");
+                Serilog.Log.Fatal(ex, $"Import - GetRoute()");
             };
         }
 
@@ -198,7 +198,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Import - AddGPXWayPoint()");
+                Serilog.Log.Fatal(ex, $"Import - AddGPXWayPoint()");
             }
         }
 
@@ -279,7 +279,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Import - AddGPXTrack()");
+                Serilog.Log.Fatal(ex, $"Import - AddGPXTrack()");
             }
         }
 
@@ -366,7 +366,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Import - AddGPXRoute()");
+                Serilog.Log.Fatal(ex, $"Import - AddGPXRoute()");
             }
         }
 
@@ -413,7 +413,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Import - CreateThumbprintMap()");
+                Serilog.Log.Fatal(ex, $"Import - CreateThumbprintMap()");
             }
 
             return null;
@@ -448,7 +448,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Import - GetloadOfflineMap()");
+                Serilog.Log.Fatal(ex, $"Import - GetloadOfflineMap()");
             }
         }
 
@@ -480,7 +480,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Import - AddTracksToMap()");
+                Serilog.Log.Fatal(ex, $"Import - AddTracksToMap()");
             }
         }
 
@@ -525,7 +525,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Import - AddPOIToMap");
+                Serilog.Log.Fatal(ex, $"Import - AddPOIToMap");
             }
         }
 
@@ -600,7 +600,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Import - AddRouteToMap()");
+                Serilog.Log.Fatal(ex, $"Import - AddRouteToMap()");
             }
 
             //Enable menu
@@ -614,7 +614,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"Import - AddRouteToMap()");
+                Serilog.Log.Fatal(ex, $"Import - AddRouteToMap()");
             }
         }
 
@@ -703,7 +703,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Import - GPXtoRoute()");
+                Log.Fatal(ex, $"Import - GPXtoRoute()");
                 return (null, 0, 0, 0, null);
             }
         }
@@ -734,7 +734,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Import - CalculateAscentDescent()");
+                Log.Fatal(ex, $"Import - CalculateAscentDescent()");
                 return (0, 0);
             }
         }
@@ -762,7 +762,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Import - ConvertLatLonListToLineString()");
+                Log.Fatal(ex, $"Import - ConvertLatLonListToLineString()");
             }
 
             return LineString;
@@ -819,7 +819,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Import - PickAndParse()");
+                Log.Fatal(ex, $"Import - PickAndParse()");
             }
 
             return null;
@@ -914,7 +914,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Import - CreateRouteLayer()");
+                Log.Fatal(ex, $"Import - CreateRouteLayer()");
             }
 
             return new MemoryLayer
@@ -953,7 +953,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Import - CreateTrackLayer()");
+                Log.Fatal(ex, $"Import - CreateTrackLayer()");
             }
 
             return new MemoryLayer

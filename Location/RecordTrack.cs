@@ -77,7 +77,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"RecordTrack - StartTrackTimer()");
+                Log.Fatal(ex, $"RecordTrack - StartTrackTimer()");
             }
         }
 
@@ -155,7 +155,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"RecordTrack - SaveTrack()");
+                Log.Fatal(ex, $"RecordTrack - SaveTrack()");
             }
         }
 
@@ -285,7 +285,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"RecordTrack - CheckOffRouteEvent()");
+                Log.Fatal(ex, $"RecordTrack - CheckOffRouteEvent()");
             }
         }
 
@@ -333,7 +333,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"RecordTrack - OffTrackXTECalculations()");
+                Log.Fatal(ex, $"RecordTrack - OffTrackXTECalculations()");
                 return false;
             }
 
@@ -447,7 +447,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"RecordTrack - GetGPSLocationEvent()");
+                Log.Fatal(ex, $"RecordTrack - GetGPSLocationEvent()");
             }
         }
     }

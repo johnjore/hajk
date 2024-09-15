@@ -82,7 +82,7 @@ namespace hajk.Adapter
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"GpxAdapter - OnBindViewHolder()");
+                Serilog.Log.Fatal(ex, $"GpxAdapter - OnBindViewHolder()");
             }
 
         }
@@ -392,7 +392,7 @@ namespace hajk.Adapter
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"GpxAdapter - RecylerView.ViewHolder()");
+                Serilog.Log.Fatal(ex, $"GpxAdapter - RecylerView.ViewHolder()");
             }
 
             return null;

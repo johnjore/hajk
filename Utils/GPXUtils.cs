@@ -31,7 +31,7 @@ namespace GPXUtils
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"GPXUtils - GetTileRange()");
+                Serilog.Log.Fatal(ex, $"GPXUtils - GetTileRange()");
             }
 
             return null;
@@ -56,7 +56,7 @@ namespace GPXUtils
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"GPXUtils - GetTileRange()");
+                Serilog.Log.Fatal(ex, $"GPXUtils - GetTileRange()");
             }
 
             return null;
@@ -80,7 +80,7 @@ namespace GPXUtils
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"GPXUtils - GetTileRange()");
+                Serilog.Log.Fatal(ex, $"GPXUtils - GetTileRange()");
             }
 
             return null;
@@ -124,7 +124,7 @@ namespace GPXUtils
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"GPXUtils - CalculationElevationData()");
+                Serilog.Log.Fatal(ex, $"GPXUtils - CalculationElevationData()");
                 return (0, 0, 0);
             }
 
@@ -390,7 +390,7 @@ namespace GPXUtils
     public static class MapInformation
     {
         //Find WayPoint we are closest to. Use it, incorrectly, as start point for calculations
-        public static (Position, int) FindClosestWayPoint(rteType route, Position position)
+        public static (Position, int) FindClosestWayPoint(rteType? route, Position? position)
         {
             try
             {
@@ -417,7 +417,7 @@ namespace GPXUtils
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "GPXUtils - FindClosestWayPoint()");
+                Serilog.Log.Fatal(ex, "GPXUtils - FindClosestWayPoint()");
             }
 
             return (null, -1);

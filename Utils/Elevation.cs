@@ -31,9 +31,9 @@ namespace hajk
                     Directory.CreateDirectory(GeoTiffFolder);
 
                 //Current contents
-                Serilog.Log.Verbose("Files in GeoTiff Folder:");
+                Serilog.Log.Debug("Current files in GeoTiff Folder:");
                 foreach (string fileName in Directory.GetFiles(GeoTiffFolder))
-                    Serilog.Log.Verbose(fileName);
+                    Serilog.Log.Debug(fileName);
 
                 //Range of tiles
                 AwesomeTiles.TileRange? tiles = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, gpx);
@@ -61,11 +61,16 @@ namespace hajk
                 //Download tiles
                 await DownloadElevationTilesAsync(tiles, intMissingTiles);
 
+                //Current contents
+                Serilog.Log.Debug("Files in GeoTiff Folder (after downloads):");
+                foreach (string fileName in Directory.GetFiles(GeoTiffFolder))
+                    Serilog.Log.Debug(fileName);
+
                 return;
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"COGGeoTIFF - GetElevationData()");
+                Serilog.Log.Fatal(ex, $"COGGeoTIFF - GetElevationData()");
             }
 
             return;
@@ -130,7 +135,7 @@ namespace hajk
                         }
                         catch (Exception ex)
                         {
-                            Serilog.Log.Error(ex, "Failed to lookup ElevationData");
+                            Serilog.Log.Fatal(ex, "Failed to lookup ElevationData");
                             throw new InvalidOperationException("Failed to lookup ElevationData");
                         }
 
@@ -209,7 +214,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"COGGeoTIFF - DownloadElevationTiles()");
+                Serilog.Log.Fatal(ex, $"COGGeoTIFF - DownloadElevationTiles()");
             }
 
             //Anything above 99 will close the ProgressBar GUI
@@ -232,7 +237,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"COGGeoTIFF - WriteCOGGeoTiff()");
+                Serilog.Log.Fatal(ex, $"COGGeoTIFF - WriteCOGGeoTiff()");
             }
         }
 
@@ -240,20 +245,25 @@ namespace hajk
         {
             try
             {
-                Serilog.Log.Verbose($"Checking if '{imageUrl}' exists");
+                Serilog.Log.Debug($"Checking if '{imageUrl}' exists");
 
                 // Only if file or placeholder does not exist
                 if (File.Exists(imageUrl) || File.Exists(imageUrl + ".hajk"))
                 {
+                    Serilog.Log.Debug("File exists. Return true");
                     return true;
+                }
+                else
+                {
+                    Serilog.Log.Debug("File does not exist");
+                    return false;
                 }
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "COGGeoTIFF - Downloaded()");
+                Serilog.Log.Fatal(ex, "COGGeoTIFF - Downloaded() Failed");
+                return false;
             }
-
-            return false;
         }
 
         private static byte[]? DownloadImageAsync(string imageUrl)
@@ -277,7 +287,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, $"COGGeoTIFF - DownloadImageAsync()");
+                Serilog.Log.Fatal(ex, $"COGGeoTIFF - DownloadImageAsync()");
             }
 
             return null;
