@@ -1,45 +1,38 @@
 ﻿using Android;
 using Android.App;
 using Android.Content.PM;
-using Microsoft.Maui.ApplicationModel;
+using static Microsoft.Maui.ApplicationModel.Permissions;
 
 namespace hajk.Utilities
 {
     internal partial class AppPermissions
     {
         /// <summary>
-        /// Requests all permissions needed for application
+        /// Check if TPermission is Granted, and if not, request it
         /// </summary>
-        public static async Task<bool> RequestAppPermissions(Activity activity)
+        public static async Task<PermissionStatus> CheckAndRequestPermissionAsync<TPermission>() where TPermission : BasePermission, new()
         {
-            //First round of location permissions
-            Serilog.Log.Debug($"Check 'LocationWhenInUse' Permission");
-            if (await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>() != PermissionStatus.Granted)
+            return await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                Serilog.Log.Debug($"Request'LocationWhenInUse' Permission");
-                await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
-            }
+                TPermission permission = new TPermission();
+                Serilog.Log.Debug($"Requesting Permission: '{permission.ToString()}'");
+                PermissionStatus status = await permission.CheckStatusAsync();
 
-            //Request AlwaysOn Permission
-            Serilog.Log.Debug($"Check 'LocationAlways' Permission");
-            if (await Permissions.CheckStatusAsync<Permissions.LocationAlways>() != PermissionStatus.Granted)
-            {
-                Serilog.Log.Debug($"Request 'LocationAlways' Permission");
-                await Permissions.RequestAsync<Permissions.LocationAlways>();
-            }
-
-            //Notifications
-            if (OperatingSystem.IsAndroidVersionAtLeast(33))
-            {
-                Serilog.Log.Debug($"Check 'PostNotifications' Permission");
-                if (activity.CheckSelfPermission(Manifest.Permission.PostNotifications) != Permission.Granted)
+                if (status != PermissionStatus.Granted)
                 {
-                    Serilog.Log.Debug($"Request 'PostNotifications' Permission");
-                    activity.RequestPermissions([Manifest.Permission.PostNotifications], 0);
+                    status = await permission.RequestAsync();
+                    if (status != PermissionStatus.Granted)
+                    {
+                        Serilog.Log.Information("Failed to get requested permission '{permission.ToString()}'");
+                    }
+                    else
+                    {
+                        Serilog.Log.Debug($"Permission '{permission.ToString()}' granted");
+                    }
                 }
-            }
 
-            return true;
+                return status;
+            });
         }
 
         /// <summary>

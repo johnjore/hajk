@@ -47,7 +47,7 @@ namespace hajk
             base.OnCreate(savedInstanceState);
 
             //Init
-            if (Application != null) Platform.Init(Application);
+            if (Application != null) Platform.Init(this, savedInstanceState);
             await Platform.WaitForActivityAsync();
 
             ServicePointManager.ServerCertificateValidationCallback = (message, certificate, chain, sslPolicyErrors) => true;
@@ -122,8 +122,15 @@ namespace hajk
                 Preferences.Set("RecordingTrack", false);
                 Preferences.Set("TrackLocation", false);
 
-                //App Permissions
-                await Utilities.AppPermissions.RequestAppPermissions(this);              
+                //App Permissions                
+                Log.Debug($"Requesting Application Permissions");
+                await Utilities.AppPermissions.CheckAndRequestPermissionAsync<Permissions.LocationWhenInUse>();
+                await Utilities.AppPermissions.CheckAndRequestPermissionAsync<Permissions.LocationAlways>();
+                if (OperatingSystem.IsAndroidVersionAtLeast(33))
+                {
+                    await Utilities.AppPermissions.CheckAndRequestPermissionAsync<Permissions.PostNotifications>();
+                }
+                
 
                 Log.Debug($"Create Location Service");
                 if (await Permissions.CheckStatusAsync<Permissions.LocationAlways>() == PermissionStatus.Granted || await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>() == PermissionStatus.Granted)
@@ -295,6 +302,12 @@ namespace hajk
             }
 
             base.OnDestroy();
+        }
+
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
+        {
+            Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+            base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
 
         private void FabOnClick(object? sender, EventArgs? eventArgs)
