@@ -27,7 +27,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System;
-using ExCSS;
 
 namespace hajk.Adapter
 {
@@ -110,6 +109,19 @@ namespace hajk.Adapter
                 Android.Views.View? itemView = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.activity_gpx, parent, false);
                 GPXViewHolder vh = new(itemView, OnClick);
 
+                vh.TrackRouteMap.Click += (o, e) =>
+                {
+                    //vh.TrackRouteMap.SetImageResource(Resource.Drawable.route);
+                    /*if (vh.TrackRouteMap.Visibility == ViewStates.Invisible)
+                    {
+                        vh.TrackRouteMap.Visibility = ViewStates.Visible;
+                    }
+                    else
+                    {
+                        vh.TrackRouteMap.Visibility = ViewStates.Invisible;
+                    }*/
+                };
+
                 vh.Img_more.Click += (o, e) =>
                 {
                     PopupMenu popup = new(parent.Context, vh.Img_more);
@@ -131,276 +143,38 @@ namespace hajk.Adapter
 
                     popup.MenuItemClick += async (s, args) =>
                     {
-                        switch (args.Item.ItemId)
+                        switch (args?.Item?.ItemId)
                         {
                             case var value when value == Resource.Id.gpx_menu_followroute:
-                                Log.Information($"Follow route or track '{vh.Name.Text}'");
-
-                                //Get the route or track
-                                var routetrack = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                                GpxClass gpx = GpxClass.FromXml(routetrack.GPX);
-
-                                if (routetrack.GPXType == GPXType.Track)
-                                {
-                                    gpx.Routes.Add(gpx.Tracks[0].ToRoutes()[0]);
-                                }
-                                string mapRoute = Import.ParseGPXtoRoute(gpx.Routes[0]).Item1;
-
-                                //Add GPX to Map
-                                DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Route, true);
-
-                                //Center on imported route
-                                var bounds = gpx.GetBounds();
-                                //Point p = Utils.Misc.CalculateCenter((double)bounds.maxlat, (double)bounds.minlon, (double)bounds.minlat, (double)bounds.maxlon);
-                                //var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(p.X, p.Y);
-                                //Fragment_map.mapControl.Map.Navigator.CenterOn(sphericalMercatorCoordinate);
-
-                                //Zoom
-                                //Fragment_map.mapControl.Map.Navigator.ZoomTo(PrefsActivity.MaxZoom);
-
-                                //Show the full route
-                                var min_1 = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
-                                var max_1 = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
-                                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min_1.x, min_1.y, max_1.x, max_1.y), MBoxFit.Fit);
-
-                                //Switch to map
-                                ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_Map, (FragmentActivity)parent?.Context);
-
-                                //Save Route for off-route detection
-                                MainActivity.ActiveRoute = gpx;
-
-                                //Start recording
-                                RecordTrack.StartTrackTimer();
+                                gpx_menu_followroute(vh, parent);
 
                                 break;
                             case var value when value == Resource.Id.gpx_menu_showonmap:
-                                Log.Information($"Show route on map '{vh.Name.Text}'");
-
-                                //Get the route
-                                var routetrack_2 = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                                GpxClass gpx_2 = GpxClass.FromXml(routetrack_2.GPX);
-
-                                if (routetrack_2.GPXType == GPXType.Track)
-                                {
-                                    gpx_2.Routes.Add(gpx_2.Tracks[0].ToRoutes()[0]);
-                                }
-                                string mapRouteTrack_2 = Import.ParseGPXtoRoute(gpx_2.Routes[0]).Item1;
-
-                                //Add GPX to Map
-                                DisplayMapItems.AddRouteToMap(mapRouteTrack_2, routetrack_2.GPXType, true);
-
-                                //Center on imported route
-                                var bounds_2 = gpx_2.GetBounds();
-                                //Point p_1 = Utils.Misc.CalculateCenter((double)bounds_1.maxlat, (double)bounds_1.minlon, (double)bounds_1.minlat, (double)bounds_1.maxlon);
-                                //var sphericalMercatorCoordinate_1 = SphericalMercator.FromLonLat(p_1.X, p_1.Y);
-                                //Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate_1);
-
-                                //Zoom
-                                //Fragment_map.mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
-
-                                //Show the full route
-                                var (x1, y1) = SphericalMercator.FromLonLat((double)bounds_2.maxlon, (double)bounds_2.minlat);
-                                var (x2, y2) = SphericalMercator.FromLonLat((double)bounds_2.minlon, (double)bounds_2.maxlat);
-                                Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(x1, y1, x2, y2), MBoxFit.Fit);
-
-                                //Switch to map
-                                if (parent.Context != null)
-                                {
-                                    ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_Map, (FragmentActivity)parent.Context);
-                                }
+                                gpx_menu_showonmap(vh, parent);
 
                                 break;
                             case var value when value == Resource.Id.gpx_menu_deleteroute:
-                                Log.Information($"Delete route '{vh.Name.Text}'");
-
-                                Show_Dialog msg1 = new(Platform.CurrentActivity);
-                                if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}' ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
-                                {
-                                    //Remove map tiles
-                                    MBTilesWriter.PurgeMapDB(vh.Id);
-
-                                    //Remove from route DB
-                                    _ = RouteDatabase.DeleteRouteAsync(vh.Id);
-
-                                    //Remove from GUI
-                                    mGpxData.RemoveAt(vh.AdapterPosition);
-                                    NotifyDataSetChanged();
-                                }
+                                await gpx_menu_deleteroute(vh);
 
                                 break;
                             case var value when value == Resource.Id.gpx_menu_reverseroute:
-                                Log.Information($"Reverse route '{vh.Name.Text}'");
-
-                                //Get the route
-                                GPXDataRouteTrack route_to_reverse = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                                GpxClass gpx_to_reverse = GpxClass.FromXml(route_to_reverse.GPX);
-
-                                if (route_to_reverse.GPXType == GPXType.Track)
-                                {
-                                    foreach (SharpGPX.GPX1_1.trkType track in gpx_to_reverse.Tracks)
-                                    {
-                                        foreach (SharpGPX.GPX1_1.trksegType trkseg in track.trkseg)
-                                        {
-                                            trkseg.trkpt.Reverse();
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    gpx_to_reverse.Routes[0].rtept.Reverse();
-                                }
-
-                                //Reverse and save as new entry
-                                route_to_reverse.Name += " - reversed";
-                                route_to_reverse.Description += " - reversed";
-                                route_to_reverse.Id = 0;
-                                route_to_reverse.GPX = gpx_to_reverse.ToXml();
-                                RouteDatabase.SaveRouteAsync(route_to_reverse).Wait();
-
-                                //Update RecycleView with new entry
-                                _ = Fragment_gpx.mAdapter.mGpxData.Insert(route_to_reverse);
-                                Fragment_gpx.mAdapter.NotifyDataSetChanged();
+                                gpx_menu_reverseroute(vh);
 
                                 break;
                             case var value when value == Resource.Id.gpx_menu_optimize:
-                                Log.Information($"Optimize '{vh.Name.Text}'");
-
-                                //Get the GPX
-                                GPXDataRouteTrack item_to_optimize = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                                var GPXOptimized = GPXOptimize.Optimize(GpxClass.FromXml(item_to_optimize.GPX)).ToXml();
-
-                                //Update object
-                                item_to_optimize.GPX = GPXOptimized;
-
-                                //Save. ID is unchanged
-                                RouteDatabase.SaveRouteAsync(item_to_optimize).Wait();
+                                gpx_menu_optimize(vh);
 
                                 break;
                             case var value when value == Resource.Id.gpx_menu_exportgpx:
-                                Log.Information($"Export route '{vh.Name.Text}'");
-
-                                Android.Views.View view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
-                                AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder = new(parent.Context);
-                                alertbuilder.SetView(view);
-                                var userdata = view.FindViewById<EditText>(Resource.Id.editText);
-                                userdata.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".gpx";
-
-                                alertbuilder.SetCancelable(false)
-                                .SetPositiveButton(Resource.String.Submit, delegate
-                                {
-                                    //Get the route
-                                    var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                                    GpxClass gpx_to_export = GpxClass.FromXml(route_to_export.GPX);
-
-                                    string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
-                                    if (DownLoadFolder != null)
-                                    {
-                                        string gpxPath = Path.Combine(DownLoadFolder, userdata.Text);
-                                        gpx_to_export.ToFile(gpxPath);
-                                    }
-                                })
-                                .SetNegativeButton(Resource.String.Cancel, delegate
-                                {
-                                    alertbuilder.Dispose();
-                                });
-                                AndroidX.AppCompat.App.AlertDialog dialog = alertbuilder.Create();
-                                dialog.Show();
+                                gpx_menu_exportgpx(vh, parent);
 
                                 break;
                             case var value when value == Resource.Id.gpx_menu_exportmap:
-                                Log.Information($"Export Map '{vh.Name.Text}'");
-
-                                Android.Views.View view2 = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
-                                AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder2 = new(parent.Context);
-                                alertbuilder2.SetView(view2);
-                                var userdata2 = view2.FindViewById<EditText>(Resource.Id.editText);
-                                userdata2.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".mbtiles";
-
-                                alertbuilder2.SetCancelable(false)
-                                .SetPositiveButton(Resource.String.Submit, delegate
-                                {
-                                    string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
-                                    if (DownLoadFolder != null)
-                                    {
-                                        string mbtTilesPath = DownLoadFolder + "/" + userdata2.Text;
-
-                                        var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                                        GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
-
-                                        if (vh.GPXType == GPXType.Track)
-                                        {
-                                            Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, mbtTilesPath, false);
-                                        }
-
-                                        if (vh.GPXType == GPXType.Route)
-                                        {
-                                            Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, mbtTilesPath, false);
-                                        }
-                                    }
-                                })
-                                .SetNegativeButton(Resource.String.Cancel, delegate
-                                {
-                                    alertbuilder2.Dispose();
-                                });
-                                AndroidX.AppCompat.App.AlertDialog dialog2 = alertbuilder2.Create();
-                                dialog2.Show();
+                                gpx_menu_exportmap(vh, parent);
 
                                 break;
                             case var value when value == Resource.Id.gpx_menu_saveofflinemap:
-                                Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text} / {vh.Id}'");
-
-                                //If using OSM, cancel out here
-                                string? TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
-                                if (TileBulkDownloadSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    Log.Warning("Can't use OSM as a bulkdownload server");
-                                    Toast.MakeText(parent.Context, "Can't use OpenStreetMap Server for bulk downloading.", ToastLength.Long).Show();
-                                    
-                                    return;
-                                }
-                                                                
-                                //Clear existing GPX routes from map, else they will be included
-                                Utils.Misc.ClearTrackRoutesFromMap();
-
-                                var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                                GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
-
-                                //Get elevation data first
-                                Elevation.GetElevationData(gpx_to_download);
-
-                                string mapRouteGPX = string.Empty;
-                                if (vh.GPXType == GPXType.Track)
-                                {
-                                    await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null, true);
-
-                                    mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0]).Item1;
-                                    DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Track, true);
-                                }
-
-                                if (vh.GPXType == GPXType.Route)
-                                {
-                                    await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null, false);
-
-                                    mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Routes[0]).Item1;
-                                    DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Route, true);
-                                }
-
-                                //Create / Update thumbsize map
-                                string ImageBase64String = Import.CreateThumbprintMap(gpx_to_download);
-                                route_to_download.ImageBase64String = ImageBase64String;
-                                RouteDatabase.SaveRouteAsync(route_to_download).Wait();
-
-                                //Update RecycleView with new entry
-                                vh.TrackRouteMap.SetImageResource(0);
-                                if (ImageBase64String != null)
-                                {
-                                    var bitmap = Utils.Misc.ConvertStringToBitmap(ImageBase64String);
-                                    if (bitmap != null)
-                                    {
-                                        vh.TrackRouteMap.SetImageBitmap(bitmap);
-                                    }
-                                }
-                                Fragment_gpx.mAdapter.NotifyItemChanged(args.Item.ItemId);
+                                await download_and_save_offline_map(vh, parent, args.Item.ItemId);
 
                                 break;
                         }
@@ -424,10 +198,292 @@ namespace hajk.Adapter
             ItemClick?.Invoke(this, obj);
         }
 
-        /*public static void MAdapter_ItemClick(object sender, int e)
+        /*
+        public static void MAdapter_ItemClick(object sender, int e)
         {
             int gpxNum = e + 1;
-            Toast.MakeText(MainActivity.mContext, "This is route/track number " + gpxNum, ToastLength.Short).Show();
-        }*/
+            Toast.MakeText(Platform.AppContext, "This is route/track number " + gpxNum, ToastLength.Short).Show();
+        }
+        */
+
+
+        private void gpx_menu_followroute(GPXViewHolder vh, ViewGroup parent)
+        {
+            Log.Information($"Follow route or track '{vh.Name.Text}'");
+
+            //Get the route or track
+            var routetrack = RouteDatabase.GetRouteAsync(vh.Id).Result;
+            GpxClass gpx = GpxClass.FromXml(routetrack.GPX);
+
+            if (routetrack.GPXType == GPXType.Track)
+            {
+                gpx.Routes.Add(gpx.Tracks[0].ToRoutes()[0]);
+            }
+            string mapRoute = Import.ParseGPXtoRoute(gpx.Routes[0]).Item1;
+
+            //Add GPX to Map
+            DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Route, true);
+
+            //Center on imported route
+            var bounds = gpx.GetBounds();
+            //Point p = Utils.Misc.CalculateCenter((double)bounds.maxlat, (double)bounds.minlon, (double)bounds.minlat, (double)bounds.maxlon);
+            //var sphericalMercatorCoordinate = SphericalMercator.FromLonLat(p.X, p.Y);
+            //Fragment_map.mapControl.Map.Navigator.CenterOn(sphericalMercatorCoordinate);
+
+            //Zoom
+            //Fragment_map.mapControl.Map.Navigator.ZoomTo(PrefsActivity.MaxZoom);
+
+            //Show the full route
+            var min_1 = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
+            var max_1 = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+            Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min_1.x, min_1.y, max_1.x, max_1.y), MBoxFit.Fit);
+
+            //Switch to map
+            ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_Map, (FragmentActivity)parent?.Context);
+
+            //Save Route for off-route detection
+            MainActivity.ActiveRoute = gpx;
+
+            //Start recording
+            RecordTrack.StartTrackTimer();
+        }
+
+        private void gpx_menu_showonmap(GPXViewHolder vh, ViewGroup parent)
+        {
+            Log.Information($"Show route on map '{vh.Name.Text}'");
+
+            //Get the route
+            var routetrack_2 = RouteDatabase.GetRouteAsync(vh.Id).Result;
+            GpxClass gpx_2 = GpxClass.FromXml(routetrack_2.GPX);
+
+            if (routetrack_2.GPXType == GPXType.Track)
+            {
+                gpx_2.Routes.Add(gpx_2.Tracks[0].ToRoutes()[0]);
+            }
+            string mapRouteTrack_2 = Import.ParseGPXtoRoute(gpx_2.Routes[0]).Item1;
+
+            //Add GPX to Map
+            DisplayMapItems.AddRouteToMap(mapRouteTrack_2, routetrack_2.GPXType, true);
+
+            //Center on imported route
+            var bounds_2 = gpx_2.GetBounds();
+            //Point p_1 = Utils.Misc.CalculateCenter((double)bounds_1.maxlat, (double)bounds_1.minlon, (double)bounds_1.minlat, (double)bounds_1.maxlon);
+            //var sphericalMercatorCoordinate_1 = SphericalMercator.FromLonLat(p_1.X, p_1.Y);
+            //Fragment_map.mapControl.Navigator.CenterOn(sphericalMercatorCoordinate_1);
+
+            //Zoom
+            //Fragment_map.mapControl.Navigator.ZoomTo(PrefsActivity.MaxZoom);
+
+            //Show the full route
+            var (x1, y1) = SphericalMercator.FromLonLat((double)bounds_2.maxlon, (double)bounds_2.minlat);
+            var (x2, y2) = SphericalMercator.FromLonLat((double)bounds_2.minlon, (double)bounds_2.maxlat);
+            Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(x1, y1, x2, y2), MBoxFit.Fit);
+
+            //Switch to map
+            if (parent.Context != null)
+            {
+                ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_Map, (FragmentActivity)parent.Context);
+            }
+        }
+
+        private async Task gpx_menu_deleteroute(GPXViewHolder vh)
+        {
+            Log.Information($"Delete route '{vh.Name.Text}'");
+
+            Show_Dialog msg1 = new(Platform.CurrentActivity);
+            if (await msg1.ShowDialog($"Delete", $"Delete '{vh.Name.Text}' ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+            {
+                //Remove map tiles
+                MBTilesWriter.PurgeMapDB(vh.Id);
+
+                //Remove from route DB
+                _ = RouteDatabase.DeleteRouteAsync(vh.Id);
+
+                //Remove from GUI
+                mGpxData.RemoveAt(vh.AdapterPosition);
+                NotifyDataSetChanged();
+            }
+        }
+
+        private void gpx_menu_reverseroute(GPXViewHolder vh)
+        {
+            Log.Information($"Reverse route '{vh.Name.Text}'");
+
+            //Get the route
+            GPXDataRouteTrack route_to_reverse = RouteDatabase.GetRouteAsync(vh.Id).Result;
+            GpxClass gpx_to_reverse = GpxClass.FromXml(route_to_reverse.GPX);
+
+            if (route_to_reverse.GPXType == GPXType.Track)
+            {
+                foreach (SharpGPX.GPX1_1.trkType track in gpx_to_reverse.Tracks)
+                {
+                    foreach (SharpGPX.GPX1_1.trksegType trkseg in track.trkseg)
+                    {
+                        trkseg.trkpt.Reverse();
+                    }
+                }
+            }
+            else
+            {
+                gpx_to_reverse.Routes[0].rtept.Reverse();
+            }
+
+            //Reverse and save as new entry
+            route_to_reverse.Name += " - reversed";
+            route_to_reverse.Description += " - reversed";
+            route_to_reverse.Id = 0;
+            route_to_reverse.GPX = gpx_to_reverse.ToXml();
+            RouteDatabase.SaveRouteAsync(route_to_reverse).Wait();
+
+            //Update RecycleView with new entry
+            _ = Fragment_gpx.mAdapter.mGpxData.Insert(route_to_reverse);
+            Fragment_gpx.mAdapter.NotifyDataSetChanged();
+        }
+
+        private void gpx_menu_optimize(GPXViewHolder vh)
+        {
+            Log.Information($"Optimize '{vh.Name.Text}'");
+
+            //Get the GPX
+            GPXDataRouteTrack item_to_optimize = RouteDatabase.GetRouteAsync(vh.Id).Result;
+            var GPXOptimized = GPXOptimize.Optimize(GpxClass.FromXml(item_to_optimize.GPX)).ToXml();
+
+            //Update object
+            item_to_optimize.GPX = GPXOptimized;
+
+            //Save. ID is unchanged
+            RouteDatabase.SaveRouteAsync(item_to_optimize).Wait();
+        }
+
+        private void gpx_menu_exportgpx(GPXViewHolder vh, ViewGroup parent)
+        {
+            Log.Information($"Export route '{vh.Name.Text}'");
+
+            Android.Views.View view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
+            AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder = new(parent.Context);
+            alertbuilder.SetView(view);
+            var userdata = view.FindViewById<EditText>(Resource.Id.editText);
+            userdata.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".gpx";
+
+            alertbuilder.SetCancelable(false)
+            .SetPositiveButton(Resource.String.Submit, delegate
+            {
+                //Get the route
+                var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                GpxClass gpx_to_export = GpxClass.FromXml(route_to_export.GPX);
+
+                string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
+                if (DownLoadFolder != null)
+                {
+                    string gpxPath = Path.Combine(DownLoadFolder, userdata.Text);
+                    gpx_to_export.ToFile(gpxPath);
+                }
+            })
+            .SetNegativeButton(Resource.String.Cancel, delegate
+                {
+                    alertbuilder.Dispose();
+                });
+            AndroidX.AppCompat.App.AlertDialog dialog = alertbuilder.Create();
+            dialog.Show();
+        }
+                            
+        private void gpx_menu_exportmap(GPXViewHolder vh, ViewGroup parent)
+        {
+            Log.Information($"Export Map '{vh.Name.Text}'");
+
+            Android.Views.View view2 = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
+            AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder2 = new(parent.Context);
+            alertbuilder2.SetView(view2);
+            var userdata2 = view2.FindViewById<EditText>(Resource.Id.editText);
+            userdata2.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".mbtiles";
+
+            alertbuilder2.SetCancelable(false)
+            .SetPositiveButton(Resource.String.Submit, delegate
+            {
+                string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
+                if (DownLoadFolder != null)
+                {
+                    string mbtTilesPath = DownLoadFolder + "/" + userdata2.Text;
+
+                    var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                    GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
+
+                    if (vh.GPXType == GPXType.Track)
+                    {
+                        Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, mbtTilesPath, false);
+                    }
+
+                    if (vh.GPXType == GPXType.Route)
+                    {
+                        Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, mbtTilesPath, false);
+                    }
+                }
+            })
+            .SetNegativeButton(Resource.String.Cancel, delegate
+            {
+                alertbuilder2.Dispose();
+            });
+            AndroidX.AppCompat.App.AlertDialog dialog2 = alertbuilder2.Create();
+            dialog2.Show();
+        }
+
+        private async Task download_and_save_offline_map(GPXViewHolder vh, ViewGroup parent, int menuitem)
+        {
+            Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text} / {vh.Id}'");
+
+            //If using OSM, cancel out here
+            string? TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
+            if (TileBulkDownloadSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
+            {
+                Log.Warning("Can't use OSM as a bulkdownload server");
+                Toast.MakeText(parent.Context, "Can't use OpenStreetMap Server for bulk downloading.", ToastLength.Long).Show();
+
+                return;
+            }
+
+            //Clear existing GPX routes from map, else they will be included
+            Utils.Misc.ClearTrackRoutesFromMap();
+
+            var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
+            GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
+
+            //Get elevation data first
+            Elevation.GetElevationData(gpx_to_download);
+
+            string mapRouteGPX = string.Empty;
+            if (vh.GPXType == GPXType.Track)
+            {
+                await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null, true);
+
+                mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0]).Item1;
+                DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Track, true);
+            }
+
+            if (vh.GPXType == GPXType.Route)
+            {
+                await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null, false);
+
+                mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Routes[0]).Item1;
+                DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Route, true);
+            }
+
+            //Create / Update thumbsize map
+            string ImageBase64String = Import.CreateThumbprintMap(gpx_to_download);
+            route_to_download.ImageBase64String = ImageBase64String;
+            RouteDatabase.SaveRouteAsync(route_to_download).Wait();
+
+            //Update RecycleView with new entry
+            vh.TrackRouteMap.SetImageResource(0);
+            if (ImageBase64String != null)
+            {
+                var bitmap = Utils.Misc.ConvertStringToBitmap(ImageBase64String);
+                if (bitmap != null)
+                {
+                    vh.TrackRouteMap.SetImageBitmap(bitmap);
+                }
+            }
+            Fragment_gpx.mAdapter.NotifyItemChanged(menuitem);
+
+        }
     }
 }
