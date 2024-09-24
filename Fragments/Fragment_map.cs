@@ -19,7 +19,6 @@ using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
-using Serilog;
 using GPXUtils;
 using static System.Net.Mime.MediaTypeNames;
 using hajk.Data;
@@ -44,7 +43,7 @@ namespace hajk.Fragments
         {
             if (inflater == null)
             {
-                Log.Error($"inflator can't be null here");
+                Serilog.Log.Fatal($"inflator can't be null here");
                 return null;
             }
 
@@ -53,17 +52,17 @@ namespace hajk.Fragments
                 var view = inflater.Inflate(Resource.Layout.fragment_map, container, false);
                 if (view == null)
                 {
-                    Log.Error($"View can't be null here");
+                    Serilog.Log.Fatal($"View can't be null here");
                     return null;
                 }
                 view.SetBackgroundColor(Android.Graphics.Color.White);
 
-                Log.Debug($"Create mapControl");
+                Serilog.Log.Debug($"Create mapControl");
 
                 mapControl = view.FindViewById<MapControl>(Resource.Id.mapcontrol);
                 if (mapControl == null)
                 {
-                    Log.Error($"mapControl can't be null here");
+                    Serilog.Log.Fatal($"mapControl can't be null here");
                     return null;
                 }
 
@@ -74,13 +73,13 @@ namespace hajk.Fragments
                 mapControl.Map = map;
 
                 bool LockMapRotation = Preferences.Get("MapLockNorth", false);
-                Log.Verbose($"Set map rotation (lock or not):" + LockMapRotation.ToString());
+                Serilog.Log.Information($"Set map rotation (lock or not):" + LockMapRotation.ToString());
                 map.Navigator.RotationLock = LockMapRotation;
 
-                Log.Debug($"Cache downloaded tiles");
+                Serilog.Log.Information($"Cache downloaded tiles");
                 DownloadRasterImageMap.LoadOSMLayer();
 
-                Log.Debug($"Add scalebar");
+                Serilog.Log.Information($"Add scalebar");
                 map.Widgets.Add(new ScaleBarWidget(map)
                 {
                     MaxWidth = 300,
@@ -99,16 +98,16 @@ namespace hajk.Fragments
                     MarginY = 20,
                 });
 
-                Log.Debug($"Import POIs");
+                Serilog.Log.Information($"Import POIs");
                 if (Preferences.Get("DrawPOIOnGui", Fragment_Preferences.DrawPOIonGui_b))
                 {
-                    Task.Run(() => Import.AddPOIToMap());
+                    Task.Run(() => DisplayMapItems.AddPOIToMap());
                 }
 
-                Log.Debug($"Show All Tracks on Map");
+                Serilog.Log.Information($"Show All Tracks on Map");
                 if (Preferences.Get("DrawTracksOnGui", Fragment_Preferences.DrawTracksOnGui_b))
                 {
-                    Task.Run(() => Import.AddTracksToMap());
+                    Task.Run(() => DisplayMapItems.AddTracksToMap());
                 }
 
                 mapControl.Info += MapOnInfo;
@@ -171,7 +170,7 @@ namespace hajk.Fragments
                             };
                             
                             var r = POIDatabase.SavePOI(p);
-                            Import.AddPOIToMap();
+                            DisplayMapItems.AddPOIToMap();
                         }
 
                         return;
@@ -190,7 +189,7 @@ namespace hajk.Fragments
                     p.Lon = (decimal)lon;
 
                     var r = POIDatabase.SavePOI(p);
-                    Import.AddPOIToMap();
+                    DisplayMapItems.AddPOIToMap();
 
                     MovingPOI = -1;
                 }
@@ -210,9 +209,9 @@ namespace hajk.Fragments
                 var style = args.MapInfo.Style;
 
                 //POI?
-                if (layer.Name == "Poi" && layer.Tag.ToString() == "poi" && args.MapInfo != null && args.MapInfo.WorldPosition != null)
+                if (layer.Name == Fragment_Preferences.Layer_Poi && layer.Tag.ToString() == Fragment_Preferences.Layer_Poi && args.MapInfo != null && args.MapInfo.WorldPosition != null)
                 {
-                    Log.Debug($"POI Object");
+                    Serilog.Log.Debug($"POI Object");
                     long id = Convert.ToInt64(args.MapInfo?.Feature["id"]);
                     var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                     var text = "Name:\n" + args.MapInfo?.Feature["name"] + "\n\nDescription:\n" + args.MapInfo?.Feature["description"] + "\n\nGPS Coordinates:\n";
@@ -231,7 +230,7 @@ namespace hajk.Fragments
                             {
                                 Serilog.Log.Debug($"Deleting {id} from POI DB and MemoryLayer");
                                 var r = POIDatabase.DeletePOIAsync(id);
-                                Import.AddPOIToMap();
+                                DisplayMapItems.AddPOIToMap();
                             }
                         }
 
@@ -249,18 +248,18 @@ namespace hajk.Fragments
                 }
 
                 //Track?
-                if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "track")
+                if (layer.Name == Fragment_Preferences.Layer_Route && layer.Tag.ToString() == Fragment_Preferences.Layer_Track)
                 {
-                    Log.Debug($"Track Object");
+                    Serilog.Log.Debug($"Track Object");
                 }
 
                 /**///Need to filter out the arrows
                 //Route?
-                if (layer.Name == "RouteLayer" && layer.Tag.ToString() == "route" && style?.ToString() == "Mapsui.Styles.SymbolStyle" && args.MapInfo != null && args.MapInfo.WorldPosition != null)
+                if (layer.Name == Fragment_Preferences.Layer_Route && layer.Tag.ToString() == Fragment_Preferences.Layer_Route && style?.ToString() == "Mapsui.Styles.SymbolStyle" && args.MapInfo != null && args.MapInfo.WorldPosition != null)
                 {
                     var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                     MapPosition = new Position(b.lon, b.lat, 0, null);
-                    Log.Debug($"Route Object. GPS Position: " + b.ToString());
+                    Serilog.Log.Debug($"Route Object. GPS Position: " + b.ToString());
 
                     var activity = (FragmentActivity?)Platform.CurrentActivity;
 
@@ -293,7 +292,7 @@ namespace hajk.Fragments
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, $"Fragment_map - MapInfo()");
+                Serilog.Log.Fatal(ex, $"Fragment_map - MapInfo()");
             }
         }
 

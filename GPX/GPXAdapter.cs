@@ -55,17 +55,33 @@ namespace hajk.Adapter
                 vh.GPXType = mGpxData[position].GPXType;
                 vh.Name.Text = mGpxData[position].Name;
                 vh.Distance.Text = "Length: " + (mGpxData[position].Distance).ToString("N1") + "km";
-                vh.Ascent.Text = "Ascent: " + (mGpxData[position].Ascent).ToString() + "m";
-                vh.Descent.Text = "Descent: " + (mGpxData[position].Descent).ToString() + "m";
+
+                //Ascent / Descent fields
+                vh.Ascent.Text = "Ascent: ";
+                vh.Descent.Text = "Descent: ";
+                var a = (mGpxData[position].Ascent);
+                var d = (mGpxData[position].Descent);
+
+                if (a == 0 && d == 0)
+                {
+                    vh.Ascent.Text += Platform.CurrentActivity.GetString(Resource.String.NA);
+                    vh.Descent.Text += Platform.CurrentActivity.GetString(Resource.String.NA);
+                }
+                else
+                {
+                    vh.Ascent.Text += a.ToString() + "m";
+                    vh.Descent.Text += d.ToString() + "m";
+                }
 
                 if (vh.GPXType == GPXType.Route)
                 {
                     vh.GPXTypeLogo.SetImageResource(Resource.Drawable.route);
-                }
-
-                if (vh.GPXType == GPXType.Track)
+                } else if (vh.GPXType == GPXType.Track)
                 {
                     vh.GPXTypeLogo.SetImageResource(Resource.Drawable.track);
+                } else
+                {
+                    Serilog.Log.Fatal("GPXType must be a route or track");
                 }
 
                 //Clear it, as it's reused
@@ -87,7 +103,7 @@ namespace hajk.Adapter
 
         }
 
-        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup? parent, int viewType)
+        public override RecyclerView.ViewHolder? OnCreateViewHolder(ViewGroup? parent, int viewType)
         {
             try
             {
@@ -97,8 +113,13 @@ namespace hajk.Adapter
                 vh.Img_more.Click += (o, e) =>
                 {
                     PopupMenu popup = new(parent.Context, vh.Img_more);
-                    popup.Inflate(Resource.Menu.menu_gpx);
+                    popup?.Inflate(Resource.Menu.menu_gpx);
 
+                    if (popup == null || popup.Menu == null)
+                    {
+                        return;
+                    }
+                    
                     //Fix menu text
                     if (vh.GPXType == GPXType.Track)
                     {
@@ -123,10 +144,10 @@ namespace hajk.Adapter
                                 {
                                     gpx.Routes.Add(gpx.Tracks[0].ToRoutes()[0]);
                                 }
-                                string mapRoute = Import.GPXtoRoute(gpx.Routes[0], false).Item1;
+                                string mapRoute = Import.ParseGPXtoRoute(gpx.Routes[0]).Item1;
 
                                 //Add GPX to Map
-                                Import.AddRouteToMap(mapRoute, GPXType.Route, true);
+                                DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Route, true);
 
                                 //Center on imported route
                                 var bounds = gpx.GetBounds();
@@ -163,10 +184,10 @@ namespace hajk.Adapter
                                 {
                                     gpx_2.Routes.Add(gpx_2.Tracks[0].ToRoutes()[0]);
                                 }
-                                string mapRouteTrack_2 = Import.GPXtoRoute(gpx_2.Routes[0], false).Item1;
+                                string mapRouteTrack_2 = Import.ParseGPXtoRoute(gpx_2.Routes[0]).Item1;
 
                                 //Add GPX to Map
-                                Import.AddRouteToMap(mapRouteTrack_2, routetrack_2.GPXType, true);
+                                DisplayMapItems.AddRouteToMap(mapRouteTrack_2, routetrack_2.GPXType, true);
 
                                 //Center on imported route
                                 var bounds_2 = gpx_2.GetBounds();
@@ -352,16 +373,16 @@ namespace hajk.Adapter
                                 {
                                     await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null, true);
 
-                                    mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0], false).Item1;
-                                    Import.AddRouteToMap(mapRouteGPX, GPXType.Track, true);
+                                    mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0]).Item1;
+                                    DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Track, true);
                                 }
 
                                 if (vh.GPXType == GPXType.Route)
                                 {
                                     await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null, false);
 
-                                    mapRouteGPX = Import.GPXtoRoute(gpx_to_download.Routes[0], false).Item1;
-                                    Import.AddRouteToMap(mapRouteGPX, GPXType.Route, true);
+                                    mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Routes[0]).Item1;
+                                    DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Route, true);
                                 }
 
                                 //Create / Update thumbsize map

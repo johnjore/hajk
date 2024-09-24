@@ -20,7 +20,7 @@ namespace hajk
         /// <summary>
         /// Download Elevation data files (GeoTiff) from AWS S3 bucket
         /// </summary>
-        public static async void GetElevationData(GpxClass gpx)
+        public static async Task<bool> GetElevationData(GpxClass gpx)
         {
             try
             {
@@ -37,6 +37,12 @@ namespace hajk
 
                 //Range of tiles
                 AwesomeTiles.TileRange? tiles = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, gpx);
+
+                //Tiles to process?
+                if (tiles == null)
+                {
+                    return false;
+                }
 
                 //Count missing tiles
                 int intMissingTiles = 0;
@@ -55,7 +61,7 @@ namespace hajk
                 if (intMissingTiles == 0)
                 {
                     Toast.MakeText(Platform.AppContext, "Elevation tiles already downloaded", ToastLength.Short)?.Show();
-                    return;
+                    return true;
                 }
 
                 //Download tiles
@@ -66,14 +72,15 @@ namespace hajk
                 foreach (string fileName in Directory.GetFiles(GeoTiffFolder))
                     Serilog.Log.Debug(fileName);
 
-                return;
+                return true;
             }
             catch (Exception ex)
             {
                 Serilog.Log.Fatal(ex, $"COGGeoTIFF - GetElevationData()");
+                return false;
             }
 
-            return;
+            return true;
         }
 
         /// <summary>
@@ -104,10 +111,10 @@ namespace hajk
                     ListLatLon[i].GeoTiffFileName = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{Fragment_Preferences.Elevation_Tile_Zoom}-{tmp1?.X}-{tmp1?.Y}.tif";
 
                     //Update progress bar
-                    Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / ListLatLon.Count * 2);
+                    Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / (ListLatLon.Count * 2));
                     Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {ListLatLon.Count * 2}";
 
-                    Thread.Sleep(200);
+                    //Thread.Sleep(200);
                 }
 
                 //Unique filenames
@@ -140,10 +147,10 @@ namespace hajk
                         }
 
                         //Update progress bar
-                        Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / ListLatLon.Count * 2);
+                        Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / (ListLatLon.Count * 2));
                         Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {ListLatLon.Count * 2}";
 
-                        Thread.Sleep(200);
+                        //Thread.Sleep(200);
                     }
 
                     geoTiff.Dispose();
@@ -154,6 +161,44 @@ namespace hajk
             Progressbar.UpdateProgressBar.Progress = 100;
 
             return ListLatLon;
+        }
+
+        /// <summary>
+        /// Loop through a list of Positions with elevation data and calculate how much ascent and descent
+        /// </summary>
+        /// <param name="LatLonEle"></param>
+        /// <returns>ascent & descent in meters</returns>
+        public static (int, int) CalculateAscentDescent(List<Position> LatLonEle)
+        {
+            /**///List of Positions needs slicing to make more granular
+
+            double ascent = 0;
+            double descent = 0;
+
+            try
+            {
+                for (int j = 0; j < LatLonEle.Count - 1; j++)
+                {
+                    var j0 = LatLonEle[j].Elevation;
+                    var j1 = LatLonEle[j + 1].Elevation;
+
+                    if (j0 > j1)
+                    {
+                        descent += j0 - j1;
+                    }
+                    else
+                    {
+                        ascent += j1 - j0;
+                    }
+                }
+
+                return ((int)ascent, (int)descent);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Fatal(ex, $"CalculateAscentDescent()");
+                return (0, 0);
+            }
         }
 
         private static async Task<List<string>?>? DownloadElevationTilesAsync(AwesomeTiles.TileRange? range, int intMissingtiles)

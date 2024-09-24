@@ -302,7 +302,7 @@ namespace hajk.Fragments
                     //End
                     if (i == route.rtept.Count - 1)
                     {
-                        var t = Import.GPXtoRoute(route, false);
+                        var t = Import.ParseGPXtoRoute(route);
                         entry.Label = (t.Item2 / 1000).ToString("N1");
                         entry.TextColor = SKColor.Parse("#000000"); //Purple
                     }

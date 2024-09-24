@@ -402,12 +402,13 @@ namespace hajk
                 if (Preferences.Get("DrawTrackOnGui", Fragment_Preferences.DrawTrackOnGui_b))
                 {
                     //Add tracking layer to map
-                    if (Fragment_map.map.Layers.FindLayer("tracklayer".ToLower()).FirstOrDefault() == null)
+                    if (Fragment_map.map.Layers.FindLayer(Fragment_Preferences.Layer_Track).FirstOrDefault() == null)
                     {
                         trackLayer = new GenericCollectionLayer<List<IFeature>>
                         {
-                            Name = "tracklayer".ToLower(),
-                            Style = Import.CreateStyle("Red"),
+                            Name = Fragment_Preferences.Layer_Track,
+                            Tag = Fragment_Preferences.Layer_Track,
+                            Style = DisplayMapItems.CreateStyle("Red"),
                         };
                         Fragment_map.map.Layers.Add(trackLayer);
                     }

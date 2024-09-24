@@ -30,7 +30,7 @@ namespace hajk.Fragments
 {
     public class Fragment_gpx : AndroidX.Fragment.App.Fragment
     {
-        private RecyclerView? mRecycleView;
+        public static RecyclerView? mRecycleView;
         private RecyclerView.LayoutManager? mLayoutManager;
         private static GpxData? mGpxData;
         public static GpxAdapter? mAdapter;

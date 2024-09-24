@@ -81,6 +81,7 @@
   <string name="No">No</string>
   <string name="Ok">Ok</string>
   <string name="Hide">Hide</string>
+  <string name="NA">"n/a"</string>
   <string name="DownloadTiles">Downloading tile </string>
   <string name="BatterySaveModeEnabledTitle">Battery Save Mode</string>
   <string name="BatterySaveModeEnabledDescription">Battery Save Mode is Enabled. GPS will not update in background</string>

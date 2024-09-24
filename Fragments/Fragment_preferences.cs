@@ -16,10 +16,16 @@ namespace hajk
     [Activity(Label = "preferences")]
     public class Fragment_Preferences : PreferenceFragmentCompat, ISharedPreferencesOnSharedPreferenceChangeListener
     {
-        //Misc
+        //Fragment names
         public const string Fragment_Map = "Fragment_Map";
         public const string Fragment_GPX = "Fragment_GPX";
         public const string Fragment_Settings = "Fragment_Settings";
+
+        //Mapsui Layer Names
+        public const string Layer_Poi = "Poi";
+        public const string Layer_Route = "Route";
+        public const string Layer_Track = "Track";
+
 
         //GeoTiff
         public readonly static int Elevation_Tile_Zoom = 14;            //Best AWS bucket has

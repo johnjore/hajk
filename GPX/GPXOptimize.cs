@@ -1,9 +1,9 @@
-﻿using System;
+﻿using SharpGPX.GPX1_1;
+using SharpGPX;
+using SimplifyCSharp;
 using System.Collections.Generic;
 using System.Linq;
-using SharpGPX;
-using SharpGPX.GPX1_1;
-using SimplifyCSharp;
+using System;
 
 namespace hajk.GPX
 {
@@ -41,7 +41,7 @@ namespace hajk.GPX
             return gpx;
         }
 
-        public static wptTypeCollection OptimizePoints(wptTypeCollection? points)
+        public static wptTypeCollection? OptimizePoints(wptTypeCollection? points)
         {
             if (points == null)
             {

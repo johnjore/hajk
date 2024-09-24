@@ -27,7 +27,7 @@ namespace hajk
             };
 
             int result = POIDatabase.SavePOI(p);
-            Import.AddPOIToMap();
+            DisplayMapItems.AddPOIToMap();
 
             return result;
         }
