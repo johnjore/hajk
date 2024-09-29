@@ -87,8 +87,8 @@ namespace hajk
             SetPreferencesFromResource(Resource.Xml.Preferences, rootKey);
 
             //Populate the ListPreference's
-            CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source)));
-            CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source)));
+            CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source)), false);
+            CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source)), true);
 
             //Set Summary to "Not Set" or "Hidden" for sensitive fields
             SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.MapboxToken)));
@@ -103,14 +103,23 @@ namespace hajk
             PreferenceManager.GetDefaultSharedPreferences(Platform.AppContext)?.RegisterOnSharedPreferenceChangeListener(this);
         }
 
-        private static void CreateArrayList(ListPreference? lp)
+        private static void CreateArrayList(ListPreference? lp, bool FilterOpenStreetMap)
         {
             if (lp == null)
             {
                 return;
             }
 
-            string[] entries = MapSources.Select(x => x.Name).ToArray();
+            string[] entries = [];
+            if (FilterOpenStreetMap)
+            {
+                //Remove OpenStreetMap entry, it can't be used for bulk downloads
+                entries = MapSources.Where(x => x.Name != "OpenStreetMap").Select(x => x.Name).ToArray();
+            }
+            else
+            {
+                entries = MapSources.Select(x => x.Name).ToArray();
+            }
 
             lp.SetEntries(entries);
             lp.SetEntryValues(entries);

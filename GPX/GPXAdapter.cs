@@ -252,6 +252,9 @@ namespace hajk.Adapter
         {
             Log.Information($"Show route on map '{vh.Name.Text}'");
 
+            //Enumerate route/tracks on Layer, and only add if not already displayed
+            /**/
+
             //Get the route
             var routetrack_2 = RouteDatabase.GetRouteAsync(vh.Id).Result;
             GpxClass gpx_2 = GpxClass.FromXml(routetrack_2.GPX);
