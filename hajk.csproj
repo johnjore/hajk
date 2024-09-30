@@ -73,12 +73,12 @@
     <PackageReference Include="Mapsui.Extensions" Version="4.1.7" />
     <PackageReference Include="Mapsui.Nts" Version="4.1.7" />
     <PackageReference Include="Microcharts.Android" Version="1.0.0-preview1" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.90" />
-    <PackageReference Include="Microsoft.Maui.Essentials" Version="8.0.90" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.91" />
+    <PackageReference Include="Microsoft.Maui.Essentials" Version="8.0.91" />
     <PackageReference Include="Sentry" Version="4.11.0" />
     <PackageReference Include="Sentry.Maui" Version="4.11.0" />
     <PackageReference Include="Sentry.Serilog" Version="4.11.0" />
-    <PackageReference Include="Serilog" Version="4.0.1" />
+    <PackageReference Include="Serilog" Version="4.0.2" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.Xamarin" Version="1.0.0" />
     <PackageReference Include="SkiaSharp.Extended" Version="2.0.0" />
