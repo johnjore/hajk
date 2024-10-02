@@ -67,7 +67,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"MapItems - AddPOIToMap");
+                Serilog.Log.Fatal(ex, $"DisplayMapItems - AddPOIToMap");
             }
         }
 
@@ -93,7 +93,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"MapItems - AddRouteToMap()");
+                Serilog.Log.Fatal(ex, $"DisplayMapItems - AddRouteToMap()");
             }
 
             //Enable menu
@@ -127,19 +127,24 @@ namespace hajk
                 {
                     GpxClass gpx = GpxClass.FromXml(track.GPX);
 
+                    //Reduce the number of waypoints before drawing on map
+                    gpx = GPX.GPXOptimize.Optimize(gpx);
+                    
                     if (track.GPXType == GPXType.Track)
                     {
                         gpx.Routes.Add(gpx.Tracks[0].ToRoutes()[0]);
                     }
                     string? mapRouteTrack = Import.ParseGPXtoRoute(gpx.Routes[0]).Item1;
-
-                    //Menus etc not yet created as app not fully initialized. Dirty workaround
-                    AddRouteToMap(mapRouteTrack, GPXType.Track, false);
+                    if (mapRouteTrack != null)
+                    {
+                        //Menus etc not yet created as app not fully initialized. Dirty workaround
+                        AddRouteToMap(mapRouteTrack, GPXType.Track, false);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"Import - AddTracksToMap()");
+                Serilog.Log.Fatal(ex, $"DisplayMapItems - AddTracksToMap()");
             }
         }
 
@@ -232,7 +237,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"MapItems - CreateRouteAndTrackLayer()");
+                Serilog.Log.Fatal(ex, $"DisplayMapItems - CreateRouteAndTrackLayer()");
             }
 
             return new MemoryLayer
