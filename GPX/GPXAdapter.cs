@@ -360,7 +360,7 @@ namespace hajk.Adapter
             string mapRoute = Import.ParseGPXtoRoute(gpx.Routes[0]).Item1;
 
             //Add GPX to Map
-            DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Route, true);
+            DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Route, true, vh.Name.Text);
 
             //Center on imported route
             var bounds = gpx.GetBounds();
@@ -404,7 +404,7 @@ namespace hajk.Adapter
             string mapRouteTrack_2 = Import.ParseGPXtoRoute(gpx_2.Routes[0]).Item1;
 
             //Add GPX to Map
-            DisplayMapItems.AddRouteToMap(mapRouteTrack_2, routetrack_2.GPXType, true);
+            DisplayMapItems.AddRouteToMap(mapRouteTrack_2, routetrack_2.GPXType, true, vh.Name.Text);
 
             //Center on imported route
             var bounds_2 = gpx_2.GetBounds();
@@ -597,7 +597,7 @@ namespace hajk.Adapter
                 await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null, true);
 
                 mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0]).Item1;
-                DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Track, true);
+                DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Track, true, vh.Name.Text);
             }
 
             if (vh.GPXType == GPXType.Route)
@@ -605,7 +605,7 @@ namespace hajk.Adapter
                 await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null, false);
 
                 mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Routes[0]).Item1;
-                DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Route, true);
+                DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Route, true, vh.Name.Text);
             }
 
             //Create / Update thumbsize map

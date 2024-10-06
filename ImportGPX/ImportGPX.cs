@@ -354,7 +354,7 @@ namespace hajk
                 Utils.Misc.ClearTrackRoutesFromMap();
 
                 //Add to map
-                DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Route, false);
+                DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Route, false, route.name);
                                
                 //Create a standalone GPX
                 var newGPX = new GpxClass()
@@ -469,7 +469,7 @@ namespace hajk
                 Utils.Misc.ClearTrackRoutesFromMap();
 
                 //Add to map
-                DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Track, false);
+                DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Track, false, track.name);
 
                 //Create a standalone GPX
                 var newGPX = new GpxClass()

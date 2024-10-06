@@ -71,10 +71,18 @@ namespace hajk
             }
         }
 
-        public static void AddRouteToMap(string mapRoute, GPXType gpxtype, bool UpdateMenu)
+        public static void AddRouteToMap(string mapRoute, GPXType gpxtype, bool UpdateMenu, string name)
         {
             try
             {
+
+                var AlreadyExists = Fragment_map.map.Layers.Where(x => x.Name == name).FirstOrDefault();
+                if (AlreadyExists != null)
+                {
+                    Serilog.Log.Information($"Already Added 'mapRoute' '{name}' to Map");
+                    return;
+                }
+
                 //Add layer
                 ILayer lineStringLayer;
                 if (gpxtype == GPXType.Route)
@@ -87,6 +95,7 @@ namespace hajk
                     lineStringLayer = CreateRouteandTrackLayer(mapRoute, Mapsui.Styles.Color.Red, CreateStyle("Red"));
                     lineStringLayer.Tag = Fragment_Preferences.Layer_Track;
                 }
+                lineStringLayer.Name = name;
                 lineStringLayer.IsMapInfoLayer = true;
                 lineStringLayer.Enabled = true;
                 Fragment_map.map.Layers.Add(lineStringLayer);
@@ -138,7 +147,7 @@ namespace hajk
                     if (mapRouteTrack != null)
                     {
                         //Menus etc not yet created as app not fully initialized. Dirty workaround
-                        AddRouteToMap(mapRouteTrack, GPXType.Track, false);
+                        AddRouteToMap(mapRouteTrack, GPXType.Track, false, gpx.Metadata.name);
                     }
                 }
             }
@@ -243,7 +252,6 @@ namespace hajk
             return new MemoryLayer
             {
                 Features = features,
-                Name = Fragment_Preferences.Layer_Route,
                 Style = style
             };
         }
