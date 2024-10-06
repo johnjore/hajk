@@ -75,7 +75,7 @@ namespace hajk
         {
             try
             {
-
+                /**///Should use more than just Name. Can we use database ID and Name? If both matches, don't add new memorylayer?
                 var AlreadyExists = Fragment_map.map.Layers.Where(x => x.Name == name).FirstOrDefault();
                 if (AlreadyExists != null)
                 {
