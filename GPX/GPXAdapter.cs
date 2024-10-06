@@ -27,6 +27,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System;
+using Android.Webkit;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Devices.Sensors;
+using GPXUtils;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+using OxyPlot;
 
 namespace hajk.Adapter
 {
@@ -50,6 +57,10 @@ namespace hajk.Adapter
             try
             {
                 GPXViewHolder vh = holder as GPXViewHolder;
+
+                if (vh == null || vh.Name == null || vh.Distance == null || vh.Ascent == null || vh.Descent == null || vh.GPXTypeLogo == null || vh.TrackRouteMap == null || vh.TrackRouteElevation == null)
+                    return;
+
                 vh.Id = mGpxData[position].Id;
                 vh.GPXType = mGpxData[position].GPXType;
                 vh.Name.Text = mGpxData[position].Name;
@@ -83,8 +94,8 @@ namespace hajk.Adapter
                     Serilog.Log.Fatal("GPXType must be a route or track");
                 }
 
-                //Clear it, as it's reused
-                vh.TrackRouteMap.SetImageResource(0);
+                //Map Thumbprint of route / track
+                vh.TrackRouteMap.SetImageResource(0);   //Clear it, as it's reused
                 string ImageBase64String = mGpxData[position].ImageBase64String;
                 if (ImageBase64String != null)
                 {
@@ -94,12 +105,122 @@ namespace hajk.Adapter
                         vh.TrackRouteMap.SetImageBitmap(bitmap);
                     }
                 }
+
+                //Elevation plot
+                var elevationModel = CreatePlotModel(GpxClass.FromXml(mGpxData[position].GPX));
+                if (elevationModel != null) {
+                    vh.TrackRouteElevation.Model = elevationModel;
+                }
             }
             catch (Exception ex)
             {
                 Serilog.Log.Fatal(ex, $"GpxAdapter - OnBindViewHolder()");
             }
+        }
 
+        private static PlotModel? CreatePlotModel(GpxClass gpx)
+        {
+            if (gpx == null)
+                return null;
+
+            var plotModel = new PlotModel { };
+
+            var series1 = new LineSeries
+            {
+                MarkerType = MarkerType.None,
+                MarkerSize = 1,
+                MarkerStroke = OxyColors.White
+            };
+
+            //Graph max / min
+            decimal min = 0;
+            decimal max = 0;
+            double distance_km = 0.0;
+            var ph = new PositionHandler();
+
+            //Routes
+            if (gpx.Routes != null && gpx.Routes.Count > 0)
+            {
+                //Fist item to plot is first item at pos 0
+                if (gpx.Routes[0].rtept[0] != null)
+                {
+                    var elevation = (double)gpx.Routes[0].rtept[0].ele;
+                    min = (decimal)elevation;
+                    max = (decimal)elevation;
+                    series1.Points.Add(new DataPoint(0, elevation));
+                }
+
+                //Start at index 1 so we can calculate distance from index 0 as new position on x axis
+                for (int i = 1; i < gpx.Routes[0].rtept.Count; i++)
+                {
+                    //Calculate Distance to previous point and add as a datapoint
+                    var p1 = new GPXUtils.Position((float)gpx.Routes[0].rtept[i - 1].lat, (float)gpx.Routes[0].rtept[i - 1].lon, 0, null);
+                    var p2 = new GPXUtils.Position((float)gpx.Routes[0].rtept[i    ].lat, (float)gpx.Routes[0].rtept[i    ].lon, 0, null);
+                    distance_km += (double)ph.CalculateDistance(p1, p2, DistanceType.Kilometers);
+                    series1.Points.Add(new DataPoint(distance_km, (double)gpx.Routes[0].rtept[i].ele));
+
+                    //Find Max
+                    if (gpx.Routes[0].rtept[i].ele > max)
+                    {
+                        max = gpx.Routes[0].rtept[i].ele;
+                    }
+
+                    //Find Min
+                    if (gpx.Routes[0].rtept[i].ele < min)
+                    {
+                        min = gpx.Routes[0].rtept[i].ele;
+                    }
+                }
+            }
+
+            //Tracks
+            if (gpx.Tracks.Count > 0)
+            {
+                //Fist item to plot is first item at pos 0
+                if (gpx.Tracks[0] != null && gpx.Tracks[0].trkseg[0] != null && gpx.Tracks[0].trkseg[0].trkpt[0] != null)
+                {
+                    var elevation = (double)gpx.Tracks[0].trkseg[0].trkpt[0].ele;
+                    min = (decimal)elevation;
+                    max = (decimal)elevation;
+                    series1.Points.Add(new DataPoint(0, elevation));
+                }
+
+                foreach (SharpGPX.GPX1_1.trkType track in gpx.Tracks)
+                {
+                    foreach (SharpGPX.GPX1_1.trksegType trkseg in track.trkseg)
+                    {
+                        //Start at index 1 so we can calculate distance from index 0 as new position on x axis
+                        for (int i = 1; i < trkseg.trkpt.Count; i++)
+                        {
+                            //Calculate Distance to previous point and add as a datapoint
+                            var p1 = new GPXUtils.Position((float)trkseg.trkpt[i - 1].lat, (float)trkseg.trkpt[i - 1].lon, 0, null);
+                            var p2 = new GPXUtils.Position((float)trkseg.trkpt[i    ].lat, (float)trkseg.trkpt[i    ].lon, 0, null);
+                            distance_km += (double)ph.CalculateDistance(p1, p2, DistanceType.Kilometers);
+                            series1.Points.Add(new DataPoint(distance_km, (double)trkseg.trkpt[i].ele));
+
+                            //Finx Max
+                            if (trkseg.trkpt[i].ele > max)
+                            {
+                                max = trkseg.trkpt[i].ele;
+                            }
+
+                            //Find Min
+                            if (trkseg.trkpt[i].ele < min)
+                            {
+                                min = trkseg.trkpt[i].ele;
+                            }
+                        }
+                    }
+                }
+            }
+
+            //Axes
+            plotModel.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, FormatAsFractions = true, Unit = "km" });
+            plotModel.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Maximum = (double)(max + max / 10), Minimum = (double)(min - min / 10), Unit = "m" });
+
+            plotModel.Series.Add(series1);
+
+            return plotModel;
         }
 
         public override RecyclerView.ViewHolder? OnCreateViewHolder(ViewGroup? parent, int viewType)
@@ -109,79 +230,82 @@ namespace hajk.Adapter
                 Android.Views.View? itemView = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.activity_gpx, parent, false);
                 GPXViewHolder vh = new(itemView, OnClick);
 
-                vh.TrackRouteMap.Click += (o, e) =>
+                if (vh == null)
                 {
-                    //vh.TrackRouteMap.SetImageResource(Resource.Drawable.route);
-                    /*if (vh.TrackRouteMap.Visibility == ViewStates.Invisible)
-                    {
-                        vh.TrackRouteMap.Visibility = ViewStates.Visible;
-                    }
-                    else
-                    {
-                        vh.TrackRouteMap.Visibility = ViewStates.Invisible;
-                    }*/
-                };
+                    return null;
+                }
 
-                vh.Img_more.Click += (o, e) =>
+                //Toggle between map and elevation profile
+                if (vh.TrackRouteMap != null && vh.TrackRouteElevation != null)
                 {
-                    PopupMenu popup = new(parent.Context, vh.Img_more);
-                    popup?.Inflate(Resource.Menu.menu_gpx);
+                    vh.TrackRouteMap.Click += (o, e) => ToggleMapElevationProfile(vh);
+                    vh.TrackRouteElevation.Click += (o, e) => ToggleMapElevationProfile(vh);
+                }
 
-                    if (popup == null || popup.Menu == null)
+                //Popup menu
+                if (vh.Img_more != null)
+                {
+                    vh.Img_more.Click += (o, e) =>
                     {
-                        return;
-                    }
-                    
-                    //Fix menu text
-                    if (vh.GPXType == GPXType.Track)
-                    {
-                        popup.Menu.FindItem(Resource.Id.gpx_menu_followroute).SetTitle(Resource.String.follow_track);
-                        popup.Menu.FindItem(Resource.Id.gpx_menu_deleteroute).SetTitle(Resource.String.delete_track);
-                        popup.Menu.FindItem(Resource.Id.gpx_menu_reverseroute).SetTitle(Resource.String.Reverse_track);
-                        popup.Menu.FindItem(Resource.Id.gpx_menu_optimize).SetTitle(Resource.String.optimize_track);
-                    }
+                        PopupMenu popup = new(parent.Context, vh.Img_more);
+                        popup?.Inflate(Resource.Menu.menu_gpx);
 
-                    popup.MenuItemClick += async (s, args) =>
-                    {
-                        switch (args?.Item?.ItemId)
+                        if (popup == null || popup.Menu == null)
                         {
-                            case var value when value == Resource.Id.gpx_menu_followroute:
-                                gpx_menu_followroute(vh, parent);
-
-                                break;
-                            case var value when value == Resource.Id.gpx_menu_showonmap:
-                                gpx_menu_showonmap(vh, parent);
-
-                                break;
-                            case var value when value == Resource.Id.gpx_menu_deleteroute:
-                                await gpx_menu_deleteroute(vh);
-
-                                break;
-                            case var value when value == Resource.Id.gpx_menu_reverseroute:
-                                gpx_menu_reverseroute(vh);
-
-                                break;
-                            case var value when value == Resource.Id.gpx_menu_optimize:
-                                gpx_menu_optimize(vh);
-
-                                break;
-                            case var value when value == Resource.Id.gpx_menu_exportgpx:
-                                gpx_menu_exportgpx(vh, parent);
-
-                                break;
-                            case var value when value == Resource.Id.gpx_menu_exportmap:
-                                gpx_menu_exportmap(vh, parent);
-
-                                break;
-                            case var value when value == Resource.Id.gpx_menu_saveofflinemap:
-                                await download_and_save_offline_map(vh, parent, args.Item.ItemId);
-
-                                break;
+                            return;
                         }
-                    };
 
-                    popup.Show();
-                };
+                        //Fix menu text
+                        if (vh.GPXType == GPXType.Track)
+                        {
+                            popup.Menu.FindItem(Resource.Id.gpx_menu_followroute).SetTitle(Resource.String.follow_track);
+                            popup.Menu.FindItem(Resource.Id.gpx_menu_deleteroute).SetTitle(Resource.String.delete_track);
+                            popup.Menu.FindItem(Resource.Id.gpx_menu_reverseroute).SetTitle(Resource.String.Reverse_track);
+                            popup.Menu.FindItem(Resource.Id.gpx_menu_optimize).SetTitle(Resource.String.optimize_track);
+                        }
+
+                        popup.MenuItemClick += async (s, args) =>
+                        {
+                            switch (args?.Item?.ItemId)
+                            {
+                                case var value when value == Resource.Id.gpx_menu_followroute:
+                                    gpx_menu_followroute(vh, parent);
+
+                                    break;
+                                case var value when value == Resource.Id.gpx_menu_showonmap:
+                                    gpx_menu_showonmap(vh, parent);
+
+                                    break;
+                                case var value when value == Resource.Id.gpx_menu_deleteroute:
+                                    await gpx_menu_deleteroute(vh);
+
+                                    break;
+                                case var value when value == Resource.Id.gpx_menu_reverseroute:
+                                    gpx_menu_reverseroute(vh);
+
+                                    break;
+                                case var value when value == Resource.Id.gpx_menu_optimize:
+                                    gpx_menu_optimize(vh);
+
+                                    break;
+                                case var value when value == Resource.Id.gpx_menu_exportgpx:
+                                    gpx_menu_exportgpx(vh, parent);
+
+                                    break;
+                                case var value when value == Resource.Id.gpx_menu_exportmap:
+                                    gpx_menu_exportmap(vh, parent);
+
+                                    break;
+                                case var value when value == Resource.Id.gpx_menu_saveofflinemap:
+                                    await download_and_save_offline_map(vh, parent, args.Item.ItemId);
+
+                                    break;
+                            }
+                        };
+
+                        popup.Show();
+                    };
+                }
 
                 return vh;
             }
@@ -191,6 +315,23 @@ namespace hajk.Adapter
             }
 
             return null;
+        }
+
+        private void ToggleMapElevationProfile(GPXViewHolder vh)
+        {
+            vh.TrackRouteElevation.SetMinimumHeight(vh.TrackRouteMap.Height);
+
+            if (vh.TrackRouteMap.Visibility == ViewStates.Visible)
+            {
+                vh.TrackRouteMap.Visibility = ViewStates.Gone; //Renitialize the object?
+                vh.TrackRouteElevation.Visibility = ViewStates.Visible;
+            }
+            else
+            {
+                vh.TrackRouteMap.Visibility = ViewStates.Visible;
+                vh.TrackRouteElevation.Visibility = ViewStates.Gone;
+            }
+
         }
 
         private void OnClick(int obj)
@@ -476,17 +617,17 @@ namespace hajk.Adapter
             RouteDatabase.SaveRouteAsync(route_to_download).Wait();
 
             //Update RecycleView with new entry
-            vh.TrackRouteMap.SetImageResource(0);
+            vh?.TrackRouteMap?.SetImageResource(0);
             if (ImageBase64String != null)
             {
                 var bitmap = Utils.Misc.ConvertStringToBitmap(ImageBase64String);
                 if (bitmap != null)
                 {
-                    vh.TrackRouteMap.SetImageBitmap(bitmap);
+                    vh?.TrackRouteMap?.SetImageBitmap(bitmap);
                 }
             }
-            Fragment_gpx.mAdapter.NotifyItemChanged(menuitem);
 
+            Fragment_gpx.mAdapter.NotifyItemChanged(menuitem);
         }
     }
 }

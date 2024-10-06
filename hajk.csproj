@@ -87,6 +87,7 @@
     <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageReference Include="System.Text.Json" Version="8.0.4" />
     <PackageReference Include="tilebelt" Version="2.0.0" />
+    <PackageReference Include="Tnn.OxyPlot.Xamarin.Android" Version="2.1.2" />
     <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.0.3" />
     <PackageReference Include="Xamarin.AndroidX.Browser" Version="1.8.0.6" />
     <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.31" />

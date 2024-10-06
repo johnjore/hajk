@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using hajk.Models;
 using hajk.Data;
+using OxyPlot.Xamarin.Android;
 
 namespace hajk
 {
@@ -58,30 +59,31 @@ namespace hajk
             gpx.Add(route);
             return gpx.Count;
         }
-
     }
 
     public class GPXViewHolder : AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder
     {
         public int Id { get; set; }
-        public GPXType GPXType { get; set; }
-        public ImageView GPXTypeLogo { get; set; }
-        public TextView Name { get; set; }
-        public TextView Distance { get; set; }
-        public TextView Ascent { get; set; }
-        public TextView Descent { get; set; }
-        public TextView Img_more { get; set; }
-        public ImageView TrackRouteMap { get; set; }
+        public GPXType? GPXType { get; set; }
+        public ImageView? GPXTypeLogo { get; set; }
+        public TextView? Name { get; set; }
+        public TextView? Distance { get; set; }
+        public TextView? Ascent { get; set; }
+        public TextView? Descent { get; set; }
+        public TextView? Img_more { get; set; }
+        public ImageView? TrackRouteMap { get; set; }
+        public PlotView? TrackRouteElevation { get; set; }
 
         public GPXViewHolder(Android.Views.View itemview, Action<int> listener) : base(itemview)
         {
-            GPXTypeLogo = itemview.FindViewById<ImageView>(Resource.Id.GPXTypeLogo);
-            Name = itemview.FindViewById<TextView>(Resource.Id.Name);
-            Distance = itemview.FindViewById<TextView>(Resource.Id.Distance);
-            Ascent = itemview.FindViewById<TextView>(Resource.Id.Ascent);
-            Descent = itemview.FindViewById<TextView>(Resource.Id.Descent);
-            Img_more = itemview.FindViewById<TextView>(Resource.Id.textViewOptions);
-            TrackRouteMap = itemview.FindViewById<ImageView>(Resource.Id.TrackRouteMap);
+            GPXTypeLogo = itemview?.FindViewById<ImageView>(Resource.Id.GPXTypeLogo);
+            Name = itemview?.FindViewById<TextView>(Resource.Id.Name);
+            Distance = itemview?.FindViewById<TextView>(Resource.Id.Distance);
+            Ascent = itemview?.FindViewById<TextView>(Resource.Id.Ascent);
+            Descent = itemview?.FindViewById<TextView>(Resource.Id.Descent);
+            Img_more = itemview?.FindViewById<TextView>(Resource.Id.textViewOptions);
+            TrackRouteMap = itemview?.FindViewById<ImageView>(Resource.Id.TrackRouteMap);
+            TrackRouteElevation = itemview?.FindViewById<PlotView>(Resource.Id.TrackRouteElevation);
 
             //itemview.Click += (sender, e) => listener(Position);
         }

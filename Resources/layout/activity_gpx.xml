@@ -98,9 +98,19 @@
                 android:layout_below="@+id/GPXStats"
                 android:id="@+id/TrackRouteMap"
                 android:scaleType="fitCenter"
-                android:contentDescription="@string/Name"
                 android:layout_marginLeft="@dimen/layout_marginLeft"
-                android:layout_marginTop="-10dp" />
+                android:layout_marginTop="-10dp" 
+                android:contentDescription="Map" />
+
+            <OxyPlot.Xamarin.Android.PlotView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/GPXStats"
+                android:id="@+id/TrackRouteElevation"
+                android:scaleType="fitCenter"
+                android:layout_marginLeft="@dimen/layout_marginLeft"
+                android:layout_marginTop="-10dp" 
+                android:visibility="gone" />
 
         </RelativeLayout>
     </androidx.cardview.widget.CardView>

@@ -236,7 +236,7 @@ namespace GPXUtils
             switch (distanceType)
             {
                 case DistanceType.Meters: { R = EarthRadiusInMeters; break; }
-                case DistanceType.Kilometers: { R = EarthRadiusInMeters * 1000; break; }
+                case DistanceType.Kilometers: { R = EarthRadiusInMeters / 1000; break; }
                 case DistanceType.Miles: { R = EarthRadiusInMiles; break; }
             }
            
