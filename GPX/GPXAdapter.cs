@@ -139,13 +139,14 @@ namespace hajk.Adapter
             if (gpx.Routes != null && gpx.Routes.Count > 0)
             {
                 //Fist item to plot is first item at pos 0
-                if (gpx.Routes[0].rtept[0] != null)
-                {
-                    var elevation = (double)gpx.Routes[0].rtept[0].ele;
-                    min = (decimal)elevation;
-                    max = (decimal)elevation;
-                    series1.Points.Add(new DataPoint(0, elevation));
-                }
+                if (gpx.Routes[0].rtept[0] == null)
+                    return null;
+
+                //First item
+                var elevation = (double)gpx.Routes[0].rtept[0].ele;
+                min = (decimal)elevation;
+                max = (decimal)elevation;
+                series1.Points.Add(new DataPoint(0, elevation));
 
                 //Start at index 1 so we can calculate distance from index 0 as new position on x axis
                 for (int i = 1; i < gpx.Routes[0].rtept.Count; i++)
@@ -174,14 +175,16 @@ namespace hajk.Adapter
             if (gpx.Tracks.Count > 0)
             {
                 //Fist item to plot is first item at pos 0
-                if (gpx.Tracks[0] != null && gpx.Tracks[0].trkseg[0] != null && gpx.Tracks[0].trkseg[0].trkpt[0] != null)
-                {
-                    var elevation = (double)gpx.Tracks[0].trkseg[0].trkpt[0].ele;
-                    min = (decimal)elevation;
-                    max = (decimal)elevation;
-                    series1.Points.Add(new DataPoint(0, elevation));
-                }
+                if (gpx.Tracks[0] == null || gpx.Tracks[0].trkseg[0] == null || gpx.Tracks[0].trkseg[0].trkpt[0] == null)
+                    return null;
 
+                //First item
+                var elevation = (double)gpx.Tracks[0].trkseg[0].trkpt[0].ele;
+                min = (decimal)elevation;
+                max = (decimal)elevation;
+                series1.Points.Add(new DataPoint(0, elevation));
+
+                //The rest
                 foreach (SharpGPX.GPX1_1.trkType track in gpx.Tracks)
                 {
                     foreach (SharpGPX.GPX1_1.trksegType trkseg in track.trkseg)
