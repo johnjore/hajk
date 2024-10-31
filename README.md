@@ -1,7 +1,8 @@
-# hajk 
-Please suggest an alternative name, until then see https://www.wordhippo.com/what-is/the-meaning-of/swedish-word-f02572be276e973e5f778c2f99907eca1db7b7b1.html</br><br>
+# Walkabout
+Please suggest an alternative name?
+</br><br>
 Hiking app with (free) Offline Maps.<br><br>
-Xamarin Android Project, using a number of 3rd party libraries. Without these libraries, this project would not have seen the day of light.<br>
+C# Android (Maui.Android) Project, using a number of 3rd party libraries. Without these libraries, this project would not have seen the day of light.<br>
 
 This is a work in progress. Please fork and submit PR's to improve and add (much) needed functionality. I'm not a developer, and if you can contribute, and/or would like an iOS version, please reach out and we'll migrate it to Xamarin.Forms.
 
