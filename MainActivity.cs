@@ -33,6 +33,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 using Serilog.Events;
+using Java.Nio.FileNio.Attributes;
 
 namespace hajk
 {
@@ -56,7 +57,7 @@ namespace hajk
             //new FileInfo(rootPath + "/" + PrefsActivity.CacheDB).Delete();
                      
             //Logging
-            string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Preferences.Get("logFile", Fragment_Preferences.logFile));
+            string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.logFile);
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .Enrich.FromLogContext()
@@ -513,40 +514,8 @@ namespace hajk
             }
             else if (id == Resource.Id.backup)
             {
-                /**///
+                /**///Let user select backup location, OneDrive, gDrive etc
                 Backup.ShowBackupDialog();
-
-                /*
-                //Backup tiles DB to Download folder. Change to pick folder?
-                string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
-
-                //MBTiles
-                SQLiteConnection DBBackupConnection = TileCache.MbTileCache.sqlConn;
-                string backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".mbtiles";
-                DBBackupConnection.Backup(backupFileName);
-
-                //Route DB
-                string dbPath = Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.LiveData, Preferences.Get("RouteDB", Fragment_Preferences.RouteDB));
-                DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
-                backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".db3";
-                DBBackupConnection.Backup(backupFileName);
-                DBBackupConnection.Close();
-
-                //POI DB
-                dbPath = Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.LiveData, Preferences.Get("POIDB", Fragment_Preferences.POIDB));
-                DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
-                backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".poi.db3";
-                DBBackupConnection.Backup(backupFileName);
-                DBBackupConnection.Close();
-
-                //Message
-                using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity);
-                alert.SetTitle(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources?.GetString(Resource.String.Backup));
-                alert.SetMessage(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources?.GetString(Resource.String.Done));
-                alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
-                var dialog = alert.Create();
-                dialog.Show();
-                */
             }
             else if (id == Resource.Id.activity_restore)
             {

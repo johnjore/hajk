@@ -210,7 +210,7 @@ namespace hajk
 
             //Misc
             List<string> FileNames = [];
-            string COGGeoTiffServer = Preferences.Get("COGGeoTiffServer", Fragment_Preferences.COGGeoTiffServer);
+            string COGGeoTiffServer = Fragment_Preferences.COGGeoTiffServer;
             int doneCount = 0;
 
             //Progress bar

@@ -21,7 +21,7 @@ namespace hajk
     {
         static MbTileCache? mbTileCache;
 
-        public static ITileSource GetOSMBasemap(string cacheFilename)
+        public static ITileSource? GetOSMBasemap(string cacheFilename)
         {
             try
             {
