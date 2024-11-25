@@ -55,7 +55,7 @@ namespace hajk
 
             //Preferences.Clear();
             //new FileInfo(rootPath + "/" + PrefsActivity.CacheDB).Delete();
-                     
+                   
             //Logging
             string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.logFile);
             Log.Logger = new LoggerConfiguration()

@@ -10,6 +10,9 @@ using hajk.Models.MapSource;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
 using Google.Android.Material.FloatingActionButton;
+using static Android.Media.MediaParser;
+
+
 
 namespace hajk
 {
@@ -31,7 +34,6 @@ namespace hajk
         public readonly static int Elevation_Tile_Zoom = 14;            //Best AWS bucket has
 
         //Settings
-        public readonly static int UpdateGPSLocation_s = 1;             //How often do we update the GUI with our current location
         public readonly static int freq_s = 5;                          //How often do we get/save current position for track recordings
         public readonly static bool DrawTrackOnGui_b = true;            //Draw recorded track on screen, or not
         public readonly static bool EnableOffRouteWarning = true;       //Enable warning if Off-Route
@@ -47,6 +49,7 @@ namespace hajk
         public const string POIDB = "POI.db3";                          //Database to store all POI (WayPoints)
         public const string RouteDB = "Routes.db3";                     //Database to store all routes
         public const string CacheDB = "CacheDB.mbtiles";                //Database to store offline tiles
+        public const string SavedSettings = "SavedSettings.json";       //Saved Application Settings / Preferences
         public const string logFile = "walkabout_.txt";                 //Log file
         public const string GeoTiffFolder = "GeoTiff";                  //Folder for all GeoTiff Files
         public readonly static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);

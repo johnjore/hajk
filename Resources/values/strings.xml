@@ -56,7 +56,6 @@
   <string name="MapExportCompleted">Map export completed"</string>
   <string name="TrackRecordings">Track Recordings</string>
   <string name="TrackRecordingsDescription">Show Recorded Track</string>
-  <string name="UpdateGPSLocation">Update GPS Location (seconds)</string>
   <string name="TrackRecording">Track Recording (seconds)</string>
   <string name="EnableOffrouteWarning">Enable Off-Route Warning</string>
   <string name="EnableOffrouteWarningDescription">Vibrate phone when off-route</string>

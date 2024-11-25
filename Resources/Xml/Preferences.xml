@@ -52,14 +52,6 @@
 			android:defaultValue="true" />
 
 		<EditTextPreference
-			android:title="@string/UpdateGPSLocation"
-			android:key="UpdateGPSLocation"
-			android:inputType="numberDecimal"
-			android:digits="0123456789"
-			android:defaultValue="5" 
-			app:useSimpleSummaryProvider="true" />
-
-		<EditTextPreference
 			android:title="@string/TrackRecording"
 			android:key="freq"
 			android:inputType="numberDecimal"

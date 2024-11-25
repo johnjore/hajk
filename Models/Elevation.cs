@@ -1,5 +1,4 @@
-﻿using Kotlin.JS;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace hajk.Models.Elevation

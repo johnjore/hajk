@@ -14,6 +14,8 @@ using Android.OS;
 using System;
 using Android.Content.Res;
 using SQLite;
+using hajk.Models;
+using System.Text.Json;
 
 namespace hajk
 {
@@ -74,7 +76,7 @@ namespace hajk
                 //Backups
                 if (Preferences.Get("BackupPreferences", true))
                 {
-                    //BackupPreferences(BackupFolder);
+                    BackupPreferences(BackupFolder);
                 }
 
                 if (Preferences.Get("BackupRoute&TrackData", true))
@@ -105,9 +107,49 @@ namespace hajk
             builder.Create();
             builder.Show();
         }
-    
+
         private static bool BackupPreferences(string BackupFolder)
         {
+            try
+            {
+                var PrefSettings = new Models.DefaultPrefSettings.DefaultPrefSettings
+                {
+                    RecordingTrack = Preferences.Get("RecordingTrack", Fragment_Preferences.RecordingTrack),
+                    DrawPOIOnGui = Preferences.Get("DrawPOIOnGui", Fragment_Preferences.DrawPOIonGui_b),
+                    freq_s_OffRoute = int.Parse(Preferences.Get("freq_s_OffRoute", Fragment_Preferences.freq_OffRoute_s.ToString())),
+                    EnableOffRouteWarning = Preferences.Get("EnableOffRouteWarning", Fragment_Preferences.EnableOffRouteWarning),
+                    OffTrackDistanceWarning_m = int.Parse(Preferences.Get("OffTrackDistanceWarning_m", Fragment_Preferences.OffTrackDistanceWarning_m.ToString())),
+                    OffTrackRouteSnooze_m = int.Parse(Preferences.Get("OffTrackRouteSnooze_m", Fragment_Preferences.OffRouteSnooze_m.ToString())),
+                    DrawTracksOnGui = Preferences.Get("DrawTracksOnGui", Fragment_Preferences.DrawTracksOnGui_b),
+                    DrawTrackOnGui = Preferences.Get("DrawTrackOnGui", Fragment_Preferences.DrawTrackOnGui_b),
+                    freq = int.Parse(Preferences.Get("freq", Fragment_Preferences.freq_s.ToString())),
+                    OSM_BulkDownload_Source = Preferences.Get("OSM_BulkDownload_Source", ""),
+                    OSM_Browse_Source = Preferences.Get("OSM_Browse_Source", "OpenStreetMap"),
+                    MapboxToken = Preferences.Get("MapboxToken", ""),
+                    ThunderforestToken = Preferences.Get("ThunderforestToken", ""),
+                    CustomServerURL = Preferences.Get("CustomServerURL ", ""),
+                    CustomToken = Preferences.Get("CustomToken", ""),
+
+                    BackupPreferences = Preferences.Get("BackupPreferences", true),
+                    BackupRouteTrackData = Preferences.Get("BackupRoute&TrackData", true),
+                    BackupPOIData = Preferences.Get("BackupPOIData", true),
+                    BackupMapTiles = Preferences.Get("BackupMapTiles", true),
+                    BackupElevationData = Preferences.Get("BackupElevationData", true),
+                    MapLockNorth = Preferences.Get("MapLockNorth", false),
+                    TrackLocation = Preferences.Get("TrackLocation", false),
+                    mapUTMZone = Preferences.Get("mapUTMZone", "54H"),
+                    mapScale = Preferences.Get("mapScale", 25000L),
+                };
+
+                AppContext.SetSwitch("System.Reflection.NullabilityInfoContext.IsSupported", true);
+                File.WriteAllText(BackupFolder + "/" + Fragment_Preferences.SavedSettings, JsonSerializer.Serialize(PrefSettings));
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Failed to create backup of settings/preferences");
+                return false;
+            }
+
             return true;
         }
 
