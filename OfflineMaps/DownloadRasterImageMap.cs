@@ -291,7 +291,7 @@ namespace hajk
         {
             try
             {
-                var tileSource = TileCache.GetOSMBasemap(Fragment_Preferences.rootPath + "/" + Fragment_Preferences.CacheDB);
+                var tileSource = TileCache.GetOSMBasemap(Fragment_Preferences.LiveData + "/" + Fragment_Preferences.CacheDB);
                 var tileLayer = new TileLayer(tileSource)
                 {
                     Name = "OSM",

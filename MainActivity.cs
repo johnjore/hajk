@@ -54,7 +54,7 @@ namespace hajk
 
             //Preferences.Clear();
             //new FileInfo(rootPath + "/" + PrefsActivity.CacheDB).Delete();
-                                    
+                     
             //Logging
             string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Preferences.Get("logFile", Fragment_Preferences.logFile));
             Log.Logger = new LoggerConfiguration()
@@ -83,10 +83,23 @@ namespace hajk
             //Enable Mapsui logging
             MapsuiLogging.AttachMapsuiLogging();
 
+            //Make sure LiveData folder exists
+            if (!Directory.Exists(Fragment_Preferences.LiveData))
+            {
+                try
+                {
+                    Directory.CreateDirectory(Fragment_Preferences.LiveData);
+                }
+                catch (Exception ex)
+                {
+                    Log.Fatal(ex, $"MainActivity - Failed to Create LiveData Folder");
+                }            
+            }
+
             try
             {
                 //Extract initial map, if not there
-                Utils.Misc.ExtractInitialMap(this, Fragment_Preferences.rootPath + "/" + Fragment_Preferences.CacheDB);
+                Utils.Misc.ExtractInitialMap(this, Fragment_Preferences.LiveData + "/" + Fragment_Preferences.CacheDB);
 
                 //GUI
                 SetContentView(Resource.Layout.activity_main);
@@ -509,14 +522,14 @@ namespace hajk
                 DBBackupConnection.Backup(backupFileName);
 
                 //Route DB
-                string dbPath = Path.Combine(Fragment_Preferences.rootPath, Preferences.Get("RouteDB", Fragment_Preferences.RouteDB));
+                string dbPath = Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.LiveData, Preferences.Get("RouteDB", Fragment_Preferences.RouteDB));
                 DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
                 backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".db3";
                 DBBackupConnection.Backup(backupFileName);
                 DBBackupConnection.Close();
 
                 //POI DB
-                dbPath = Path.Combine(Fragment_Preferences.rootPath, Preferences.Get("POIDB", Fragment_Preferences.POIDB));
+                dbPath = Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.LiveData, Preferences.Get("POIDB", Fragment_Preferences.POIDB));
                 DBBackupConnection = new SQLiteConnection(dbPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
                 backupFileName = DownLoadFolder + "/Backup-" + Resources?.GetString(Resource.String.app_name) + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".poi.db3";
                 DBBackupConnection.Backup(backupFileName);

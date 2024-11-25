@@ -24,7 +24,7 @@ namespace hajk
         {
             try
             {
-                string GeoTiffFolder = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/";
+                string GeoTiffFolder = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/";
 
                 //Make sure GeoTiff folder exists 
                 if (!Directory.Exists(GeoTiffFolder)) 
@@ -48,7 +48,7 @@ namespace hajk
                 int intMissingTiles = 0;
                 foreach (var tile in tiles)
                 {
-                    var LocalFileName = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
+                    var LocalFileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
                     if (Downloaded(LocalFileName) == false)
                     {
                         Serilog.Log.Information($"Need to download elevation tile: '{LocalFileName}'");
@@ -108,7 +108,7 @@ namespace hajk
                 {
                     //Data
                     var tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position(ListLatLon[i].Latitude, ListLatLon[i].Longitude, 0, null)).FirstOrDefault();
-                    ListLatLon[i].GeoTiffFileName = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{Fragment_Preferences.Elevation_Tile_Zoom}-{tmp1?.X}-{tmp1?.Y}.tif";
+                    ListLatLon[i].GeoTiffFileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{Fragment_Preferences.Elevation_Tile_Zoom}-{tmp1?.X}-{tmp1?.Y}.tif";
 
                     //Update progress bar
                     Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / (ListLatLon.Count * 2));
@@ -224,7 +224,7 @@ namespace hajk
                 {
                     foreach (var tile in range)
                     {
-                        var LocalFileName = Fragment_Preferences.rootPath + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
+                        var LocalFileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
 
                         if (Downloaded(LocalFileName) == false)
                         {

@@ -44,13 +44,14 @@ namespace hajk
 
         //Runtime only
         public const string COGGeoTiffServer = "https://elevation-tiles-prod.s3.amazonaws.com/geotiff/"; //Cloud Optimized GeoTiff Server
-        public const string ElevationData = "ElevationData.tif";        //Elevation data
         public const string POIDB = "POI.db3";                          //Database to store all POI (WayPoints)
         public const string RouteDB = "Routes.db3";                     //Database to store all routes
         public const string CacheDB = "CacheDB.mbtiles";                //Database to store offline tiles
         public const string logFile = "walkabout_.txt";                 //Log file
         public const string GeoTiffFolder = "GeoTiff";                  //Folder for all GeoTiff Files
         public readonly static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+        public readonly static string LiveData = rootPath + "/" + "LiveData";   //Live Data
+        public readonly static string Backups = rootPath + "/" + "Backups";     //Backup Data
         public const int MinZoom = 0;                                   //MinZoom level to use
         public const int MaxZoom = 16;                                  //MaxZoom level to use
         public const int LocationTimer = 1000;                          //How often new LocationData is provided
