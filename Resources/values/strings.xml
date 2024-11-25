@@ -96,6 +96,7 @@
   <string name="ActivitiesImported">Activities imported"</string>
   <string name="AddRogainingPOI">"Add Rogaining POI"</string>
   <string name="ExportRogainingPOI">"Export Rogaining POI"</string>
+  <string name="BackupOptions">"Choose Backup Options"</string>
 
   <!-- Map Tile provider Start -->
     <string name="MapTileSources">"Map Tile Sources"</string>

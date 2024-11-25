@@ -15,6 +15,26 @@ namespace Utils
 {
     public class Misc 
     {
+        //Calculate and return size of folder in bytes
+        public static long DirectorySizeBytes(DirectoryInfo d)
+        {
+            long size = 0;
+            // Add file sizes.
+            FileInfo[] fis = d.GetFiles();
+            foreach (FileInfo fi in fis)
+            {
+                size += fi.Length;
+            }
+
+            // Add subdirectory sizes.
+            DirectoryInfo[] dis = d.GetDirectories();
+            foreach (DirectoryInfo di in dis)
+            {
+                size += DirectorySizeBytes(di);
+            }
+            return size;
+        }
+
         public static void ExtractInitialMap(Activity activity, string dbFile)
         {
             try

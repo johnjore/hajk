@@ -513,6 +513,10 @@ namespace hajk
             }
             else if (id == Resource.Id.backup)
             {
+                /**///
+                Backup.ShowBackupDialog();
+
+                /*
                 //Backup tiles DB to Download folder. Change to pick folder?
                 string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
 
@@ -542,6 +546,7 @@ namespace hajk
                 alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
                 var dialog = alert.Create();
                 dialog.Show();
+                */
             }
             else if (id == Resource.Id.activity_restore)
             {
