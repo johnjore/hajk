@@ -21,6 +21,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
+using hajk.GPX;
+using Org.Apache.Http.Conn.Routing;
 
 namespace hajk
 {
@@ -134,7 +136,7 @@ namespace hajk
             {
                 foreach (var track in Tracks)
                 {
-                    GpxClass gpx = GpxClass.FromXml(track.GPX);
+                    GpxClass gpx = GPXOptimize.Optimize(GpxClass.FromXml(track.GPX));
 
                     //Reduce the number of waypoints before drawing on map
                     gpx = GPX.GPXOptimize.Optimize(gpx);

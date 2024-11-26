@@ -31,6 +31,7 @@ using GPXUtils;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using OxyPlot;
+using Org.Apache.Http.Conn.Routing;
 
 namespace hajk.Adapter
 {
@@ -261,7 +262,7 @@ namespace hajk.Adapter
                             popup.Menu.FindItem(Resource.Id.gpx_menu_followroute).SetTitle(Resource.String.follow_track);
                             popup.Menu.FindItem(Resource.Id.gpx_menu_deleteroute).SetTitle(Resource.String.delete_track);
                             popup.Menu.FindItem(Resource.Id.gpx_menu_reverseroute).SetTitle(Resource.String.Reverse_track);
-                            popup.Menu.FindItem(Resource.Id.gpx_menu_optimize).SetTitle(Resource.String.optimize_track);
+                            /**///popup.Menu.FindItem(Resource.Id.gpx_menu_optimize).SetTitle(Resource.String.optimize_track);
                         }
 
                         popup.MenuItemClick += async (s, args) =>
@@ -284,10 +285,12 @@ namespace hajk.Adapter
                                     gpx_menu_reverseroute(vh);
 
                                     break;
-                                case var value when value == Resource.Id.gpx_menu_optimize:
+                                //Obsolete
+                                /*case var value when value == Resource.Id.gpx_menu_optimize:
                                     gpx_menu_optimize(vh);
 
                                     break;
+                                */
                                 case var value when value == Resource.Id.gpx_menu_exportgpx:
                                     gpx_menu_exportgpx(vh, parent);
 
@@ -347,19 +350,19 @@ namespace hajk.Adapter
         }
         */
 
-
         private void gpx_menu_followroute(GPXViewHolder vh, ViewGroup parent)
         {
             Log.Information($"Follow route or track '{vh.Name.Text}'");
 
-            //Get the route or track
+            //Get the route or track, and optimize it
             var routetrack = RouteDatabase.GetRouteAsync(vh.Id).Result;
-            GpxClass gpx = GpxClass.FromXml(routetrack.GPX);
+            GpxClass gpx = GPXOptimize.Optimize(GpxClass.FromXml(routetrack.GPX));
 
             if (routetrack.GPXType == GPXType.Track)
             {
                 gpx.Routes.Add(gpx.Tracks[0].ToRoutes()[0]);
             }
+
             string mapRoute = Import.ParseGPXtoRoute(gpx.Routes[0]).Item1;
 
             //Add GPX to Map
@@ -396,9 +399,9 @@ namespace hajk.Adapter
             //Enumerate route/tracks on Layer, and only add if not already displayed
             /**/
 
-            //Get the route
+            //Get the route and optimize
             var routetrack_2 = RouteDatabase.GetRouteAsync(vh.Id).Result;
-            GpxClass gpx_2 = GpxClass.FromXml(routetrack_2.GPX);
+            GpxClass gpx_2 = GPXOptimize.Optimize(GpxClass.FromXml(routetrack_2.GPX));
 
             if (routetrack_2.GPXType == GPXType.Track)
             {
@@ -484,6 +487,8 @@ namespace hajk.Adapter
             Fragment_gpx.mAdapter.NotifyDataSetChanged();
         }
 
+        /**///Obsolete
+        /*
         private void gpx_menu_optimize(GPXViewHolder vh)
         {
             Log.Information($"Optimize '{vh.Name.Text}'");
@@ -498,6 +503,7 @@ namespace hajk.Adapter
             //Save. ID is unchanged
             RouteDatabase.SaveRouteAsync(item_to_optimize).Wait();
         }
+        */
 
         private void gpx_menu_exportgpx(GPXViewHolder vh, ViewGroup parent)
         {

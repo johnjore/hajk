@@ -145,7 +145,6 @@ namespace hajk
                     await Utilities.AppPermissions.CheckAndRequestPermissionAsync<Permissions.PostNotifications>();
                 }
                 
-
                 Log.Debug($"Create Location Service");
                 if (await Permissions.CheckStatusAsync<Permissions.LocationAlways>() == PermissionStatus.Granted || await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>() == PermissionStatus.Granted)
                 {

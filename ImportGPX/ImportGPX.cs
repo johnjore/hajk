@@ -146,7 +146,7 @@ namespace hajk
         }
 
         /// <summary>
-        /// Loop througyh gpxData and process each route, track and POI
+        /// Loop through gpxData and process each route, track and POI
         /// </summary>
         private static async void ProcessGPX(GpxClass? gpxData)
         {

@@ -114,7 +114,10 @@ namespace hajk
             {
                 var PrefSettings = new Models.DefaultPrefSettings.DefaultPrefSettings
                 {
-                    RecordingTrack = Preferences.Get("RecordingTrack", Fragment_Preferences.RecordingTrack),
+                    //No need to save these
+                    //RecordingTrack = Preferences.Get("RecordingTrack", Fragment_Preferences.RecordingTrack),
+                    //TrackLocation = Preferences.Get("TrackLocation", false),
+
                     DrawPOIOnGui = Preferences.Get("DrawPOIOnGui", Fragment_Preferences.DrawPOIonGui_b),
                     freq_s_OffRoute = int.Parse(Preferences.Get("freq_s_OffRoute", Fragment_Preferences.freq_OffRoute_s.ToString())),
                     EnableOffRouteWarning = Preferences.Get("EnableOffRouteWarning", Fragment_Preferences.EnableOffRouteWarning),
@@ -136,9 +139,8 @@ namespace hajk
                     BackupMapTiles = Preferences.Get("BackupMapTiles", true),
                     BackupElevationData = Preferences.Get("BackupElevationData", true),
                     MapLockNorth = Preferences.Get("MapLockNorth", false),
-                    TrackLocation = Preferences.Get("TrackLocation", false),
                     mapUTMZone = Preferences.Get("mapUTMZone", "54H"),
-                    mapScale = Preferences.Get("mapScale", 25000L),
+                    mapScale = Preferences.Get("mapScale", 25000L),                    
                 };
 
                 AppContext.SetSwitch("System.Reflection.NullabilityInfoContext.IsSupported", true);
