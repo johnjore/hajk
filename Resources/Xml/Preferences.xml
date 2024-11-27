@@ -116,8 +116,15 @@
 			android:key="KeepNBackups"
 			android:inputType="numberDecimal"
 			android:digits="0123456789"
-			android:defaultValue="20"
+			android:defaultValue="10"
 			app:useSimpleSummaryProvider="true" />
+			
+		<SwitchPreference
+			android:title="@string/EnableBackupAtStartup"
+			android:key="EnableBackupAtStartup"
+			android:defaultValue="true"
+      app:useSimpleSummaryProvider="true" />
+
   </PreferenceCategory>	
 	
 </PreferenceScreen>

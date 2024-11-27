@@ -97,6 +97,7 @@
   <string name="ExportRogainingPOI">"Export Rogaining POI"</string>
   <string name="BackupOptions">"Choose Backup Options"</string>
   <string name="KeepNBackups">"Backups to Retain"</string>
+  <string name="EnableBackupAtStartup">"Backup on first launch of the day"</string>
 
   <!-- Map Tile provider Start -->
     <string name="MapTileSources">"Map Tile Sources"</string>

@@ -21,6 +21,40 @@ namespace hajk
 {
     internal class Backup
     {
+        public static void RunDailyBackup()
+        {
+            bool[] checkedItems = [
+                Preferences.Get("BackupPreferences", true),
+                Preferences.Get("BackupRoute&TrackData", true),
+                Preferences.Get("BackupPOIData", true),
+                Preferences.Get("BackupMapTiles", true),
+                Preferences.Get("BackupElevationData", true),
+            ];
+
+            //All files
+            var backupFiles = Directory.GetFiles(Fragment_Preferences.Backups);
+
+            //Backup taken today?
+            string todaysDate = (DateTime.Now).ToString("yyMMdd");
+            if (backupFiles.Where(x => x.Contains("/" + todaysDate + "-")).FirstOrDefault() != null)
+            {
+                Serilog.Log.Information($"Backup already taken today '{todaysDate}'");
+                return;
+            }
+
+            //Create progress bar
+            _ = Progressbar.UpdateProgressBar.CreateGUIAsync("Backup Progress");
+            Progressbar.UpdateProgressBar.Progress = 0;
+            Progressbar.UpdateProgressBar.MessageBody = $"Starting backup";
+            int ProgressBarIncrement = (int)Math.Ceiling((double)(100 / (checkedItems.Count(c => c == true) + 2))); //2 = Compress and remove old backup files
+
+            Task.Run(() =>
+            {
+                PerformBackups(ProgressBarIncrement);
+            });
+        }
+
+
         public static void ShowBackupDialog()
         {
             //Size of live data
@@ -91,6 +125,12 @@ namespace hajk
 
             builder.SetNegativeButton(Resource.String.Cancel, (senderDialog, args) =>
             {
+                //Update/save preferences
+                Preferences.Set("BackupPreferences", checkedItems[0]);
+                Preferences.Set("BackupRoute&TrackData", checkedItems[1]);
+                Preferences.Set("BackupPOIData", checkedItems[2]);
+                Preferences.Set("BackupMapTiles", checkedItems[3]);
+                Preferences.Set("BackupElevationData", checkedItems[4]);
             });
 
             builder.Create();
@@ -149,7 +189,6 @@ namespace hajk
                 {
                     Progressbar.UpdateProgressBar.MessageBody = "POI Data...";
                     r3 = BackupPOIData(BackupFolder);
-                    r3 = false;
                     Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
                     Progressbar.UpdateProgressBar.MessageBody = "Done with POI Data";
                     if (r3 == false)
@@ -249,7 +288,6 @@ namespace hajk
                     DrawTrackOnGui = Preferences.Get("DrawTrackOnGui", Fragment_Preferences.DrawTrackOnGui_b),
                     freq = int.Parse(Preferences.Get("freq", Fragment_Preferences.freq_s.ToString())),
                     MapLockNorth = Preferences.Get("MapLockNorth", Fragment_Preferences.DisableMapRotate_b),
-                    KeepNBackups = int.Parse(Preferences.Get("KeepNBackups", Fragment_Preferences.KeepNBackups.ToString())),
                     OSM_BulkDownload_Source = Preferences.Get("Tile Bulk Download Source", Fragment_Preferences.TileBulkDownloadSource),
                     OSM_Browse_Source = Preferences.Get("OSM_Browse_Source", Fragment_Preferences.TileBrowseSource),
                     CustomServerURL = Preferences.Get("CustomServerURL ", ""),
@@ -260,11 +298,14 @@ namespace hajk
                     mapScale = Preferences.Get("mapScale", Fragment_Preferences.DefaultMapScale),
                     mapUTMZone = Preferences.Get("mapUTMZone", Fragment_Preferences.DefaultUTMZone),
 
+                    //Backup Settings
                     BackupPreferences = Preferences.Get("BackupPreferences", true),
                     BackupRouteTrackData = Preferences.Get("BackupRoute&TrackData", true),
                     BackupPOIData = Preferences.Get("BackupPOIData", true),
                     BackupMapTiles = Preferences.Get("BackupMapTiles", true),
-                    BackupElevationData = Preferences.Get("BackupElevationData", true),                    
+                    BackupElevationData = Preferences.Get("BackupElevationData", true),
+                    KeepNBackups = int.Parse(Preferences.Get("KeepNBackups", Fragment_Preferences.KeepNBackups.ToString())),
+                    EnableBackupAtStartup = Preferences.Get("BackupElevationData", Fragment_Preferences.EnableBackupAtStartup),
                 };
 
                 AppContext.SetSwitch("System.Reflection.NullabilityInfoContext.IsSupported", true);

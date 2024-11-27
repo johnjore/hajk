@@ -58,9 +58,6 @@ namespace hajk
             //Clear out all backups
             //Utils.Misc.EmptyFolder(Fragment_Preferences.Backups);
 
-            Preferences.Clear("KeepNBackups");
-
-
             //Logging
             string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.logFile);
             Log.Logger = new LoggerConfiguration()
@@ -179,6 +176,12 @@ namespace hajk
 
                 //Create alarm
                 Utilities.Alarms.CreateAlarm();
+
+                Log.Information($"Daily Backup?");
+                if (Preferences.Get("EnableBackupAtStartup", Fragment_Preferences.EnableBackupAtStartup))
+                {
+                    MainThread.BeginInvokeOnMainThread(() => Backup.RunDailyBackup());
+                }                
             }
             catch (Exception ex)
             {

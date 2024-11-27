@@ -6,7 +6,9 @@
         public bool BackupRouteTrackData { get; set; }
         public bool BackupPOIData { get; set; }
         public bool BackupMapTiles { get; set; }
+        public int KeepNBackups { get; set; }
         public bool BackupElevationData { get; set; }
+        public bool EnableBackupAtStartup { get; set; }
         public bool MapLockNorth { get; set; }
         public bool TrackLocation { get; set; }
         public bool RecordingTrack { get; set; }
@@ -14,7 +16,6 @@
         public string? mapUTMZone { get; set; }
         public long mapScale { get; set; }
         public int freq_s_OffRoute { get; set; }
-        public int KeepNBackups { get; set; }
         public bool EnableOffRouteWarning { get; set; }
         public int OffTrackDistanceWarning_m { get; set; }
         public int OffTrackRouteSnooze_m { get; set; }

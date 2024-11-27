@@ -43,6 +43,7 @@ namespace hajk
         public readonly static bool DrawTracksOnGui_b = true;           //Draw Tracks on GUI at Startup
         public readonly static bool DisableMapRotate_b = false;         //Disable Map Rotate. Lock North up
         public readonly static int KeepNBackups = 10;                   //Backup copies to keep
+        public readonly static bool EnableBackupAtStartup = true;       //Enable backup when starting app (once per day)
 
         //Runtime only
         public const string COGGeoTiffServer = "https://elevation-tiles-prod.s3.amazonaws.com/geotiff/"; //Cloud Optimized GeoTiff Server
