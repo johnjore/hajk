@@ -79,7 +79,7 @@ namespace hajk
                     return;
                 }
 
-                string ? BackupFolder = CreateBackupFolder();
+                string? BackupFolder = CreateBackupFolder();
                 if (BackupFolder == null || BackupFolder == string.Empty)
                 {
                     Serilog.Log.Fatal("No backup folder to use - Very sad");
@@ -132,7 +132,6 @@ namespace hajk
                     }
                 }
 
-                //Compress backup folder to single file
                 if (CompressBackupFolder(BackupFolder) == false)
                 {
                     Serilog.Log.Error("Failed to archive backup");
@@ -161,6 +160,7 @@ namespace hajk
         {
             try
             {
+                Serilog.Log.Information("Backing up Preferences");
                 var PrefSettings = new Models.DefaultPrefSettings.DefaultPrefSettings
                 {
                     //No need to save these
@@ -203,6 +203,7 @@ namespace hajk
                 return false;
             }
 
+            Serilog.Log.Information("Done backing up Preferences");
             return true;
         }
 
@@ -210,6 +211,7 @@ namespace hajk
         {
             try
             {
+                Serilog.Log.Information("Backing up Route & Track Data");
                 string Source_DB = Path.Combine(Fragment_Preferences.LiveData, Fragment_Preferences.RouteDB);
                 string Destination_DB = Path.Combine(BackupFolder, Fragment_Preferences.RouteDB);
 
@@ -224,6 +226,7 @@ namespace hajk
                 return false;
             }
 
+            Serilog.Log.Information("Done backing up route & Track Data");
             return true;
         }
 
@@ -231,6 +234,7 @@ namespace hajk
         {
             try
             {
+                Serilog.Log.Information("Backing up POI Data");
                 string Source_DB = Path.Combine(Fragment_Preferences.LiveData,  Fragment_Preferences.POIDB);
                 string Destination_DB = Path.Combine(BackupFolder, Fragment_Preferences.POIDB);
 
@@ -245,6 +249,7 @@ namespace hajk
                 return false;
             }
 
+            Serilog.Log.Information("Done backing up POI Data");
             return true;
         }
 
@@ -252,6 +257,7 @@ namespace hajk
         {
             try
             {
+                Serilog.Log.Information("Backing up Map Tiles");
                 string Destination_DB = Path.Combine(BackupFolder, Fragment_Preferences.CacheDB);
                 TileCache.MbTileCache.sqlConn.Backup(Destination_DB);
             }
@@ -261,6 +267,7 @@ namespace hajk
                 return false;
             }
 
+            Serilog.Log.Information("Done backing up Map Tiles");
             return true;
         }
 
@@ -268,6 +275,7 @@ namespace hajk
         {
             try
             {
+                Serilog.Log.Information("Backing up Elevation Data (GeoTiffFiles)");
                 string Source_Folder = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder;
                 string Destination_Folder = BackupFolder + "/" + Fragment_Preferences.GeoTiffFolder;
                 Directory.CreateDirectory(Destination_Folder);
@@ -289,11 +297,13 @@ namespace hajk
             foreach (string fileName in Directory.GetFiles(BackupFolder + "/" + Fragment_Preferences.GeoTiffFolder))
                 Serilog.Log.Debug(fileName);
 
+            Serilog.Log.Information("Done Backing up GeoTiff Files");
             return true;
         }
 
         private static string? CreateBackupFolder()
         {
+            Serilog.Log.Information("Create Backup Folder");
             //Make sure Backup folder exists
             if (!Directory.Exists(Fragment_Preferences.Backups))
             {
@@ -316,6 +326,7 @@ namespace hajk
                 try
                 {
                     Directory.CreateDirectory(backupFolderName);
+                    Serilog.Log.Information($"Done creating BackupFolder '{backupFolderName}'");
                     return backupFolderName;
                 }
                 catch (Exception ex)
@@ -336,6 +347,11 @@ namespace hajk
         {
             try
             {
+                Serilog.Log.Information("Create single backup file");
+
+                foreach (string fileName in Directory.GetFiles(BackupFolder))
+                    Serilog.Log.Debug(fileName);
+
                 string Destination_Archive = BackupFolder + ".zip";
                 using (var zip = File.OpenWrite(Destination_Archive))
                 using (var zipWriter = WriterFactory.Open(zip, ArchiveType.Zip, CompressionType.None))
@@ -343,16 +359,11 @@ namespace hajk
                     zipWriter.WriteAll(BackupFolder, "*", SearchOption.AllDirectories);
                 }
 
-                foreach (string fileName in Directory.GetFiles(BackupFolder))
-                    Serilog.Log.Debug(fileName);
-
-                foreach (string fileName in Directory.GetFiles(BackupFolder + "/.."))
-                    Serilog.Log.Debug(fileName);
-
                 //Remove Temp Folder
                 Utils.Misc.EmptyFolder(BackupFolder);
 
-                Serilog.Log.Debug("done");
+                foreach (string fileName in Directory.GetFiles(Fragment_Preferences.Backups))
+                    Serilog.Log.Debug(fileName);
             }
             catch (Exception ex)
             {
@@ -360,6 +371,7 @@ namespace hajk
                 return false;
             }
 
+            Serilog.Log.Information("Done creating single backup file");
             return true;
         }
 
@@ -367,6 +379,8 @@ namespace hajk
         {
             try
             {
+                Serilog.Log.Information("Remove old backup files");
+
                 var backupFiles = new DirectoryInfo(Fragment_Preferences.Backups).EnumerateFiles()
                     .OrderBy(fi => fi.CreationTime).ToList();
 
@@ -410,6 +424,7 @@ namespace hajk
                 return false;
             }
 
+            Serilog.Log.Information("Done removing old backup files");
             return true;
         }
     }
