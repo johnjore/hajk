@@ -1,24 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using Android.App;
+using Android.Content.Res;
+using Android.Content;
+using Android.OS;
+using Android.Widget;
+using SharpCompress.Common;
+using SharpCompress.Writers;
+using SQLite;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net;
+using System.Text.Json;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
-using Android.Content;
-using Android.Widget;
-using Android.App;
-using Android.OS;
-using System;
-using Android.Content.Res;
-using SQLite;
-using hajk.Models;
-using System.Text.Json;
-using SharpCompress.Common;
-using SharpCompress.Writers;
-using OxyPlot;
 
 namespace hajk
 {
@@ -50,7 +47,7 @@ namespace hajk
             ];
 
             //Create dialogbox
-            AlertDialog.Builder builder = new AlertDialog.Builder(Platform.CurrentActivity);
+            AlertDialog.Builder builder = new(Platform.CurrentActivity);
             builder.SetTitle(Resource.String.BackupOptions);
 
             //Update GUI
@@ -60,8 +57,8 @@ namespace hajk
             });
 
             //Create the backup
-            builder.SetPositiveButton(Resource.String.Ok, async (senderDialog, args) =>
-            { 
+            builder.SetPositiveButton(Resource.String.Ok, (senderDialog, args) =>
+            {
                 //Update/save preferences
                 Preferences.Set("BackupPreferences", checkedItems[0]);
                 Preferences.Set("BackupRoute&TrackData", checkedItems[1]);
@@ -90,7 +87,6 @@ namespace hajk
                 {
                     PerformBackups(ProgressBarIncrement);
                 });
-
             });
 
             builder.SetNegativeButton(Resource.String.Cancel, (senderDialog, args) =>
@@ -99,145 +95,134 @@ namespace hajk
 
             builder.Create();
             builder.Show();
-
-            //Reset counters for download
-            int doneCount = 0;
         }
 
         private static bool PerformBackups(int ProgressBarIncrement)
         {
-            //Backup results, default is success
-            bool r1 = true;
-            bool r2 = true;
-            bool r3 = true;
-            bool r4 = true;
-            bool r5 = true;
-            bool r6 = true;
-            bool r7 = true;
-
-            string? BackupFolder = CreateBackupFolder();
-            if (BackupFolder == null || BackupFolder == string.Empty)
+            try
             {
-                Serilog.Log.Fatal("No backup folder to use - Very sad");
-                return false;
-            }
+                //Backup results, default is success
+                bool r1 = true;
+                bool r2 = true;
+                bool r3 = true;
+                bool r4 = true;
+                bool r5 = true;
+                bool r6 = true;
+                bool r7 = true;
 
-            //Backups
-            if (Preferences.Get("BackupPreferences", true))
-            {
-                Progressbar.UpdateProgressBar.MessageBody = "Preferences...";
-                r1 = BackupPreferences(BackupFolder);
-                Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
-                Progressbar.UpdateProgressBar.MessageBody = "Done with Preferences";
-                if (r1 == false)
+                string? BackupFolder = CreateBackupFolder();
+                if (BackupFolder == null || BackupFolder == string.Empty)
                 {
-                    MainThread.BeginInvokeOnMainThread(() =>
+                    Serilog.Log.Fatal("No backup folder to use - Very sad");
+                    return false;
+                }
+
+                //Needed for Toast.MakeText() to work
+                Looper.Prepare();
+
+                //Backups
+                if (Preferences.Get("BackupPreferences", true))
+                {
+                    Progressbar.UpdateProgressBar.MessageBody = "Preferences...";
+                    r1 = BackupPreferences(BackupFolder);
+                    Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                    Progressbar.UpdateProgressBar.MessageBody = "Done with Preferences";
+                    if (r1 == false)
                     {
                         Toast.MakeText(Platform.AppContext, "Could not backup Preferences", ToastLength.Long)?.Show();
-                    });
+                    }
                 }
-            }
 
-            if (Preferences.Get("BackupRoute&TrackData", true))
-            {
-                Progressbar.UpdateProgressBar.MessageBody = "Route & track data...";
-                r2 = BackupRouteTrackData(BackupFolder);
-                Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
-                Progressbar.UpdateProgressBar.MessageBody = "Done with route & track data";
-                if (r2 == false)
+                if (Preferences.Get("BackupRoute&TrackData", true))
                 {
-                    MainThread.BeginInvokeOnMainThread(() =>
+                    Progressbar.UpdateProgressBar.MessageBody = "Route & track data...";
+                    r2 = BackupRouteTrackData(BackupFolder);
+                    Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                    Progressbar.UpdateProgressBar.MessageBody = "Done with route & track data";
+                    if (r2 == false)
                     {
                         Toast.MakeText(Platform.AppContext, "Could not backup Route & Track data", ToastLength.Long)?.Show();
-                    });
+                    }
                 }
-            }
 
-            if (Preferences.Get("BackupPOIData", true))
-            {
-                Progressbar.UpdateProgressBar.MessageBody = "POI Data...";
-                r3 = BackupPOIData(BackupFolder);
-                Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
-                Progressbar.UpdateProgressBar.MessageBody = "Done with POI Data";
-                if (r3 == false)
+                if (Preferences.Get("BackupPOIData", true))
                 {
-                    MainThread.BeginInvokeOnMainThread(() =>
+                    Progressbar.UpdateProgressBar.MessageBody = "POI Data...";
+                    r3 = BackupPOIData(BackupFolder);
+                    r3 = false;
+                    Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                    Progressbar.UpdateProgressBar.MessageBody = "Done with POI Data";
+                    if (r3 == false)
                     {
                         Toast.MakeText(Platform.AppContext, "Could not backup POI Data", ToastLength.Long)?.Show();
-                    });
+                    }
                 }
-            }
 
-            if (Preferences.Get("BackupMapTiles", true))
-            {
-                Progressbar.UpdateProgressBar.MessageBody = "Map Tiles...";
-                r4 = BackupMapTiles(BackupFolder);
-                Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
-                Progressbar.UpdateProgressBar.MessageBody = "Done with up map Tiles";
-                if (r4 == false)
+                if (Preferences.Get("BackupMapTiles", true))
                 {
-                    MainThread.BeginInvokeOnMainThread(() =>
+                    Progressbar.UpdateProgressBar.MessageBody = "Map Tiles...";
+                    r4 = BackupMapTiles(BackupFolder);
+                    Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                    Progressbar.UpdateProgressBar.MessageBody = "Done with up map Tiles";
+                    if (r4 == false)
                     {
                         Toast.MakeText(Platform.AppContext, "Could not backup map tiles", ToastLength.Long)?.Show();
-                    });
+                    }
                 }
-            }
 
-            if (Preferences.Get("BackupElevationData", true))
-            {
-                Progressbar.UpdateProgressBar.MessageBody = "Elevation data...";
-                r5 = BackupElevationData(BackupFolder);
-                Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
-                Progressbar.UpdateProgressBar.MessageBody = "Done with elevation data";
-                if (r5 == false)
+                if (Preferences.Get("BackupElevationData", true))
                 {
-                    MainThread.BeginInvokeOnMainThread(() =>
+                    Progressbar.UpdateProgressBar.MessageBody = "Elevation data...";
+                    r5 = BackupElevationData(BackupFolder);
+                    Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                    Progressbar.UpdateProgressBar.MessageBody = "Done with elevation data";
+                    if (r5 == false)
                     {
                         Toast.MakeText(Platform.AppContext, "Failed to backup Elevation data", ToastLength.Long)?.Show();
-                    });
+                    }
                 }
-            }
 
-            Progressbar.UpdateProgressBar.MessageBody = "Creating archive";
-            r6 = CompressBackupFolder(BackupFolder);
-            Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
-            Progressbar.UpdateProgressBar.MessageBody = "Done creating archive";
-            if (r6 == false)
-            {
-                MainThread.BeginInvokeOnMainThread(() =>
+                Progressbar.UpdateProgressBar.MessageBody = "Creating archive";
+                r6 = CompressBackupFolder(BackupFolder);
+                Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                Progressbar.UpdateProgressBar.MessageBody = "Done creating archive";
+                if (r6 == false)
                 {
                     Toast.MakeText(Platform.AppContext, "Failed to create backup archive", ToastLength.Long)?.Show();
-                });
-            }
+                }
 
-            Progressbar.UpdateProgressBar.MessageBody = "Removing old backups";
-            r7 = KeepOnlyNBackups();            
-            Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
-            Progressbar.UpdateProgressBar.MessageBody = "Done removing old backups";
-            if (r7 == false)
-            {
-                MainThread.BeginInvokeOnMainThread(() =>
+                Progressbar.UpdateProgressBar.MessageBody = "Removing old backups";
+                r7 = KeepOnlyNBackups();
+                Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                Progressbar.UpdateProgressBar.MessageBody = "Done removing old backups";
+                if (r7 == false)
                 {
                     Toast.MakeText(Platform.AppContext, "Failed to remove oldest backup(s)", ToastLength.Long)?.Show();
-                });
-            }
+                }
 
-            //Remove progress bar
-            Progressbar.UpdateProgressBar.Progress = 100;
-
-            //Only show dialog box if any of the backup steps failed
-            if (r1 == false || r2 == false || r3 == false || r4 == false || r5 == false || r6 == false || r7 == false)
-            {
-                Show_Dialog msg = new(Platform.CurrentActivity);
-                msg.ShowDialog("Failed", "Could not create backup", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
-                return false;
-            }
-            else
-            {
-                MainThread.BeginInvokeOnMainThread(() =>
+                //Only show dialog box if any of the backup steps failed
+                if (r1 == false || r2 == false || r3 == false || r4 == false || r5 == false || r6 == false || r7 == false)
+                {
+                    if (Platform.CurrentActivity != null)
+                    {
+                        Show_Dialog? msg = new(Platform.CurrentActivity);
+                        _ = msg.ShowDialog("Failed", "Could not create backup", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                        return false;
+                    }
+                }
+                else
                 {
                     Toast.MakeText(Platform.AppContext, "Backup completed", ToastLength.Long)?.Show();
-                });
+                }
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Crashed while performing backup");
+            }
+            finally
+            {
+                //Remove progress bar
+                Progressbar.UpdateProgressBar.Progress = 100;
             }
 
             Serilog.Log.Information("Backup completed");
@@ -303,7 +288,7 @@ namespace hajk
                 string Source_DB = Path.Combine(Fragment_Preferences.LiveData, Fragment_Preferences.RouteDB);
                 string Destination_DB = Path.Combine(BackupFolder, Fragment_Preferences.RouteDB);
 
-                SQLiteConnection DBBackupConnection = new SQLiteConnection(Source_DB, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
+                SQLiteConnection DBBackupConnection = new(Source_DB, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
 
                 DBBackupConnection.Backup(Destination_DB);
                 DBBackupConnection.Close();
@@ -326,7 +311,7 @@ namespace hajk
                 string Source_DB = Path.Combine(Fragment_Preferences.LiveData,  Fragment_Preferences.POIDB);
                 string Destination_DB = Path.Combine(BackupFolder, Fragment_Preferences.POIDB);
 
-                SQLiteConnection DBBackupConnection = new SQLiteConnection(Source_DB, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
+                SQLiteConnection DBBackupConnection = new(Source_DB, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
 
                 DBBackupConnection.Backup(Destination_DB);
                 DBBackupConnection.Close();
@@ -366,7 +351,7 @@ namespace hajk
                 Serilog.Log.Information("Backing up Elevation Data (GeoTiffFiles)");
                 string Source_Folder = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder;
                 string Destination_Folder = BackupFolder + "/" + Fragment_Preferences.GeoTiffFolder;
-                Directory.CreateDirectory(Destination_Folder);
+                _ = Directory.CreateDirectory(Destination_Folder);
 
                 //Copy each file
                 foreach (string fileName in Directory.GetFiles(Source_Folder))
@@ -397,7 +382,7 @@ namespace hajk
             {
                 try
                 {
-                    Directory.CreateDirectory(Fragment_Preferences.Backups);
+                    _ = Directory.CreateDirectory(Fragment_Preferences.Backups);
                 }
                 catch (Exception ex)
                 {
@@ -413,7 +398,7 @@ namespace hajk
             {
                 try
                 {
-                    Directory.CreateDirectory(backupFolderName);
+                    _ = Directory.CreateDirectory(backupFolderName);
                     Serilog.Log.Information($"Done creating BackupFolder '{backupFolderName}'");
                     return backupFolderName;
                 }
@@ -498,8 +483,7 @@ namespace hajk
                 }
 
                 //Backup files
-                backupFiles = new DirectoryInfo(Fragment_Preferences.Backups).EnumerateFiles()
-                    .OrderBy(fi => fi.CreationTime).ToList();
+                backupFiles = [.. new DirectoryInfo(Fragment_Preferences.Backups).EnumerateFiles().OrderBy(fi => fi.CreationTime)];
 
                 foreach (var fileName in backupFiles)
                 {
