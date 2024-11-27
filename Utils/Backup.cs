@@ -16,6 +16,8 @@ using Android.Content.Res;
 using SQLite;
 using hajk.Models;
 using System.Text.Json;
+using SharpCompress.Common;
+using SharpCompress.Writers;
 
 namespace hajk
 {
@@ -59,45 +61,92 @@ namespace hajk
             //Create the backup
             builder.SetPositiveButton(Resource.String.Ok, (senderDialog, args) =>
             { 
-                //Update preferences
+                //Update/save preferences
                 Preferences.Set("BackupPreferences", checkedItems[0]);
                 Preferences.Set("BackupRoute&TrackData", checkedItems[1]);
                 Preferences.Set("BackupPOIData", checkedItems[2]);
                 Preferences.Set("BackupMapTiles", checkedItems[3]);
                 Preferences.Set("BackupElevationData", checkedItems[4]);
 
-                string? BackupFolder = CreateBackupFolder();
+                if (Preferences.Get("BackupPreferences", true) == false &&
+                    Preferences.Get("BackupRoute&TrackData", true) == false &&
+                    Preferences.Get("BackupPOIData", true) == false &&
+                    Preferences.Get("BackupMapTiles", true) == false &&
+                    Preferences.Get("BackupElevationData", true) == false)
+                {
+                    Serilog.Log.Warning("No backup selections");
+                    Toast.MakeText(Platform.AppContext, "Nothing to backup", ToastLength.Long)?.Show();
+                    return;
+                }
+
+                string ? BackupFolder = CreateBackupFolder();
                 if (BackupFolder == null || BackupFolder == string.Empty)
                 {
-                    Serilog.Log.Error("No backup folder to use - Very sad");
+                    Serilog.Log.Fatal("No backup folder to use - Very sad");
                     return;
                 }
 
                 //Backups
                 if (Preferences.Get("BackupPreferences", true))
                 {
-                    BackupPreferences(BackupFolder);
+                    if (BackupPreferences(BackupFolder) == false)
+                    {
+                        Serilog.Log.Error("Failed to backup Preferences");
+                        Toast.MakeText(Platform.AppContext, "Could not backup Preferences", ToastLength.Long)?.Show();
+                    }
                 }
 
                 if (Preferences.Get("BackupRoute&TrackData", true))
                 {
-                    BackupRouteTrackData(BackupFolder);
+                    if (BackupRouteTrackData(BackupFolder) == false)
+                    {
+                        Serilog.Log.Error("Failed to backup Route & Track Data");
+                        Toast.MakeText(Platform.AppContext, "Could not backup Route & Track Data", ToastLength.Long)?.Show();
+                    }
                 }
 
                 if (Preferences.Get("BackupPOIData", true))
                 {
-                    BackupPOIData(BackupFolder);
+                    if (BackupPOIData(BackupFolder) == false)
+                    {
+                        Serilog.Log.Error("Failed to backup POI data");
+                        Toast.MakeText(Platform.AppContext, "Could not backup POI Data", ToastLength.Long)?.Show();
+                    }
                 }
 
                 if (Preferences.Get("BackupMapTiles", true))
                 {
-                    BackupMapTiles(BackupFolder);
+                    if (BackupMapTiles(BackupFolder) == false)
+                    {
+                        Serilog.Log.Error("Failed to backup Map tiles");
+                        Toast.MakeText(Platform.AppContext, "Could not backup Map tiles", ToastLength.Long)?.Show();
+                    }
                 }
 
                 if (Preferences.Get("BackupElevationData", true))
                 {
-                    BackupElevationData(BackupFolder);
+                    if (BackupElevationData(BackupFolder) == false)
+                    {
+                        Serilog.Log.Error("Failed to backup Elevation data");
+                        Toast.MakeText(Platform.AppContext, "Could not backup Elevation data", ToastLength.Long)?.Show();
+                    }
                 }
+
+                //Compress backup folder to single file
+                if (CompressBackupFolder(BackupFolder) == false)
+                {
+                    Serilog.Log.Error("Failed to archive backup");
+
+                    Show_Dialog msg = new(Platform.CurrentActivity);
+                    msg.ShowDialog("Failed", "Could not create backup", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                }
+
+                if (KeepOnlyNBackups() == false)
+                {
+                    Toast.MakeText(Platform.AppContext, "Failed to remove oldest backup(s)", ToastLength.Long)?.Show();
+                }
+
+                Toast.MakeText(Platform.AppContext, "Backup completed", ToastLength.Long)?.Show();
             });
 
             builder.SetNegativeButton(Resource.String.Cancel, (senderDialog, args) =>
@@ -126,21 +175,23 @@ namespace hajk
                     DrawTracksOnGui = Preferences.Get("DrawTracksOnGui", Fragment_Preferences.DrawTracksOnGui_b),
                     DrawTrackOnGui = Preferences.Get("DrawTrackOnGui", Fragment_Preferences.DrawTrackOnGui_b),
                     freq = int.Parse(Preferences.Get("freq", Fragment_Preferences.freq_s.ToString())),
-                    OSM_BulkDownload_Source = Preferences.Get("OSM_BulkDownload_Source", ""),
-                    OSM_Browse_Source = Preferences.Get("OSM_Browse_Source", "OpenStreetMap"),
-                    MapboxToken = Preferences.Get("MapboxToken", ""),
-                    ThunderforestToken = Preferences.Get("ThunderforestToken", ""),
+                    MapLockNorth = Preferences.Get("MapLockNorth", Fragment_Preferences.DisableMapRotate_b),
+                    KeepNBackups = int.Parse(Preferences.Get("KeepNBackups", Fragment_Preferences.KeepNBackups.ToString())),
+                    OSM_BulkDownload_Source = Preferences.Get("Tile Bulk Download Source", Fragment_Preferences.TileBulkDownloadSource),
+                    OSM_Browse_Source = Preferences.Get("OSM_Browse_Source", Fragment_Preferences.TileBrowseSource),
                     CustomServerURL = Preferences.Get("CustomServerURL ", ""),
                     CustomToken = Preferences.Get("CustomToken", ""),
+                    MapboxToken = Preferences.Get("MapboxToken", ""),
+                    ThunderforestToken = Preferences.Get("ThunderforestToken", ""),
+
+                    mapScale = Preferences.Get("mapScale", Fragment_Preferences.DefaultMapScale),
+                    mapUTMZone = Preferences.Get("mapUTMZone", Fragment_Preferences.DefaultUTMZone),
 
                     BackupPreferences = Preferences.Get("BackupPreferences", true),
                     BackupRouteTrackData = Preferences.Get("BackupRoute&TrackData", true),
                     BackupPOIData = Preferences.Get("BackupPOIData", true),
                     BackupMapTiles = Preferences.Get("BackupMapTiles", true),
-                    BackupElevationData = Preferences.Get("BackupElevationData", true),
-                    MapLockNorth = Preferences.Get("MapLockNorth", false),
-                    mapUTMZone = Preferences.Get("mapUTMZone", "54H"),
-                    mapScale = Preferences.Get("mapScale", 25000L),                    
+                    BackupElevationData = Preferences.Get("BackupElevationData", true),                    
                 };
 
                 AppContext.SetSwitch("System.Reflection.NullabilityInfoContext.IsSupported", true);
@@ -269,7 +320,7 @@ namespace hajk
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Fatal(ex, $"Failed to Create Backup Folder");
+                    Serilog.Log.Fatal(ex, $"Failed to Create Backup Folder '{backupFolderName}'");
                     return null;
                 }
             }
@@ -280,7 +331,86 @@ namespace hajk
                 return null;
             }
         }
+
+        private static bool CompressBackupFolder(string BackupFolder)
+        {
+            try
+            {
+                string Destination_Archive = BackupFolder + ".zip";
+                using (var zip = File.OpenWrite(Destination_Archive))
+                using (var zipWriter = WriterFactory.Open(zip, ArchiveType.Zip, CompressionType.None))
+                {
+                    zipWriter.WriteAll(BackupFolder, "*", SearchOption.AllDirectories);
+                }
+
+                foreach (string fileName in Directory.GetFiles(BackupFolder))
+                    Serilog.Log.Debug(fileName);
+
+                foreach (string fileName in Directory.GetFiles(BackupFolder + "/.."))
+                    Serilog.Log.Debug(fileName);
+
+                //Remove Temp Folder
+                Utils.Misc.EmptyFolder(BackupFolder);
+
+                Serilog.Log.Debug("done");
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Failed to compress backup files to single folder");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool KeepOnlyNBackups()
+        {
+            try
+            {
+                var backupFiles = new DirectoryInfo(Fragment_Preferences.Backups).EnumerateFiles()
+                    .OrderBy(fi => fi.CreationTime).ToList();
+
+                if (backupFiles == null)
+                {
+                    Serilog.Log.Error("backupFiles is 'null' ?");
+                    return false;
+                }
+
+                if (backupFiles.Count == 0)
+                {
+                    Serilog.Log.Error("# of backupFiles is '0', which is impossible if we've successfully taken a backup?");
+                    return false;
+                }
+
+                int KeepNBackups = int.Parse(Preferences.Get("KeepNBackups", Fragment_Preferences.KeepNBackups.ToString()));
+                if (backupFiles.Count < KeepNBackups)
+                {
+                    Serilog.Log.Information($"Not reached max backup copies: '{KeepNBackups}'");
+                    return true;
+                }
+
+                //How many files to remove?
+                for (int i = 0; i < backupFiles.Count - KeepNBackups; i++)
+                {
+                    File.Delete(backupFiles[i].FullName);
+                }
+
+                //Backup files
+                backupFiles = new DirectoryInfo(Fragment_Preferences.Backups).EnumerateFiles()
+                    .OrderBy(fi => fi.CreationTime).ToList();
+
+                foreach (var fileName in backupFiles)
+                {
+                    Serilog.Log.Debug($"Backup files: {fileName.FullName} / {fileName.Length} bytes");
+                }
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Failed to truncate number of backup copies");
+                return false;
+            }
+
+            return true;
+        }
     }
 }
-
-

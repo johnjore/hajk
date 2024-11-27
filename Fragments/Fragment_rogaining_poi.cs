@@ -49,12 +49,12 @@ namespace hajk.Fragments
             var mapUTMZone = view?.FindViewById<EditText>(Resource.Id.editUTMZone);
             if (mapUTMZone != null)
             {
-                mapUTMZone.Text = Preferences.Get("mapUTMZone", "54H").ToString();
+                mapUTMZone.Text = Preferences.Get("mapUTMZone", Fragment_Preferences.DefaultUTMZone).ToString();
             }
             var mapScale = view?.FindViewById<EditText>(Resource.Id.editMapScale);
             if (mapScale != null)
             {
-                mapScale.Text = Preferences.Get("mapScale", 25000L).ToString();
+                mapScale.Text = Preferences.Get("mapScale", Fragment_Preferences.DefaultMapScale).ToString();
             }
 
             //Buttons

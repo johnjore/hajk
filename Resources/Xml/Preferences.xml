@@ -109,4 +109,15 @@
 			android:defaultValue="5"
 			app:useSimpleSummaryProvider="true" />
 	</PreferenceCategory>
+
+  <PreferenceCategory android:title="Backup">
+    <EditTextPreference
+			android:title="@string/KeepNBackups"
+			android:key="KeepNBackups"
+			android:inputType="numberDecimal"
+			android:digits="0123456789"
+			android:defaultValue="20"
+			app:useSimpleSummaryProvider="true" />
+  </PreferenceCategory>	
+	
 </PreferenceScreen>

@@ -33,7 +33,6 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 using Serilog.Events;
-using Java.Nio.FileNio.Attributes;
 
 namespace hajk
 {
@@ -55,7 +54,13 @@ namespace hajk
 
             //Preferences.Clear();
             //new FileInfo(rootPath + "/" + PrefsActivity.CacheDB).Delete();
-                   
+
+            //Clear out all backups
+            //Utils.Misc.EmptyFolder(Fragment_Preferences.Backups);
+
+            Preferences.Clear("KeepNBackups");
+
+
             //Logging
             string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.logFile);
             Log.Logger = new LoggerConfiguration()
@@ -534,6 +539,7 @@ namespace hajk
                         };
 
                         var sourceFile = await FilePicker.PickAsync(options);
+                        Serilog.Log.Warning("SourceFile:" + sourceFile.FullPath);
                         if (sourceFile != null)
                         {
                             var ImportDB = new SQLiteConnection(sourceFile.FullPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);

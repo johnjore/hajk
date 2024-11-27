@@ -14,6 +14,7 @@
         public string? mapUTMZone { get; set; }
         public long mapScale { get; set; }
         public int freq_s_OffRoute { get; set; }
+        public int KeepNBackups { get; set; }
         public bool EnableOffRouteWarning { get; set; }
         public int OffTrackDistanceWarning_m { get; set; }
         public int OffTrackRouteSnooze_m { get; set; }

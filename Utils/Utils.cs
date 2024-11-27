@@ -13,8 +13,24 @@ using Microsoft.Maui.ApplicationModel;
 
 namespace Utils
 {
-    public class Misc 
+    public class Misc
     {
+        //Clear out a folder, no confirmation
+        public static void EmptyFolder(string directoryName)
+        {
+            System.IO.DirectoryInfo di = new DirectoryInfo(directoryName);
+
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+            foreach (DirectoryInfo dir in di.GetDirectories())
+            {
+                dir.Delete(true);
+            }
+        }
+
+
         //Calculate and return size of folder in bytes
         public static long DirectorySizeBytes(DirectoryInfo d)
         {

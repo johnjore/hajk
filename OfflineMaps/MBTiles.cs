@@ -16,7 +16,7 @@ namespace hajk
 {
     public class MBTilesWriter
     {
-        public static SQLiteConnection CreateDatabaseConnection(string db)
+        public static SQLiteConnection? CreateDatabaseConnection(string db)
         {
             if (!File.Exists(db))
             {

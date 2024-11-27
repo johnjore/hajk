@@ -29,7 +29,6 @@ namespace hajk
         public const string Layer_Route = "Route";
         public const string Layer_Track = "Track";
 
-
         //GeoTiff
         public readonly static int Elevation_Tile_Zoom = 14;            //Best AWS bucket has
 
@@ -43,6 +42,7 @@ namespace hajk
         public readonly static bool DrawPOIonGui_b = true;              //Draw POI on GUI at Startup
         public readonly static bool DrawTracksOnGui_b = true;           //Draw Tracks on GUI at Startup
         public readonly static bool DisableMapRotate_b = false;         //Disable Map Rotate. Lock North up
+        public readonly static int KeepNBackups = 10;                   //Backup copies to keep
 
         //Runtime only
         public const string COGGeoTiffServer = "https://elevation-tiles-prod.s3.amazonaws.com/geotiff/"; //Cloud Optimized GeoTiff Server
@@ -84,6 +84,10 @@ namespace hajk
             new MapSource("Thunderforest", @"https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=", "ThunderforestToken"),
             new MapSource("Custom", "CustomServerURL", "CustomToken"),
         ];
+
+        //Rogaining
+        public const long DefaultMapScale = 25000L;                     //Default Map Scale
+        public const string DefaultUTMZone = "54H";                     //Default UTM Zone
 
         public override void OnCreatePreferences(Bundle? savedInstanceState, string? rootKey)
         {
