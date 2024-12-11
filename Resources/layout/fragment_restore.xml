@@ -18,6 +18,42 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
+        android:id="@+id/lblRestorePreferences"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Preferences"
+        android:textAlignment="textStart"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:gravity="left"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" 
+        app:layout_constraintEnd_toStartOf="@+id/radioPreferences"
+        app:layout_constraintTop_toBottomOf="@+id/lblRestoreOptions" />
+
+    <RadioGroup
+        android:id="@+id/radioPreferences"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lblRestoreOptions"
+        app:layout_constraintLeft_toRightOf="@+id/lblRestorePreferences" >
+
+        <RadioButton android:id="@+id/rb_Pref_Overwrite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Overwrite"/>
+        <RadioButton android:id="@+id/rb_Pref_Skip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Skip"/>
+    </RadioGroup>
+
+    <TextView
         android:id="@+id/lblRestoreRouteTrack"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -29,7 +65,7 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent" 
         app:layout_constraintEnd_toStartOf="@+id/radioRouteTrack"
-        app:layout_constraintTop_toBottomOf="@+id/lblRestoreOptions" />
+        app:layout_constraintTop_toBottomOf="@+id/lblRestorePreferences" />
 
     <RadioGroup
         android:id="@+id/radioRouteTrack"
@@ -39,7 +75,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginTop="4dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lblRestoreOptions"
+        app:layout_constraintTop_toBottomOf="@+id/lblRestorePreferences"
         app:layout_constraintLeft_toRightOf="@+id/lblRestoreRouteTrack" >
 
         <RadioButton android:id="@+id/rb_RT_Merge"
@@ -51,6 +87,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Overwrite"/>
+        <RadioButton android:id="@+id/rb_RT_Skip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Skip"/>
     </RadioGroup>
 
     <TextView
@@ -86,6 +126,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Overwrite"/>
+        <RadioButton android:id="@+id/rb_POI_Skip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Skip"/>
     </RadioGroup>
 
     <TextView
@@ -121,6 +165,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Overwrite"/>
+        <RadioButton android:id="@+id/rb_Map_Skip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Skip"/>
     </RadioGroup>
 
     <TextView
@@ -158,6 +206,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Overwrite"/>
+        <RadioButton android:id="@+id/rb_Elevation_Skip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Skip"/>
     </RadioGroup>
 
     <LinearLayout

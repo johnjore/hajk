@@ -53,6 +53,14 @@ namespace hajk.Fragments
             Dialog?.SetCanceledOnTouchOutside(false);
 
             //Only options from backup file should be visible in GUI
+            var z1 = view?.FindViewById<TextView>(Resource.Id.lblRestorePreferences);
+            var z2 = (view?.FindViewById<RadioGroup>(Resource.Id.radioPreferences));
+            if (File.Exists(tmpFolder + "/" + Fragment_Preferences.SavedSettings) == false && z1 != null && z2 != null)
+            {
+                z1.Visibility = ViewStates.Gone;
+                z2.Visibility = ViewStates.Gone;
+            }
+
             var a1 = view?.FindViewById<TextView>(Resource.Id.lblRestoreRouteTrack);
             var a2 = (view?.FindViewById<RadioGroup>(Resource.Id.radioRouteTrack));
             if (File.Exists(tmpFolder + "/" + Fragment_Preferences.RouteDB) == false && a1 != null && a2 != null)
@@ -106,11 +114,15 @@ namespace hajk.Fragments
 
                     try
                     {
-                        //Restore Preferences
-                        RestorePreferences(tmpFolder);
+                        RadioGroup? rb0 = view?.FindViewById<RadioGroup>(Resource.Id.radioPreferences);
+                        if (rb0 != null && rb0.Visibility == ViewStates.Visible && rb0.CheckedRadioButtonId != Resource.Id.rb_RT_Skip)
+                        {
+                            RestorePreferences(tmpFolder);
+                        }
 
                         RadioGroup? rb1 = view?.FindViewById<RadioGroup>(Resource.Id.radioRouteTrack);
-                        if (rb1 != null && rb1.Visibility == ViewStates.Visible) {
+                        if (rb1 != null && rb1.Visibility == ViewStates.Visible && rb1.CheckedRadioButtonId != Resource.Id.rb_RT_Skip)
+                        {
                             if (rb1.CheckedRadioButtonId == Resource.Id.rb_RT_Merge)
                             {
                                 RestoreRouteTrackData(RestoreSelection.Merge);
@@ -122,7 +134,7 @@ namespace hajk.Fragments
                         }
 
                         RadioGroup? rb2 = view?.FindViewById<RadioGroup>(Resource.Id.radioPOI);
-                        if (rb2 != null && rb2.Visibility == ViewStates.Visible)
+                        if (rb2 != null && rb2.Visibility == ViewStates.Visible && rb2.CheckedRadioButtonId != Resource.Id.rb_POI_Skip)
                         {
                             if (rb2.CheckedRadioButtonId == Resource.Id.rb_POI_Merge)
                             {
@@ -135,7 +147,7 @@ namespace hajk.Fragments
                         }
 
                         RadioGroup? rb3 = view?.FindViewById<RadioGroup>(Resource.Id.radioMapData);
-                        if (rb3 != null && rb3.Visibility == ViewStates.Visible)
+                        if (rb3 != null && rb3.Visibility == ViewStates.Visible && rb3.CheckedRadioButtonId != Resource.Id.rb_Map_Skip)
                         {
                             if (rb3.CheckedRadioButtonId == Resource.Id.rb_Map_Merge)
                             {
@@ -148,7 +160,7 @@ namespace hajk.Fragments
                         }
 
                         RadioGroup? rb4 = view?.FindViewById<RadioGroup>(Resource.Id.radioElevationData);
-                        if (rb4 != null && rb4.Visibility == ViewStates.Visible)
+                        if (rb4 != null && rb4.Visibility == ViewStates.Visible && rb4.CheckedRadioButtonId != Resource.Id.rb_Elevation_Skip)
                         {
                             if (rb4.CheckedRadioButtonId == Resource.Id.rb_Elevation_Merge)
                             {
