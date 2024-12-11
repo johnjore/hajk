@@ -1,0 +1,205 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    
+    <TextView
+        android:id="@+id/lblRestoreOptions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Restore Options"
+        android:textAlignment="center"
+        android:textSize="32sp"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/lblRestoreRouteTrack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Route/Track"
+        android:textAlignment="textStart"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:gravity="left"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" 
+        app:layout_constraintEnd_toStartOf="@+id/radioRouteTrack"
+        app:layout_constraintTop_toBottomOf="@+id/lblRestoreOptions" />
+
+    <RadioGroup
+        android:id="@+id/radioRouteTrack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lblRestoreOptions"
+        app:layout_constraintLeft_toRightOf="@+id/lblRestoreRouteTrack" >
+
+        <RadioButton android:id="@+id/rb_RT_Merge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Merge"
+            android:checked="true" />
+        <RadioButton android:id="@+id/rb_RT_Overwrite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Overwrite"/>
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/lblRestorePOI"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="POI"
+        android:textAlignment="textStart"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:gravity="left"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" 
+        app:layout_constraintEnd_toStartOf="@+id/radioPOI"
+        app:layout_constraintTop_toBottomOf="@+id/lblRestoreRouteTrack" />
+
+    <RadioGroup
+        android:id="@+id/radioPOI"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/radioRouteTrack"
+        app:layout_constraintLeft_toRightOf="@+id/lblRestorePOI" >
+
+        <RadioButton android:id="@+id/rb_POI_Merge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Merge"
+            android:checked="true" />
+        <RadioButton android:id="@+id/rb_POI_Overwrite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Overwrite"/>
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/lblRestoreMap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Map"
+        android:textAlignment="textStart"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:gravity="left"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" 
+        app:layout_constraintEnd_toStartOf="@+id/radioMapData"
+        app:layout_constraintTop_toBottomOf="@+id/lblRestorePOI" />
+
+    <RadioGroup
+        android:id="@+id/radioMapData"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/radioPOI"
+        app:layout_constraintLeft_toRightOf="@+id/lblRestoreMap" >
+
+        <RadioButton android:id="@+id/rb_Map_Merge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Merge"
+            android:checked="true" />
+        <RadioButton android:id="@+id/rb_Map_Overwrite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Overwrite"/>
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/lblRestoreElevation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Elevation"
+        android:textAlignment="textStart"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:gravity="left"
+        android:paddingEnd="30dp"
+        android:layout_marginRight="30dp"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" 
+        app:layout_constraintEnd_toStartOf="@+id/radioElevationData"
+        app:layout_constraintTop_toBottomOf="@+id/lblRestoreMap" />
+
+    <RadioGroup
+        android:id="@+id/radioElevationData"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/radioMapData"
+        app:layout_constraintLeft_toRightOf="@+id/lblRestoreElevation" >
+
+        <RadioButton android:id="@+id/rb_Elevation_Merge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Merge"
+            android:checked="true" />
+        <RadioButton android:id="@+id/rb_Elevation_Overwrite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Overwrite"/>
+    </RadioGroup>
+
+    <LinearLayout
+        android:id="@+id/linearLayoutBtns"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/radioElevationData" >
+
+        <Button
+            android:id="@+id/btnCancel2"
+            android:layout_width="125dp"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:textSize="14dp"
+            android:text="@string/Cancel"
+            android:typeface="sans"
+            android:background="#ff0986be"
+            android:textColor="#ffffffff"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="5dp" />
+
+        <Button
+            android:id="@+id/btnRestore"
+            android:layout_width="125dp"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:textSize="14dp"
+            android:text="Restore"            
+            android:typeface="sans"
+            android:background="#ff0986be"
+            android:layout_marginLeft="5dp"
+            android:textColor="#ffffffff"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="5dp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

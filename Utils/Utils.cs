@@ -18,15 +18,31 @@ namespace Utils
         //Clear out a folder, no confirmation
         public static void EmptyFolder(string directoryName)
         {
-            System.IO.DirectoryInfo di = new DirectoryInfo(directoryName);
+            try
+            {
+                if (directoryName == null || directoryName.Length == 0)
+                {
+                    Serilog.Log.Warning($"No directory name provided: '{directoryName}'");
+                    return;
+                }
 
-            foreach (FileInfo file in di.GetFiles())
-            {
-                file.Delete();
+                System.IO.DirectoryInfo di = new DirectoryInfo(directoryName);
+
+                foreach (FileInfo file in di.GetFiles())
+                {
+                    file.Delete();
+                }
+
+                foreach (DirectoryInfo dir in di.GetDirectories())
+                {
+                    dir.Delete(true);
+                }
+
+                Directory.Delete(directoryName);
             }
-            foreach (DirectoryInfo dir in di.GetDirectories())
+            catch (Exception ex)
             {
-                dir.Delete(true);
+                Serilog.Log.Error($"Failed to empty folder '{directoryName}'");
             }
         }
 

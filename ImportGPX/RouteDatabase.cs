@@ -27,6 +27,26 @@ namespace hajk.Data
             }
         }
 
+        public static async Task<bool> ReplaceDBAsync(string dbPath)
+        {
+            try
+            {
+                if (database != null)
+                {
+                    await database.CloseAsync();
+                }
+
+                File.Copy(dbPath, Path.Combine(Fragment_Preferences.LiveData, Fragment_Preferences.RouteDB), true);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Failed to replace route and track database file");
+                return false;
+            }
+
+            return true;
+        }
+
         public static Task<List<GPXDataRouteTrack>> GetRoutesAsync()
         {
             //Get all routes

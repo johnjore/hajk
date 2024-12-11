@@ -262,7 +262,6 @@ namespace hajk.Adapter
                             popup.Menu.FindItem(Resource.Id.gpx_menu_followroute).SetTitle(Resource.String.follow_track);
                             popup.Menu.FindItem(Resource.Id.gpx_menu_deleteroute).SetTitle(Resource.String.delete_track);
                             popup.Menu.FindItem(Resource.Id.gpx_menu_reverseroute).SetTitle(Resource.String.Reverse_track);
-                            /**///popup.Menu.FindItem(Resource.Id.gpx_menu_optimize).SetTitle(Resource.String.optimize_track);
                         }
 
                         popup.MenuItemClick += async (s, args) =>
@@ -285,12 +284,6 @@ namespace hajk.Adapter
                                     gpx_menu_reverseroute(vh);
 
                                     break;
-                                //Obsolete
-                                /*case var value when value == Resource.Id.gpx_menu_optimize:
-                                    gpx_menu_optimize(vh);
-
-                                    break;
-                                */
                                 case var value when value == Resource.Id.gpx_menu_exportgpx:
                                     gpx_menu_exportgpx(vh, parent);
 
@@ -486,24 +479,6 @@ namespace hajk.Adapter
             _ = Fragment_gpx.mAdapter.mGpxData.Insert(route_to_reverse);
             Fragment_gpx.mAdapter.NotifyDataSetChanged();
         }
-
-        /**///Obsolete
-        /*
-        private void gpx_menu_optimize(GPXViewHolder vh)
-        {
-            Log.Information($"Optimize '{vh.Name.Text}'");
-
-            //Get the GPX
-            GPXDataRouteTrack item_to_optimize = RouteDatabase.GetRouteAsync(vh.Id).Result;
-            var GPXOptimized = GPXOptimize.Optimize(GpxClass.FromXml(item_to_optimize.GPX)).ToXml();
-
-            //Update object
-            item_to_optimize.GPX = GPXOptimized;
-
-            //Save. ID is unchanged
-            RouteDatabase.SaveRouteAsync(item_to_optimize).Wait();
-        }
-        */
 
         private void gpx_menu_exportgpx(GPXViewHolder vh, ViewGroup parent)
         {

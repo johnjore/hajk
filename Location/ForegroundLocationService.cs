@@ -64,7 +64,7 @@ namespace hajk
                 return;
             }
 
-            //Serilog.Log.Debug($"Location Updated - {DateTime.Now:hh:mm:ss}: {location.Latitude:0.00000}, {location.Longitude:0.00000}");
+            Serilog.Log.Debug($"Location Updated - {DateTime.Now:hh:mm:ss}: {location.Latitude:0.00000}, {location.Longitude:0.00000}");
 
             //Update location variable
             currentLocation = location;

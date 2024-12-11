@@ -6,15 +6,7 @@ using Android.Widget;
 using SharpCompress.Common;
 using SharpCompress.Writers;
 using SQLite;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Net;
 using System.Text.Json;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
 using System;
 
 namespace hajk
@@ -54,7 +46,6 @@ namespace hajk
             });
         }
 
-
         public static void ShowBackupDialog()
         {
             //Size of live data
@@ -63,7 +54,7 @@ namespace hajk
             long MapSizeMB = (new FileInfo(Fragment_Preferences.LiveData + "/" + Fragment_Preferences.CacheDB).Length) / 1024 / 1024;
             long GeoTiffMB = Utils.Misc.DirectorySizeBytes(new DirectoryInfo(Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder)) / 1024 / 1024;
 
-            //Warning: Do NOT Change order, unless checkedItems is also updated!
+            //Warning: Do NOT Change order, unless updated in multiple places!
             string[] items = [
                 "Preferences",
                 "Route/Track Data (" + RouteDBMB.ToString() + " MB)",
@@ -284,6 +275,7 @@ namespace hajk
                     EnableOffRouteWarning = Preferences.Get("EnableOffRouteWarning", Fragment_Preferences.EnableOffRouteWarning),
                     OffTrackDistanceWarning_m = int.Parse(Preferences.Get("OffTrackDistanceWarning_m", Fragment_Preferences.OffTrackDistanceWarning_m.ToString())),
                     OffTrackRouteSnooze_m = int.Parse(Preferences.Get("OffTrackRouteSnooze_m", Fragment_Preferences.OffRouteSnooze_m.ToString())),
+
                     DrawTracksOnGui = Preferences.Get("DrawTracksOnGui", Fragment_Preferences.DrawTracksOnGui_b),
                     DrawTrackOnGui = Preferences.Get("DrawTrackOnGui", Fragment_Preferences.DrawTrackOnGui_b),
                     freq = int.Parse(Preferences.Get("freq", Fragment_Preferences.freq_s.ToString())),
@@ -390,14 +382,24 @@ namespace hajk
             try
             {
                 Serilog.Log.Information("Backing up Elevation Data (GeoTiffFiles)");
+
                 string Source_Folder = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder;
                 string Destination_Folder = BackupFolder + "/" + Fragment_Preferences.GeoTiffFolder;
                 _ = Directory.CreateDirectory(Destination_Folder);
 
+                //Current contents
+                Serilog.Log.Debug("Current files in GeoTiff Source Folder:");
+                foreach (string fileName in Directory.GetFiles(Source_Folder))
+                    Serilog.Log.Debug(fileName);
+
+                //Avoid Nextcloud etc from seeing folder as a new one to sync
+                using (File.Create(Destination_Folder + "/" + ".noimage")) { };
+                using (File.Create(Destination_Folder + "/" + ".nomedia")) { };
+
                 //Copy each file
                 foreach (string fileName in Directory.GetFiles(Source_Folder))
                 {
-                    File.Copy(fileName, Destination_Folder + "/" + Path.GetFileName(fileName));
+                    File.Copy(fileName, Destination_Folder + "/" + Path.GetFileName(fileName), true);
                 }
             }
             catch (Exception ex)
@@ -466,11 +468,21 @@ namespace hajk
                 foreach (string fileName in Directory.GetFiles(BackupFolder))
                     Serilog.Log.Debug(fileName);
 
-                string Destination_Archive = BackupFolder + ".zip";
-                using (var zip = File.OpenWrite(Destination_Archive))
+                string[] allfiles = Directory.GetFiles(BackupFolder, "*", SearchOption.AllDirectories);
+
+                using (var zip = File.OpenWrite(BackupFolder + ".zip"))
                 using (var zipWriter = WriterFactory.Open(zip, ArchiveType.Zip, CompressionType.None))
                 {
-                    zipWriter.WriteAll(BackupFolder, "*", SearchOption.AllDirectories);
+                    //zipWriter.WriteAll(BackupFolder, "*", SearchOption.AllDirectories);
+
+                    foreach (string file in allfiles) 
+                    {
+                        if (file.Contains(".nomedia") == false && file.Contains(".noimage") == false)
+                        {
+                            string entryPath = file.Replace(BackupFolder, "");
+                            zipWriter.Write(entryPath, file);
+                        }
+                    }
                 }
 
                 //Remove Temp Folder
@@ -506,7 +518,7 @@ namespace hajk
 
                 if (backupFiles.Count == 0)
                 {
-                    Serilog.Log.Error("# of backupFiles is '0', which is impossible if we've successfully taken a backup?");
+                    Serilog.Log.Fatal("# of backupFiles is '0', which is impossible if we've successfully taken a backup?");
                     return false;
                 }
 

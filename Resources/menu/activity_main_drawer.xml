@@ -43,9 +43,9 @@
             android:icon="@android:drawable/ic_dialog_info"
             android:title="@string/Backup" />
       <item
-            android:id="@+id/activity_restore"
+            android:id="@+id/restore"
             android:icon="@android:drawable/ic_dialog_info"
-            android:title="@string/RestoreActivitys" />
+            android:title="@string/Restore" />
 
       <item
             android:id="@+id/db_maintenance"

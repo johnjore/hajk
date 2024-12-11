@@ -171,16 +171,6 @@ namespace hajk
                     }
                 }
 
-                //Only ask if we have routes and/or tracks to import
-                if (gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0)
-                {
-                    msg = new(Platform.CurrentActivity);
-                    if (await msg.ShowDialog($"Track/Route", $"Optimize Number of Waypoints?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
-                    {
-                        gpxData = GPXOptimize.Optimize(gpxData);
-                    }
-                }
-
                 foreach (rteType route in gpxData.Routes)
                 {
                     if (AddGPXRoute(route, DownloadOfflineMap).Result == false)

@@ -111,6 +111,7 @@
 	</PreferenceCategory>
 
   <PreferenceCategory android:title="Backup">
+
     <EditTextPreference
 			android:title="@string/KeepNBackups"
 			android:key="KeepNBackups"

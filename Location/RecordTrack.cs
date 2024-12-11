@@ -114,13 +114,6 @@ namespace hajk
                     },
                 };
 
-                /*
-                if (await msg1.ShowDialog($"Track", $"Optimize Track ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
-                {
-                    trackGpx.Waypoints = GPX.GPXOptimize.OptimizePoints(trackGpx.Waypoints);
-                }
-                */
-
                 track.Tracks.Add(new trkType()
                 {
                     name = name,

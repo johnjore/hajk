@@ -58,6 +58,21 @@ namespace hajk
             //Clear out all backups
             //Utils.Misc.EmptyFolder(Fragment_Preferences.Backups);
 
+            //Export backup files to download folder
+            /*string? Source_Folder = Fragment_Preferences.Backups;
+            string? Destination_Folder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
+            foreach (string fileName in Directory.GetFiles(Source_Folder))
+            {
+                File.Copy(fileName, Destination_Folder + "/" + Path.GetFileName(fileName));
+            }*/
+
+            //Preferences.Set("freq", Fragment_Preferences.freq_s.ToString());
+            //Preferences.Set("OffTrackDistanceWarning_m", Fragment_Preferences.OffTrackDistanceWarning_m.ToString());
+            //Preferences.Set("OffTrackRouteSnooze_m", Fragment_Preferences.OffRouteSnooze_m.ToString());
+            //Preferences.Set("freq_s_OffRoute", Fragment_Preferences.freq_OffRoute_s.ToString());
+            //Preferences.Set("KeepNBackups", Fragment_Preferences.KeepNBackups.ToString());
+
+
             //Logging
             string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.logFile);
             Log.Logger = new LoggerConfiguration()
@@ -521,78 +536,11 @@ namespace hajk
             }
             else if (id == Resource.Id.backup)
             {
-                /**///Let user select backup location, OneDrive, gDrive etc
                 Backup.ShowBackupDialog();
             }
-            else if (id == Resource.Id.activity_restore)
+            else if (id == Resource.Id.restore)
             {
-                MainThread.BeginInvokeOnMainThread(async () =>
-                {
-                    try
-                    {
-                        var options = new PickOptions
-                        {
-                            PickerTitle = "Please select an activities file",
-                            FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                            {
-                                /**///What is mime type for db3 files?!?
-                                //{ DevicePlatform.Android, new string[] { "mbtiles"} },
-                                { DevicePlatform.Android, null },
-                            })
-                        };
-
-                        var sourceFile = await FilePicker.PickAsync(options);
-                        Serilog.Log.Warning("SourceFile:" + sourceFile.FullPath);
-                        if (sourceFile != null)
-                        {
-                            var ImportDB = new SQLiteConnection(sourceFile.FullPath, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
-                            var TrackRoutesToImport = ImportDB.Table<GPXDataRouteTrack>();
-                            Log.Debug($"Activities to import: " + TrackRoutesToImport.Count().ToString());
-
-                            if (TrackRoutesToImport == null || TrackRoutesToImport.Count() == 0)
-                            {
-                                //Nothing to Import
-                                return;
-                            }
-
-                            //All Existing routes and tracks
-                            List<GPXDataRouteTrack> allTracksRoutes = RouteDatabase.GetRoutesAsync().Result;
-                            allTracksRoutes.AddRange(RouteDatabase.GetTracksAsync().Result);
-
-                            foreach (GPXDataRouteTrack newActivity in TrackRoutesToImport)
-                            {
-                                GPXDataRouteTrack? oldActivity = allTracksRoutes.Where(x =>
-                                    x.GPXType == newActivity.GPXType &&
-                                    x.Name == newActivity.Name &&
-                                    x.Distance == newActivity.Distance &&
-                                    x.Ascent == newActivity.Ascent &&
-                                    x.Descent == newActivity.Descent &&
-                                    x.Description == newActivity.Description &&
-                                    x.GPX == newActivity.GPX
-                                ).FirstOrDefault();
-
-                                if (oldActivity == null)
-                                {
-                                    newActivity.Id = 0;
-                                    RouteDatabase.SaveRoute(newActivity);
-                                }
-
-                                //else its a duplicate, do not import                           
-                            }
-
-                            ImportDB.Close();
-                            ImportDB.Dispose();
-                            ImportDB = null;
-
-                            Show_Dialog msg = new(Platform.CurrentActivity);
-                            await msg.ShowDialog(Platform.CurrentActivity.GetString(Resource.String.Done), Platform.CurrentActivity.GetString(Resource.String.ActivitiesImported), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Fatal($"Failed to import map file: '{ex}'");
-                    }
-                });
+                Restore.ShowRestoreDialogAsync();
             }
             else if (id == Resource.Id.db_maintenance)
             {

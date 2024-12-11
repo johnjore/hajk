@@ -31,7 +31,28 @@ namespace hajk.Data
                 Serilog.Log.Fatal(ex, $"POIDatabase - POIDatabase()");
             }
         }
-    
+
+        //Replace existing database
+        public static async Task<bool> ReplaceDBAsync(string dbPath)
+        {
+            try
+            {
+                if (database != null)
+                {
+                    await database.CloseAsync();
+                }
+
+                File.Copy(dbPath, Path.Combine(Fragment_Preferences.LiveData, Fragment_Preferences.POIDB), true);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Failed to replace POI database file");
+                return false;
+            }
+
+            return true;
+        }
+
         //Get all waypoints
         public static Task<List<GPXDataPOI>> GetPOIAsync()
         {

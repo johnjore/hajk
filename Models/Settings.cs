@@ -10,8 +10,6 @@
         public bool BackupElevationData { get; set; }
         public bool EnableBackupAtStartup { get; set; }
         public bool MapLockNorth { get; set; }
-        public bool TrackLocation { get; set; }
-        public bool RecordingTrack { get; set; }
         public bool DrawPOIOnGui { get; set; }
         public string? mapUTMZone { get; set; }
         public long mapScale { get; set; }

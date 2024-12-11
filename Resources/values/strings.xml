@@ -14,11 +14,9 @@
   <string name="follow_route">Follow route</string>
   <string name="delete_route">Delete route</string>
   <string name="reverse_route">Reverse route</string>
-  <string name="optimize_route">Optimize route</string>
   <string name="follow_track">Follow track</string>
   <string name="delete_track">Delete track</string>
   <string name="Reverse_track">Reverse track</string>
-  <string name="optimize_track">Optimize track</string>  
   <string name="Delete">Delete</string>
   <string name="Submit">Submit</string>
   <string name="Cancel">Cancel</string>
@@ -91,7 +89,7 @@
   <string name="LocationPermissionDescription">Permissions are preventing app from obtaining location data when in background or not front app</string>
   <string name="MapLockNorthTitle">Lock Map with North Up</string>
   <string name="MapLockNorthDescription">Disable rotation of map</string>
-  <string name="RestoreActivitys">Restore Activities</string>
+  <string name="Restore">Restore</string>
   <string name="ActivitiesImported">Activities imported"</string>
   <string name="AddRogainingPOI">"Add Rogaining POI"</string>
   <string name="ExportRogainingPOI">"Export Rogaining POI"</string>

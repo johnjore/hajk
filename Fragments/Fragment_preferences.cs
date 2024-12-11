@@ -10,8 +10,6 @@ using hajk.Models.MapSource;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
 using Google.Android.Material.FloatingActionButton;
-using static Android.Media.MediaParser;
-
 
 
 namespace hajk
@@ -55,7 +53,8 @@ namespace hajk
         public const string GeoTiffFolder = "GeoTiff";                  //Folder for all GeoTiff Files
         public readonly static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
         public readonly static string LiveData = rootPath + "/" + "LiveData";   //Live Data
-        public readonly static string Backups = rootPath + "/" + "Backups";     //Backup Data
+        public readonly static string? DownloadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
+        public readonly static string Backups = DownloadFolder + "/" + "Backups";     //Backup Data
         public const int MinZoom = 0;                                   //MinZoom level to use
         public const int MaxZoom = 16;                                  //MaxZoom level to use
         public const int LocationTimer = 1000;                          //How often new LocationData is provided
