@@ -8,7 +8,7 @@ namespace hajk.Progressbar
 {
     public class UpdateProgressBar
     {
-        public static int Progress
+        public static double Progress
         {
             get { return _progress; }
             set { _progress = value; }
@@ -20,7 +20,7 @@ namespace hajk.Progressbar
             set { _messageBody = value; }
         }
 
-        private static int _progress = 0;
+        private static double _progress = 0;
         private static string _messageBody = string.Empty;
         private readonly Android.Widget.ProgressBar _progressBar;
         private readonly MaterialTextView _textView;
@@ -67,10 +67,10 @@ namespace hajk.Progressbar
 
         public async Task RunAsync()
         {
-            var progress = new Progress<int>(percent =>
+            var progress = new Progress<double>(percent =>
             {
                 // Update the ProgressBar and TextView on the UI thread
-                _progressBar.Progress = percent;
+                _progressBar.Progress = Convert.ToInt32(percent);
                 _textView.Text = _messageBody;
             });
 
@@ -78,7 +78,7 @@ namespace hajk.Progressbar
             _dialog?.Dismiss();
         }
 
-        private static void DoWork(IProgress<int> progress)
+        private static void DoWork(IProgress<double> progress)
         {
             while (_progress < 100)
             {

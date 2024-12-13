@@ -14,41 +14,49 @@ namespace hajk
     {
         internal static readonly string[] mimeValue = ["application/zip"];
 
-        public static async void ShowRestoreDialogAsync()
+        public static void ShowRestoreDialogAsync()
         {
-            string? sourceFile = await PickFileToRestore();
-            if (sourceFile == null || sourceFile == string.Empty)
+            Task.Run(async () =>
             {
-                Serilog.Log.Information("No filename to restore from");
-                return;
-            }
+                string? sourceFile = await PickFileToRestore();
+                if (sourceFile == null || sourceFile == string.Empty)
+                {
+                    Serilog.Log.Warning("No filename to restore from");
+                    return;
+                }
 
-            Serilog.Log.Warning("SourceFile:" + sourceFile);
+                Serilog.Log.Information("SourceFile:" + sourceFile);
 
-            if (await UnPackArchive(sourceFile, Fragment_Preferences.rootPath + "/Temp") == false)
-            {
-                Serilog.Log.Error("Failed to unpack archive file");
-                return;
-            }
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    Progressbar.UpdateProgressBar.Progress = 0.0;
+                    Progressbar.UpdateProgressBar.MessageBody = $"";
+                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync("Unpacking archive");
+                });
 
-            //GUI options for restore
-            FragmentActivity? activity = (FragmentActivity?)Platform.CurrentActivity;
-            AndroidX.Fragment.App.FragmentTransaction? fragmentTransaction = activity?.SupportFragmentManager.BeginTransaction();
-            AndroidX.Fragment.App.Fragment? fragmentPrev = activity?.SupportFragmentManager.FindFragmentByTag("dialog");
-            if (fragmentPrev != null)
-            {
-                fragmentTransaction?.Remove(fragmentPrev);
-            }
+                if (UnPackArchive(sourceFile, Fragment_Preferences.rootPath + "/Temp") == false)
+                {
+                    Serilog.Log.Error("Failed to unpack archive file");
+                    return;
+                }
 
-            fragmentTransaction?.AddToBackStack(null);
+                //GUI options for restore
+                FragmentActivity? activity = (FragmentActivity?)Platform.CurrentActivity;
+                FragmentTransaction? fragmentTransaction = activity?.SupportFragmentManager.BeginTransaction();
+                Fragment? fragmentPrev = activity?.SupportFragmentManager.FindFragmentByTag("dialog");
+                if (fragmentPrev != null)
+                {
+                    fragmentTransaction?.Remove(fragmentPrev);
+                }
 
-            Fragment_restore dialogFragment = Fragment_restore.NewInstace(null);
-            if (fragmentTransaction != null)
-            {
-                dialogFragment.Show(fragmentTransaction, "dialog");
-            }
+                fragmentTransaction?.AddToBackStack(null);
 
-            Serilog.Log.Fatal($"Waiting here now");
+                Fragment_restore dialogFragment = Fragment_restore.NewInstace(null);
+                if (fragmentTransaction != null)
+                {
+                    dialogFragment.Show(fragmentTransaction, "dialog");
+                }                
+            });
         }
 
         private static async Task<string?> PickFileToRestore()
@@ -57,7 +65,7 @@ namespace hajk
             {
                 var options = new PickOptions
                 {
-                    PickerTitle = "Please select an activities file",
+                    PickerTitle = "File to restore",
                     FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                     {
                         { DevicePlatform.Android, mimeValue},
@@ -67,11 +75,11 @@ namespace hajk
                 var sourceFile = await FilePicker.PickAsync(options);
                 if (sourceFile == null)
                 {
-                    Serilog.Log.Fatal($"Failed to select file to restore");
+                    Serilog.Log.Warning($"Failed to select file to restore");
                     return null;
                 }
 
-                Serilog.Log.Warning("SourceFile:" + sourceFile.FullPath);
+                Serilog.Log.Information($"SourceFile: '{sourceFile.FullPath}'");
                 return sourceFile.FullPath;
             }
             catch (Exception ex)
@@ -81,7 +89,7 @@ namespace hajk
             }
         }
 
-        private static async Task<bool> UnPackArchive(string fileName, string tmpFolder)
+        private static bool UnPackArchive(string fileName, string tmpFolder)
         {
             try
             {
@@ -95,37 +103,49 @@ namespace hajk
                     catch (Exception ex)
                     {
                         Serilog.Log.Fatal(ex, $"Failed to Create Backup Folder");
+                        return false;
                     }
                 }
 
-                await Task.Run(() =>
+                //Count files in file to unpack
+                int Entries = 0;
+                using (Stream stream = File.OpenRead(fileName))
+                using (var reader = ReaderFactory.Open(stream))
                 {
-                    using (Stream stream = File.OpenRead(fileName))
-                    using (var reader = ReaderFactory.Open(stream))
+                    while (reader.MoveToNextEntry())
                     {
-                        while (reader.MoveToNextEntry())
-                        {
-                            if (!reader.Entry.IsDirectory)
-                            {
-                                if (reader.Entry.Key != null)
-                                {
-                                    Serilog.Log.Information(reader.Entry.Key);
-                                }
+                        Entries++;
+                    }
+                }
 
-                                reader.WriteEntryToDirectory(tmpFolder, new ExtractionOptions()
-                                {
-                                    ExtractFullPath = true,
-                                    Overwrite = true
-                                });
-                            }
+                double ProgressBarIncrement = ((double)100 / Entries);
+                Serilog.Log.Information($"Entries in Stream '{Entries}'. Each Progressbar increment is '{ProgressBarIncrement}'");
+
+                using (Stream stream = File.OpenRead(fileName))
+                using (var reader = ReaderFactory.Open(stream))
+                {
+                    while (reader.MoveToNextEntry())
+                    {
+                        if (!reader.Entry.IsDirectory && reader.Entry.Key != null)
+                        {
+                            Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                            Progressbar.UpdateProgressBar.MessageBody = $"{Path.GetFileName(reader.Entry.Key)}";
+                            Serilog.Log.Information($"Extracting filename: '{reader.Entry.Key}', Progress: {Progressbar.UpdateProgressBar.Progress}");
+                        
+                            reader.WriteEntryToDirectory(tmpFolder, new ExtractionOptions()
+                            {
+                                ExtractFullPath = true,
+                                Overwrite = true
+                            });
                         }
                     }
-                });
+                }
 
                 //Files from backup archive
                 foreach (string files in Directory.GetFiles(tmpFolder))
                     Serilog.Log.Debug(files);
 
+                Progressbar.UpdateProgressBar.Progress = 100;
                 Serilog.Log.Information("Done");
             }
             catch (Exception ex)
