@@ -28,6 +28,7 @@ namespace hajk.Fragments
         {
             Merge,
             Overwrite,
+            Skip,
         }
         private static readonly string tmpFolder = Fragment_Preferences.rootPath + "/Temp";
 
@@ -45,6 +46,7 @@ namespace hajk.Fragments
             Android.Views.View? view = inflater?.Inflate(Resource.Layout.fragment_restore, container, false);
             if (view == null)
             {
+                Serilog.Log.Fatal("View is null");
                 return null;
             }
 
@@ -108,7 +110,7 @@ namespace hajk.Fragments
             Android.Widget.Button? btnRunRestore = view?.FindViewById<Android.Widget.Button>(Resource.Id.btnRestore);
             if (btnRunRestore != null)
             {
-                btnRunRestore.Click += delegate
+                btnRunRestore.Click += async delegate
                 {
                     Dismiss();
 
@@ -120,57 +122,109 @@ namespace hajk.Fragments
                             RestorePreferences(tmpFolder);
                         }
 
-                        RadioGroup? rb1 = view?.FindViewById<RadioGroup>(Resource.Id.radioRouteTrack);
-                        if (rb1 != null && rb1.Visibility == ViewStates.Visible && rb1.CheckedRadioButtonId != Resource.Id.rb_RT_Skip)
+                        await Task.Run(() =>
                         {
-                            if (rb1.CheckedRadioButtonId == Resource.Id.rb_RT_Merge)
+                            RadioGroup? rb1 = view?.FindViewById<RadioGroup>(Resource.Id.radioRouteTrack);
+                            if (rb1 != null && rb1.Visibility == ViewStates.Visible && rb1.CheckedRadioButtonId != Resource.Id.rb_RT_Skip)
                             {
-                                RestoreRouteTrackData(RestoreSelection.Merge);
-                            }
-                            else
-                            {
-                                RestoreRouteTrackData(RestoreSelection.Overwrite);
-                            }
-                        }
+                                MainThread.InvokeOnMainThreadAsync(() =>
+                                {
+                                    Progressbar.UpdateProgressBar.Progress = 0.0;
+                                    Progressbar.UpdateProgressBar.MessageBody = $"";
+                                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync("Restoring Routes and Tracks");
+                                });
 
-                        RadioGroup? rb2 = view?.FindViewById<RadioGroup>(Resource.Id.radioPOI);
-                        if (rb2 != null && rb2.Visibility == ViewStates.Visible && rb2.CheckedRadioButtonId != Resource.Id.rb_POI_Skip)
-                        {
-                            if (rb2.CheckedRadioButtonId == Resource.Id.rb_POI_Merge)
-                            {
-                                RestorePOIData(RestoreSelection.Merge);
-                            }
-                            else
-                            {
-                                RestorePOIData(RestoreSelection.Overwrite);
-                            }
-                        }
+                                //Do not remove. Needed to clear progressbars
+                                Thread.Sleep(10);
 
-                        RadioGroup? rb3 = view?.FindViewById<RadioGroup>(Resource.Id.radioMapData);
-                        if (rb3 != null && rb3.Visibility == ViewStates.Visible && rb3.CheckedRadioButtonId != Resource.Id.rb_Map_Skip)
-                        {
-                            if (rb3.CheckedRadioButtonId == Resource.Id.rb_Map_Merge)
-                            {
-                                RestoreMapTiles(RestoreSelection.Merge);
+                                if (rb1.CheckedRadioButtonId == Resource.Id.rb_RT_Merge)
+                                {
+                                    RestoreRouteTrackData(RestoreSelection.Merge);
+                                }
+                                else
+                                {
+                                    RestoreRouteTrackData(RestoreSelection.Overwrite);
+                                }
                             }
-                            else
-                            {
-                                RestoreMapTiles(RestoreSelection.Overwrite);
-                            }
-                        }
+                        });
 
-                        RadioGroup? rb4 = view?.FindViewById<RadioGroup>(Resource.Id.radioElevationData);
-                        if (rb4 != null && rb4.Visibility == ViewStates.Visible && rb4.CheckedRadioButtonId != Resource.Id.rb_Elevation_Skip)
+                        await Task.Run(() =>
                         {
-                            if (rb4.CheckedRadioButtonId == Resource.Id.rb_Elevation_Merge)
+                            RadioGroup? rb2 = view?.FindViewById<RadioGroup>(Resource.Id.radioPOI);
+                            if (rb2 != null && rb2.Visibility == ViewStates.Visible && rb2.CheckedRadioButtonId != Resource.Id.rb_POI_Skip)
                             {
-                                RestoreElevationData(RestoreSelection.Merge);
+                                MainThread.InvokeOnMainThreadAsync(() =>
+                                {
+                                    Progressbar.UpdateProgressBar.Progress = 0.0;
+                                    Progressbar.UpdateProgressBar.MessageBody = $"";
+                                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync("Restoring POIs");
+                                });
+
+                                //Do not remove. Needed to clear progressbars
+                                Thread.Sleep(10);
+
+                                if (rb2.CheckedRadioButtonId == Resource.Id.rb_POI_Merge)
+                                {
+                                    RestorePOIData(RestoreSelection.Merge);
+                                }
+                                else
+                                {
+                                    RestorePOIData(RestoreSelection.Overwrite);
+                                }
                             }
-                            else
+                        });
+
+                        await Task.Run(() =>
+                        {
+                            RadioGroup? rb3 = view?.FindViewById<RadioGroup>(Resource.Id.radioMapData);
+                            if (rb3 != null && rb3.Visibility == ViewStates.Visible && rb3.CheckedRadioButtonId != Resource.Id.rb_Map_Skip)
                             {
-                                RestoreElevationData(RestoreSelection.Overwrite);
+                                MainThread.InvokeOnMainThreadAsync(() =>
+                                {
+                                    Progressbar.UpdateProgressBar.Progress = 0.0;
+                                    Progressbar.UpdateProgressBar.MessageBody = $"";
+                                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync("Restoring Map Tiles");
+                                });
+
+                                //Do not remove. Needed to clear progressbars
+                                Thread.Sleep(10);
+
+                                if (rb3.CheckedRadioButtonId == Resource.Id.rb_Map_Merge)
+                                {
+                                    RestoreMapTiles(RestoreSelection.Merge);
+                                }
+                                else
+                                {
+                                    RestoreMapTiles(RestoreSelection.Overwrite);
+                                }
                             }
-                        }
+                        });
+
+                        await Task.Run(() =>
+                        {
+                            RadioGroup? rb4 = view?.FindViewById<RadioGroup>(Resource.Id.radioElevationData);
+                            if (rb4 != null && rb4.Visibility == ViewStates.Visible && rb4.CheckedRadioButtonId != Resource.Id.rb_Elevation_Skip)
+                            {
+                                MainThread.InvokeOnMainThreadAsync(() =>
+                                {
+                                    Progressbar.UpdateProgressBar.Progress = 0.0;
+                                    Progressbar.UpdateProgressBar.MessageBody = $"";
+                                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync("Restoring Elevation Tiles");
+                                });
+
+                                //Do not remove. Needed to clear progressbars
+                                Thread.Sleep(10);
+
+                                if (rb4.CheckedRadioButtonId == Resource.Id.rb_Elevation_Merge)
+                                {
+                                    RestoreElevationData(RestoreSelection.Merge);
+                                }
+                                else
+                                {
+                                    RestoreElevationData(RestoreSelection.Overwrite);
+                                }
+                            }
+                        });
 
                         //Remove unpacked files
                         Utils.Misc.EmptyFolder(tmpFolder);
@@ -259,28 +313,33 @@ namespace hajk.Fragments
             try
             {
                 string RestoreFile = tmpFolder + "/" + Fragment_Preferences.POIDB;
-
                 Serilog.Log.Information("Restore POI Data");
 
                 if (RestoreChoice == RestoreSelection.Overwrite)
                 {
                     Task.Run(async () =>
                     {
+                        Progressbar.UpdateProgressBar.Progress = 10;
                         await POIDatabase.ReplaceDBAsync(RestoreFile);
+                        Progressbar.UpdateProgressBar.Progress = 90;
                     });
                 }
 
                 if (RestoreChoice == RestoreSelection.Merge)
                 {
+                    Progressbar.UpdateProgressBar.MessageBody = $"Connecting to databases...";
                     var ImportDB = new SQLiteConnection(RestoreFile, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
                     var POIToImport = ImportDB.Table<GPXDataPOI>();
                     if (POIToImport == null || POIToImport.Count() == 0)
                     {
                         Serilog.Log.Warning("No POI found to restore");
+                        Progressbar.UpdateProgressBar.Progress = 100;
                         return false;
                     }
 
                     Serilog.Log.Debug($"POI to import: " + POIToImport.Count().ToString());
+                    double ProgressBarIncrement = ((double)100 / POIToImport.Count());
+                    Serilog.Log.Debug($"ProgressBarIncrement '{ProgressBarIncrement}'");
 
                     //All Existing POIs
                     List<GPXDataPOI> allPOIs = POIDatabase.GetPOIAsync().Result;
@@ -289,6 +348,10 @@ namespace hajk.Fragments
                     //Import each one
                     foreach (GPXDataPOI newPOI in POIToImport)
                     {
+                        Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                        Progressbar.UpdateProgressBar.MessageBody = $"'{newPOI.Name}'";
+                        Serilog.Log.Debug($"Restoring: '{newPOI.Name}'");
+                        
                         GPXDataPOI? oldPOI = allPOIs.Where(x =>
                             x.Name == newPOI.Name &&
                             x.Description == newPOI.Description &&
@@ -315,6 +378,7 @@ namespace hajk.Fragments
                 return false;
             }
 
+            Progressbar.UpdateProgressBar.Progress = 100.0;
             Serilog.Log.Information("Done restoring POI Data");
             return true;
         }
@@ -331,21 +395,27 @@ namespace hajk.Fragments
                 {
                     Task.Run(async () =>
                     {
+                        Progressbar.UpdateProgressBar.Progress = 10;
                         await RouteDatabase.ReplaceDBAsync(RestoreFile);
+                        Progressbar.UpdateProgressBar.Progress = 90;
                     });
                 }
 
                 if (RestoreChoice == RestoreSelection.Merge)
                 {
+                    Progressbar.UpdateProgressBar.MessageBody = $"Connecting to databases...";
                     var ImportDB = new SQLiteConnection(RestoreFile, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
                     var TrackRoutesToImport = ImportDB.Table<GPXDataRouteTrack>();
                     if (TrackRoutesToImport == null || TrackRoutesToImport.Count() == 0)
                     {
                         Serilog.Log.Warning("No Tracks or Routes found to restore");
+                        Progressbar.UpdateProgressBar.Progress = 100;
                         return false;
                     }
 
                     Serilog.Log.Debug($"Activities to import: " + TrackRoutesToImport.Count().ToString());
+                    double ProgressBarIncrement = ((double)100 / TrackRoutesToImport.Count());
+                    Serilog.Log.Debug($"ProgressBarIncrement '{ProgressBarIncrement}'");
 
                     //All Existing routes and tracks
                     List<GPXDataRouteTrack> allTracksRoutes = RouteDatabase.GetRoutesAsync().Result;
@@ -354,6 +424,10 @@ namespace hajk.Fragments
                     //Import each one
                     foreach (GPXDataRouteTrack newActivity in TrackRoutesToImport)
                     {
+                        Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                        Progressbar.UpdateProgressBar.MessageBody = $"'{newActivity.Name}'";
+                        Serilog.Log.Debug($"Restoring: '{newActivity.Name}'");
+
                         GPXDataRouteTrack? oldActivity = allTracksRoutes.Where(x =>
                             x.GPXType == newActivity.GPXType &&
                             x.Name == newActivity.Name &&
@@ -382,7 +456,8 @@ namespace hajk.Fragments
                 return false;
             }
 
-            Serilog.Log.Information("Done restoring route & Track Data");
+            Progressbar.UpdateProgressBar.Progress = 100.0;
+            Serilog.Log.Information("Done restoring Route & Track Data");
             return true;
         }
 
@@ -393,32 +468,41 @@ namespace hajk.Fragments
                 Serilog.Log.Information("Restoring Map Tiles");
                 string RestoreFile = tmpFolder + "/" + Fragment_Preferences.CacheDB;
 
-
                 if (RestoreChoice == RestoreSelection.Overwrite)
                 {
                     //Remove OSM Layer
+                    Progressbar.UpdateProgressBar.Progress = 10;
                     var OSMLayer = Fragment_map.map.Layers.FindLayer("OSM").FirstOrDefault();
                     if (OSMLayer == null)
                     {
                         Serilog.Log.Error("OSM Layer not found?");
+                        Progressbar.UpdateProgressBar.Progress = 100;
                         return false;
                     }
 
+                    Progressbar.UpdateProgressBar.Progress = 20;
                     Fragment_map.map.Layers.Remove(OSMLayer);
                     File.Copy(RestoreFile, Fragment_Preferences.LiveData + Fragment_Preferences.CacheDB, true);
+                    Progressbar.UpdateProgressBar.Progress = 90;
                     DownloadRasterImageMap.LoadOSMLayer();
                 }
 
                 if (RestoreChoice == RestoreSelection.Merge)
                 {
+                    Progressbar.UpdateProgressBar.MessageBody = $"Connecting to databases...";
                     var Restore_DB = new SQLiteConnection(RestoreFile, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
                     var tiles = Restore_DB.Table<tiles>();
                     Serilog.Log.Debug($"Tiles to import from backup: " + tiles.Count().ToString());
+                    double ProgressBarIncrement = ((double)100 / tiles.Count());
+                    Serilog.Log.Debug($"ProgressBarIncrement '{ProgressBarIncrement}'");
 
                     lock (MbTileCache.sqlConn)
                     {
                         foreach (tiles newTile in tiles)
                         {
+                            Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                            Progressbar.UpdateProgressBar.MessageBody = $"'{newTile.zoom_level} / {newTile.tile_row} / {newTile.tile_column}'";
+
                             //Do we already have the tile?
                             try
                             {
@@ -463,6 +547,7 @@ namespace hajk.Fragments
                 return false;
             }
 
+            Progressbar.UpdateProgressBar.Progress = 100.0;
             Serilog.Log.Information("Done restoring Map Tiles");
             return true;
         }
@@ -477,7 +562,9 @@ namespace hajk.Fragments
             {
                 if (RestoreChoice == RestoreSelection.Overwrite)
                 {
+                    Progressbar.UpdateProgressBar.Progress = 1;
                     Utils.Misc.EmptyFolder(Destination_Folder);
+                    Progressbar.UpdateProgressBar.Progress = 4;
                 }
 
                 //Make sure it's there
@@ -485,20 +572,31 @@ namespace hajk.Fragments
                 {
                     Directory.CreateDirectory(Destination_Folder);
                 }
+                Progressbar.UpdateProgressBar.Progress = 5;
 
                 //Existing Source files
                 Serilog.Log.Debug("Source folder:");
+                int fileCounter = 0;
                 foreach (string fileName in Directory.GetFiles(Source_Folder))
+                {
+                    fileCounter++;
                     Serilog.Log.Debug(fileName);
+                }
 
                 //Existing Destination files
-                Serilog.Log.Debug("Destinnation folder:");
+                Serilog.Log.Debug("Destination folder:");
                 foreach (string fileName in Directory.GetFiles(Destination_Folder))
                     Serilog.Log.Debug(fileName);
+
+                double ProgressBarIncrement = ((double)95 / (double)fileCounter);
+                Serilog.Log.Debug($"ProgressBarIncrement '{ProgressBarIncrement}'");
 
                 //Copy each file
                 foreach (string fileName in Directory.GetFiles(Source_Folder))
                 {
+                    Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                    Progressbar.UpdateProgressBar.MessageBody = $"{Path.GetFileName(fileName)}";
+
                     File.Copy(fileName, Destination_Folder + "/" + Path.GetFileName(fileName), true);
                 }
             }
@@ -513,6 +611,7 @@ namespace hajk.Fragments
             foreach (string fileName in Directory.GetFiles(Destination_Folder))
                 Serilog.Log.Debug(fileName);
 
+            Progressbar.UpdateProgressBar.Progress = 100.0;
             Serilog.Log.Information("Done restoring GeoTiff Files");
             return true;
         }
