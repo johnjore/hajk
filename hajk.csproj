@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-android</TargetFramework>
+    <TargetFramework>net9.0-android35.0</TargetFramework>
     <UseMauiEssentials>true</UseMauiEssentials>
     <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
@@ -73,20 +73,20 @@
     <PackageReference Include="Mapsui.Extensions" Version="4.1.8" />
     <PackageReference Include="Mapsui.Nts" Version="4.1.8" />
     <PackageReference Include="Microcharts.Android" Version="1.0.0-preview1" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
-    <PackageReference Include="Microsoft.Maui.Essentials" Version="8.0.100" />
-    <PackageReference Include="Sentry" Version="4.13.0" />
-    <PackageReference Include="Sentry.Maui" Version="4.13.0" />
-    <PackageReference Include="Sentry.Serilog" Version="4.13.0" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.30" />
+    <PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.30" />
+    <PackageReference Include="Sentry" Version="5.0.1" />
+    <PackageReference Include="Sentry.Maui" Version="5.0.1" />
+    <PackageReference Include="Sentry.Serilog" Version="5.0.1" />
     <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.Xamarin" Version="1.0.0" />
     <PackageReference Include="SharpCompress" Version="0.38.0" />
     <PackageReference Include="SkiaSharp.Extended" Version="2.0.0" />
     <PackageReference Include="SkiaSharp.Svg" Version="1.60.0" />
-    <PackageReference Include="SkiaSharp.Views" Version="2.88.9" />
+    <PackageReference Include="SkiaSharp.Views" Version="3.116.1" />
     <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
-    <PackageReference Include="System.Text.Json" Version="9.0.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.1" />
     <PackageReference Include="tilebelt" Version="2.0.0" />
     <PackageReference Include="Tnn.OxyPlot.Xamarin.Android" Version="2.1.2" />
     <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.0.4" />
