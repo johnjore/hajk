@@ -186,9 +186,10 @@ namespace Utils
             try
             {
                 //Remove recorded waypoints
-                RecordTrack.trackGpx.Waypoints.Clear();
+                /**///Bug?: Why delete the recording itself?
+                //RecordTrack.trackGpx.Waypoints.Clear();
 
-                IEnumerable<ILayer> layers = hajk.Fragments.Fragment_map.map.Layers.Where(x => (string?)x.Tag == Fragment_Preferences.Layer_Route || (string?)x.Tag == Fragment_Preferences.Layer_Track || (string?)x.Tag == Fragment_Preferences.Layer_Track);
+                IEnumerable<ILayer> layers = hajk.Fragments.Fragment_map.map.Layers.Where(x => (string?)x.Tag == Fragment_Preferences.Layer_Route || (string?)x.Tag == Fragment_Preferences.Layer_Track);
                 foreach (ILayer rt in layers)
                 {
                     hajk.Fragments.Fragment_map.map.Layers.Remove(rt);
