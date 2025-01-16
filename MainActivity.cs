@@ -72,6 +72,12 @@ namespace hajk
             //Preferences.Set("freq_s_OffRoute", Fragment_Preferences.freq_OffRoute_s.ToString());
             //Preferences.Set("KeepNBackups", Fragment_Preferences.KeepNBackups.ToString());
 
+#if DEBUG
+            if (string.IsNullOrEmpty(Resources?.GetString(Resource.String.Sentry_APIKey)))
+            {
+                Serilog.Log.Fatal("Sentry DSN entry is missing and in debug mode");
+            }
+#endif
 
             //Logging
             string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.logFile);
@@ -248,22 +254,42 @@ namespace hajk
         public override bool OnOptionsItemSelected(IMenuItem item)
         {
             int id = item.ItemId;
-            if (id == Resource.Id.action_settings)
+            if (id == Resource.Id.AddCurrentLocationAsPOI)
             {
-                Log.Information($"Change to Settings");
+                var CurrentLocation = LocationForegroundService.GetLocation();
+                if (CurrentLocation != null)
+                {
+                    GPXDataPOI p = new()
+                    {
+                        Name = "Manual Entry",
+                        Description = "",
+                        Symbol = null,
+                        Lat = (decimal)CurrentLocation.Latitude,
+                        Lon = (decimal)CurrentLocation.Longitude,
+                    };
 
-                SupportFragmentManager.BeginTransaction()
-                    .SetReorderingAllowed(true)
-                    .Replace(Resource.Id.fragment_container, new Fragment_Preferences(), Fragment_Preferences.Fragment_Settings)
-                    .AddToBackStack(Fragment_Preferences.Fragment_Settings)
-                    .Commit();
-                SupportFragmentManager.ExecutePendingTransactions();
-
-                return true;
+                    var r = POIDatabase.SavePOI(p);
+                    DisplayMapItems.AddPOIToMap();
+                }
             }
-            else if (id == Resource.Id.action_clearmap)
+            if (id == Resource.Id.SaveGPSasPOI)
             {
-                return Utils.Misc.ClearTrackRoutesFromMap();
+/*                
+                if (CurrentLocation != null)
+                {
+                    GPXDataPOI p = new()
+                    {
+                        Name = "Manual Entry",
+                        Description = "",
+                        Symbol = null,
+                        Lat = (decimal)CurrentLocation.Latitude,
+                        Lon = (decimal)CurrentLocation.Longitude,
+                    };
+
+                    var r = POIDatabase.SavePOI(p);
+                    DisplayMapItems.AddPOIToMap();
+                }
+*/
             }
             else if (id == Resource.Id.AddRogainingPOI)
             {
@@ -286,7 +312,24 @@ namespace hajk
             {
                 Export.ExportPOI("Rogaining");
             }
+            else if (id == Resource.Id.action_clearmap)
+            {
+                return Utils.Misc.ClearTrackRoutesFromMap();
+            }
+            else if (id == Resource.Id.action_settings)
+            {
+                Log.Information($"Change to Settings");
 
+                SupportFragmentManager.BeginTransaction()
+                    .SetReorderingAllowed(true)
+                    .Replace(Resource.Id.fragment_container, new Fragment_Preferences(), Fragment_Preferences.Fragment_Settings)
+                    .AddToBackStack(Fragment_Preferences.Fragment_Settings)
+                    .Commit();
+                SupportFragmentManager.ExecutePendingTransactions();
+
+                return true;
+            }
+            
             return base.OnOptionsItemSelected(item);
         }
 

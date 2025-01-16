@@ -80,8 +80,9 @@ namespace hajk
 
         public static List<MapSource> MapSources = [
             new MapSource("OpenStreetMap", @"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", ""),
-            new MapSource("Mapbox", @"https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=", "MapBoxToken"),
+            new MapSource("Mapbox", @"https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=", "MapboxToken"),
             new MapSource("Thunderforest", @"https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=", "ThunderforestToken"),
+            new MapSource("Stadia Maps", @"https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}.png?api_key=" , "StadiaToken"),
             new MapSource("Custom", "CustomServerURL", "CustomToken"),
         ];
 
@@ -99,6 +100,7 @@ namespace hajk
             CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source)), true);
 
             //Set Summary to "Not Set" or "Hidden" for sensitive fields
+            SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.StadiaToken)));
             SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.MapboxToken)));
             SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.ThunderforestToken)));
             SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.CustomServerURL)));

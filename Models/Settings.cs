@@ -22,6 +22,7 @@
         public int freq { get; set; }
         public string? OSM_Browse_Source { get; set; }
         public string? OSM_BulkDownload_Source { get; set; }
+        public string StadiaToken { get; set; }
         public string? MapboxToken { get; set; }
         public string? ThunderforestToken { get; set; }
         public string? CustomServerURL { get; set; }

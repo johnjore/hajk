@@ -15,11 +15,11 @@
 		app:useSimpleSummaryProvider="true" />
 
     <EditTextPreference
-		android:title="@string/MapboxTokenTitle"
-		android:key="@string/MapboxToken"
-		android:inputType="textPassword"
-		android:summary="@string/Hidden"
-		app:useSimpleSummaryProvider="false" />
+			android:title="@string/MapboxTokenTitle"
+			android:key="@string/MapboxToken"
+			android:inputType="textPassword"
+			android:summary="@string/Hidden"
+			app:useSimpleSummaryProvider="false" />
 
     <EditTextPreference
 			android:title="@string/ThunderforestTokenTitle"
@@ -27,7 +27,14 @@
 			android:inputType="textPassword"
 			android:summary="@string/Hidden"
 			app:useSimpleSummaryProvider="false" />
-  
+
+    <EditTextPreference
+			android:title="@string/StadiaTokenTitle"
+			android:key="@string/StadiaToken"
+			android:inputType="textPassword"
+			android:summary="@string/Hidden"
+			app:useSimpleSummaryProvider="false" />
+
     <EditTextPreference
 			android:title="@string/CustomServerTitle"
 			android:key="@string/CustomServerURL"

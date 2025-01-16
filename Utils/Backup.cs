@@ -285,6 +285,7 @@ namespace hajk
                     CustomServerURL = Preferences.Get("CustomServerURL ", ""),
                     CustomToken = Preferences.Get("CustomToken", ""),
                     MapboxToken = Preferences.Get("MapboxToken", ""),
+                    StadiaToken = Preferences.Get("StadiaToken", ""),
                     ThunderforestToken = Preferences.Get("ThunderforestToken", ""),
 
                     mapScale = Preferences.Get("mapScale", Fragment_Preferences.DefaultMapScale),

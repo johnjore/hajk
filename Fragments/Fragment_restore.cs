@@ -280,8 +280,9 @@ namespace hajk.Fragments
                 Preferences.Set("OSM_Browse_Source", prefSettings.OSM_Browse_Source);
                 Preferences.Set("CustomServerURL ", prefSettings.CustomServerURL);
                 Preferences.Set("CustomToken", prefSettings.CustomToken);
+                Preferences.Set("StadiaToken", prefSettings.StadiaToken);
                 Preferences.Set("MapboxToken", prefSettings.MapboxToken);
-                Preferences.Set("ThunderforestToken", prefSettings.ThunderforestToken);
+                Preferences.Set("ThunderforestToken", prefSettings.ThunderforestToken);                
 
                 Preferences.Set("mapScale", prefSettings.mapScale);
                 Preferences.Set("mapUTMZone", prefSettings.mapUTMZone);

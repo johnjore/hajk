@@ -96,6 +96,8 @@
   <string name="BackupOptions">"Choose Backup Options"</string>
   <string name="KeepNBackups">"Backups to Retain"</string>
   <string name="EnableBackupAtStartup">"Backup on first launch of the day"</string>
+  <string name="AddCurrentLocationAsPOI">"Save Current Location as POI</string>
+  <string name="SaveGPSasPOI">"Save GPS Coordinates as POI"</string>
 
   <!-- Map Tile provider Start -->
     <string name="MapTileSources">"Map Tile Sources"</string>
@@ -110,7 +112,11 @@
     <string name="ThunderforestTokenTitle">Thunderforest Token</string>
     <string name="ThunderforestToken">ThunderforestToken</string>
 
-    <!-- Custom -->
+    <!-- Stadia Maps -->
+    <string name="StadiaTokenTitle">Stadia Maps Token</string>
+    <string name="StadiaToken">StadiaToken</string>
+
+  <!-- Custom -->
     <string name="CustomServerTitle">Custom Tile Server</string>
     <string name="CustomServerHint">https://servername.domain.com/tile/{z}/{x}/{y}.png</string>
     <string name="CustomServerURL">"CustomServerURL"</string>

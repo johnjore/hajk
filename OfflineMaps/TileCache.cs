@@ -60,7 +60,7 @@ namespace hajk
                         persistentCache: mbTileCache,
                         userAgent: MapSource.Name + " in Mapsui (hajk)");
                 }
-                else //Mapbox || Thunderforest
+                else //Mapbox || Thunderforest || Stadia Maps
                 {
                     var token = Preferences.Get(MapSource.Token, "");
 

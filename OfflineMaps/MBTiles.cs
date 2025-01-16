@@ -256,7 +256,7 @@ namespace hajk
 
                 OSMServer = url + token;
             }
-            else //Mapbox || Thunderforest
+            else //Mapbox || Thunderforest || Stadia Maps
             {
                 var token = Preferences.Get(MapSource.Token, "");
 
