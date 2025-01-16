@@ -79,6 +79,17 @@ namespace hajk.Fragments
                 Serilog.Log.Information($"Cache downloaded tiles");
                 DownloadRasterImageMap.LoadOSMLayer();
 
+                
+                //Wait for each layer to complete
+                foreach (ILayer layer in map.Layers)
+                {
+                    while (layer.Busy)
+                    {
+                        Serilog.Log.Information("Waiting for layers to initialize before adding scalebar");
+                        Thread.Sleep(1);
+                    }
+                }
+
                 Serilog.Log.Information($"Add scalebar");
                 map.Widgets.Add(new ScaleBarWidget(map)
                 {
