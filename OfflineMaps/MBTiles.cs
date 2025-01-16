@@ -86,14 +86,27 @@ namespace hajk
 
                 lock (MbTileCache.sqlConn)
                 {
-                    //When single entry, delete tile
-                    var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference == Id.ToString());
-                    Log.Debug($"Query Count: " + query.Count().ToString());
-                    foreach (tiles maptile in query)
+                    var a = Id.ToString();
+                    var b = "[" + a + "]";
+
+                    //When single entry, old format, delete tile
+                    var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Equals(a));
+                    if (query.Count() > 0)
                     {
-                        //Is this the tile we are looking for?
-                        var r = JsonSerializer.Deserialize<List<int>>(maptile.reference);
-                        if (r.Equals(Id))
+                        Log.Debug($"Query Count: " + query.Count().ToString());
+                        foreach (tiles maptile in query)
+                        {
+                            Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+                            MbTileCache.sqlConn.Delete(maptile);
+                        }
+                    }
+
+                    //When single entry, new format, delete tile
+                    query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Equals(b));
+                    if (query.Count() > 0)
+                    {
+                        Log.Debug($"Query Count: " + query.Count().ToString());
+                        foreach (tiles maptile in query)
                         {
                             Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
                             MbTileCache.sqlConn.Delete(maptile);
@@ -102,20 +115,23 @@ namespace hajk
 
                     //When multiple entries in reference field, remove reference, but do not delete tile
                     //Carefull: Captures variants of 1151 15 and 5 when looking for '5'
-                    query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(Id.ToString())); 
-                    Log.Debug($"Query Count: " + query.Count().ToString());
-                    foreach (tiles maptile in query)
+                    query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(a));
+                    if (query.Count() > 0)
                     {
-                        //Is this the tile we are looking for?
-                        var r = JsonSerializer.Deserialize<List<int>>(maptile.reference);
-                        if (r.Contains(Id))
+                        Log.Debug($"Query Count: " + query.Count().ToString());
+                        foreach (tiles maptile in query)
                         {
-                            Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+                            //Is this the tile we are looking for?
+                            var r = JsonSerializer.Deserialize<List<int>>(maptile.reference);
+                            if (r.Contains(Id))
+                            {
+                                Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
 
-                            r.Remove(Id);
-                            maptile.reference = JsonSerializer.Serialize(r);
-                            Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
-                            MbTileCache.sqlConn.Update(maptile);                            
+                                r.Remove(Id);
+                                maptile.reference = JsonSerializer.Serialize(r);
+                                Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
+                                MbTileCache.sqlConn.Update(maptile);
+                            }
                         }
                     }
                 }
