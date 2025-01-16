@@ -240,7 +240,7 @@ namespace hajk.Fragments
                             if (result == Show_Dialog.MessageResult.YES)
                             {
                                 Serilog.Log.Debug($"Deleting {id} from POI DB and MemoryLayer");
-                                var r = POIDatabase.DeletePOIAsync(id);
+                                var r = await POIDatabase.DeletePOIAsync(id);
                                 DisplayMapItems.AddPOIToMap();
                             }
                         }
