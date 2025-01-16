@@ -370,6 +370,9 @@ namespace hajk.Fragments
                     }
 
                     ImportDB.Close();
+
+                    //Show POI's on screen
+                    DisplayMapItems.AddPOIToMap();
                 }
             }
             catch (Exception ex)
