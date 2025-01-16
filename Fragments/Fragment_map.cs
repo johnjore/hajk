@@ -121,6 +121,16 @@ namespace hajk.Fragments
                     Task.Run(() => DisplayMapItems.AddTracksToMap());
                 }
 
+                Serilog.Log.Information("Show Recording Track on Map?");
+                if ((Preferences.Get("RecordingTrack", false) == true))
+                {
+                    Serilog.Log.Information("Recording in progress, show on GUI");
+                    Task.Run(() =>
+                    {
+                        RecordTrack.ShowRecordedTrack();
+                    });
+                }
+
                 mapControl.Info += MapOnInfo;
 
                 /**///Not working. Can't overwrite the symbol that covers the current location with a circle around the location
