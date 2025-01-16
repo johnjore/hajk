@@ -139,7 +139,7 @@ namespace hajk
                     GpxClass gpx = GPXOptimize.Optimize(GpxClass.FromXml(track.GPX));
 
                     //Reduce the number of waypoints before drawing on map
-                    gpx = GPX.GPXOptimize.Optimize(gpx);
+                    //gpx = GPX.GPXOptimize.Optimize(gpx);
                     
                     if (track.GPXType == GPXType.Track)
                     {
