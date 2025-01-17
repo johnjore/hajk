@@ -104,9 +104,10 @@ namespace hajk
                     options.MinimumBreadcrumbLevel = LogEventLevel.Debug;
                     options.MinimumEventLevel = LogEventLevel.Warning;
                 })
-                .CreateLogger();
-            Log.Information($"Logging to '{_Path}'");
+            .CreateLogger();
 
+            Log.Information($"Logging to '{_Path}'");
+            
             //Enable Mapsui logging
             MapsuiLogging.AttachMapsuiLogging();
 
@@ -147,7 +148,6 @@ namespace hajk
                 {
                     fabCamera.Click += FabCamera_Click;
                 }
-
 
                 DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
                 ActionBarDrawerToggle toggle = new(this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
@@ -212,7 +212,15 @@ namespace hajk
                 if (Preferences.Get("EnableBackupAtStartup", Fragment_Preferences.EnableBackupAtStartup))
                 {
                     MainThread.BeginInvokeOnMainThread(() => Backup.RunDailyBackup());
-                }                
+                }
+
+                //Enumerate all files
+                Serilog.Log.Debug($"All files in rootPath, '{Fragment_Preferences.rootPath}'");
+                var allFiles = Directory.GetFiles(Fragment_Preferences.rootPath, "*", SearchOption.AllDirectories);
+                foreach (var file in allFiles)
+                {
+                    Serilog.Log.Debug(file);
+                }
             }
             catch (Exception ex)
             {
@@ -278,8 +286,14 @@ namespace hajk
                         Lon = (decimal)CurrentLocation.Longitude,
                     };
 
-                    var r = POIDatabase.SavePOI(p);
-                    DisplayMapItems.AddPOIToMap();
+                    if (POIDatabase.SavePOI(p) > 0)
+                    {
+                        DisplayMapItems.AddPOIToMap();
+                    }
+                    else
+                    {
+                        Serilog.Log.Error("Failed to add POI to database");
+                    }                    
                 }
             }
             if (id == Resource.Id.SaveGPSasPOI)
@@ -432,7 +446,7 @@ namespace hajk
 
         private void FabCamera_Click(object? sender, EventArgs e)
         {
-            Intent cameraIntent = new Intent("android.media.action.STILL_IMAGE_CAMERA");
+            Intent cameraIntent = new("android.media.action.STILL_IMAGE_CAMERA");
             StartActivity(cameraIntent);
         }
 
@@ -588,6 +602,18 @@ namespace hajk
                 alert.SetTitle(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources.GetString(Resource.String.About));
                 alert.SetMessage(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources.GetString(Resource.String.Build) + ": " + Microsoft.Maui.ApplicationModel.AppInfo.Version.ToString());
                 alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
+                alert.SetNegativeButton("Upload Log files", (sender, args) => {
+                    SentrySdk.CaptureMessage("Log files", scope =>
+                    {
+                        Serilog.Log.Debug($"All log files in rootPath, '{Fragment_Preferences.rootPath}'");
+                        var allFiles = Directory.GetFiles(Fragment_Preferences.rootPath, "walkabout*", SearchOption.AllDirectories);
+                        foreach (var file in allFiles)
+                        {
+                            Serilog.Log.Debug(file);
+                            scope.AddAttachment(file);
+                        }                
+                    });
+                });
                 var dialog = alert.Create();
                 dialog.Show();
             }
