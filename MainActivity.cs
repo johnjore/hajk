@@ -33,6 +33,9 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 using Serilog.Events;
+using static Android.Content.PM.PackageManager;
+using AndroidX.Core.App;
+using Android.Graphics.Drawables;
 
 namespace hajk
 {
@@ -138,6 +141,13 @@ namespace hajk
                 {
                     fab.Click += FabOnClick;                    
                 }
+
+                FloatingActionButton? fabCamera = FindViewById<FloatingActionButton>(Resource.Id.fabCamera);
+                if (fabCamera != null)
+                {
+                    fabCamera.Click += FabCamera_Click;
+                }
+
 
                 DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
                 ActionBarDrawerToggle toggle = new(this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
@@ -410,7 +420,7 @@ namespace hajk
             }
             else
             {
-                fab.Background?.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.LightBlue));
+                fab.Background?.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.ParseColor("#ff33b5e5")));
                 Fragment_map.mapControl.Map.Navigator.PanLock = false;
                 Fragment_map.mapControl.Map.Navigator.RotationLock = false;
             }
@@ -418,6 +428,12 @@ namespace hajk
             /*View view = (View)sender;
             Snackbar.Make(view, "Replace with your own action", Snackbar.LengthLong)
                 .SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();*/
+        }
+
+        private void FabCamera_Click(object? sender, EventArgs e)
+        {
+            Intent cameraIntent = new Intent("android.media.action.STILL_IMAGE_CAMERA");
+            StartActivity(cameraIntent);
         }
 
         public bool OnNavigationItemSelected(IMenuItem item)

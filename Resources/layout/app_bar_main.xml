@@ -22,11 +22,27 @@
     <include layout="@layout/content_main" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/fabCamera"
+        android:layout_margin="@dimen/fab_margin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
+        app:useCompatPadding="true"
+        app:fabCustomSize="80dp"
+        app:maxImageSize="75dp"
+        app:fabSize="auto"
+        android:backgroundTint = "@android:color/holo_blue_light"
+        android:src="@drawable/ic_menu_camera"
+        app:srcCompat="@drawable/baseline_language_24" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        app:layout_anchor="@id/fabCamera"
+        app:layout_anchorGravity="top"
+        app:useCompatPadding="true"
         app:fabCustomSize="80dp"
         app:maxImageSize="75dp"
         app:fabSize="auto"
