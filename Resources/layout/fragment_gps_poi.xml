@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/gpspoi"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TextView
+        android:id="@+id/lblGPSPOIHeading1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add GPS POI"
+        android:textAlignment="center"
+        android:textSize="32sp"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/lblGPSPOIHeading2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="(Lat/Lng)"
+        android:textAlignment="center"
+        android:textSize="28sp"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" 
+        app:layout_constraintTop_toBottomOf="@+id/lblGPSPOIHeading1" />
+
+    <EditText
+        android:id="@+id/editLatLonZone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="32dp"
+        android:layout_weight="10"
+        android:textColorHint="@color/material_grey_300"
+        android:ems="10"
+        android:hint=""
+        android:textSize="20sp" 
+        android:inputType="text"
+        android:imeOptions="actionNext"
+        android:singleLine="true" 
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lblGPSPOIHeading2"
+    />
+
+    <LinearLayout
+        android:id="@+id/linearLayoutBtns"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editLatLonZone" >
+
+        <Button
+            android:id="@+id/btnAddGPSPOI"
+            android:layout_width="125dp"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:textSize="14dp"
+            android:text="Add POI"
+            android:typeface="sans"
+            android:background="#ff0986be"
+            android:textColor="#ffffffff"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="5dp" />
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="125dp"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:textSize="14dp"
+            android:text="@string/Cancel"
+            android:typeface="sans"
+            android:background="#ff0986be"
+            android:layout_marginLeft="5dp"
+            android:textColor="#ffffffff"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="5dp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -75,7 +75,7 @@ namespace hajk
 #if DEBUG
             if (string.IsNullOrEmpty(Resources?.GetString(Resource.String.Sentry_APIKey)))
             {
-                Serilog.Log.Fatal("Sentry DSN entry is missing and in debug mode");
+                Serilog.Log.Information("Sentry DSN entry is missing and in debug mode");
             }
 #endif
 
@@ -274,22 +274,20 @@ namespace hajk
             }
             if (id == Resource.Id.SaveGPSasPOI)
             {
-/*                
-                if (CurrentLocation != null)
+                AndroidX.Fragment.App.FragmentTransaction? fragmentTransaction = SupportFragmentManager.BeginTransaction();
+                AndroidX.Fragment.App.Fragment? fragmentPrev = SupportFragmentManager.FindFragmentByTag("dialog");
+                if (fragmentPrev != null)
                 {
-                    GPXDataPOI p = new()
-                    {
-                        Name = "Manual Entry",
-                        Description = "",
-                        Symbol = null,
-                        Lat = (decimal)CurrentLocation.Latitude,
-                        Lon = (decimal)CurrentLocation.Longitude,
-                    };
-
-                    var r = POIDatabase.SavePOI(p);
-                    DisplayMapItems.AddPOIToMap();
+                    fragmentTransaction?.Remove(fragmentPrev);
                 }
-*/
+
+                fragmentTransaction?.AddToBackStack(null);
+
+                Fragment_gps_poi dialogFragment = Fragment_gps_poi.NewInstace(null);
+                if (fragmentTransaction != null)
+                {
+                    dialogFragment.Show(fragmentTransaction, "dialog");
+                }
             }
             else if (id == Resource.Id.AddRogainingPOI)
             {
