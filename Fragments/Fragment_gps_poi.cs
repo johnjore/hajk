@@ -4,7 +4,6 @@ using Android.Views;
 using Android.Widget;
 using CoordinateSharp;
 using hajk.Models;
-using static Kotlin.Collections.Builders.MapBuilder;
 
 namespace hajk.Fragments
 {
@@ -24,8 +23,13 @@ namespace hajk.Fragments
             Android.Views.View? view = inflater?.Inflate(Resource.Layout.fragment_gps_poi, container, false);
             view?.SetBackgroundColor(Android.Graphics.Color.White);
             Dialog?.Window?.RequestFeature(WindowFeatures.NoTitle);
+            Dialog?.Window?.SetSoftInputMode(SoftInput.AdjustResize);
             Dialog?.SetCanceledOnTouchOutside(false);
-        
+
+            //Set Focus
+            var editLatLon = view?.FindViewById<Android.Widget.EditText>(Resource.Id.editLatLonZone);
+            editLatLon?.RequestFocus();
+
             //Buttons
             Android.Widget.Button? btnCancel = view?.FindViewById<Android.Widget.Button>(Resource.Id.btnCancel);
             if (btnCancel != null)
@@ -77,6 +81,7 @@ namespace hajk.Fragments
                                                 
                         //Reset GUI
                         (view?.FindViewById<EditText>(Resource.Id.editLatLonZone)).Text = string.Empty;
+                        (view?.FindViewById<EditText>(Resource.Id.editLatLonZone)).RequestFocus();
                     }
                     catch (Exception ex)
                     {
