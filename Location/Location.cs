@@ -58,11 +58,11 @@ namespace hajk
                     }
                 }
 
-                FloatingActionButton? fab = Platform.CurrentActivity?.FindViewById<FloatingActionButton>(Resource.Id.fab);
-                if (fab != null)
+                FloatingActionButton? fabCompass = Platform.CurrentActivity?.FindViewById<FloatingActionButton>(Resource.Id.fabCompass);
+                if (fabCompass != null)
                 {
                     var rotationAngle = (float)CompassData.GetRotationAngle();
-                    fab.Rotation = rotationAngle;
+                    fabCompass.Rotation = rotationAngle;
                     //Serilog.Log.Debug($"RotationAngle: {rotationAngle}");
                 }
             }

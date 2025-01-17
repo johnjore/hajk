@@ -46,7 +46,8 @@ namespace hajk
             {
                 case Fragment_Preferences.Fragment_GPX:
                     Fragment_map.mapControl.Visibility = ViewStates.Invisible;
-                    cActivity.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
+                    cActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCompass).Visibility = ViewStates.Invisible;
+                    cActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCamera).Visibility = ViewStates.Invisible;
 
                     if (item.TitleFormatted.ToString() == cActivity.Resources.GetString(Resource.String.Routes))
                     {
@@ -65,7 +66,8 @@ namespace hajk
                     break;
                 case Fragment_Preferences.Fragment_Map:
                     Fragment_map.mapControl.Visibility = ViewStates.Visible;
-                    cActivity.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
+                    cActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCompass).Visibility = ViewStates.Visible;
+                    cActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCamera).Visibility = ViewStates.Visible;
 
                     IMenuItem mi1;
                     mi1 = nav?.Menu?.FindItem(Resource.Id.nav_routes);
@@ -104,7 +106,8 @@ namespace hajk
                     /**///This never runs?!?
                     /*
                     Fragment_map.mapControl.Visibility = ViewStates.Invisible;
-                    mContext.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
+                    mContext.FindViewById<FloatingActionButton>(Resource.Id.fabCompass).Visibility = ViewStates.Invisible;
+                    mContext.FindViewById<FloatingActionButton>(Resource.Id.fabCamera).Visibility = ViewStates.Invisible;
 
                     item = nav.Menu.FindItem(Resource.Id.nav_routes);
                     item.SetTitle(Resource.String.Map);
@@ -120,7 +123,8 @@ namespace hajk
                     sfm.ExecutePendingTransactions();
 
                     Fragment_map.mapControl.Visibility = ViewStates.Visible;
-                    Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
+                    Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCompass).Visibility = ViewStates.Visible;
+                    Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCamera).Visibility = ViewStates.Visible;
 
                     item = nav?.Menu.FindItem(Resource.Id.nav_routes);
                     item?.SetTitle(Resource.String.Routes);

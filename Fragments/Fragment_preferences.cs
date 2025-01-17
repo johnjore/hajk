@@ -107,7 +107,8 @@ namespace hajk
             SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.CustomToken)));
 
             //Hide FloatingActionButton
-            Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Invisible;
+            Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCompass).Visibility = ViewStates.Invisible;
+            Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCamera).Visibility = ViewStates.Invisible;
 
             //Create callback for when a setting is changed
             PreferenceManager.GetDefaultSharedPreferences(Platform.AppContext)?.RegisterOnSharedPreferenceChangeListener(this);
@@ -209,7 +210,8 @@ namespace hajk
             Log.Verbose($"Set map rotation (lock or not):" + LockMapRotation.ToString());
 
             //Show FloatingActionButton
-            Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fab).Visibility = ViewStates.Visible;
+            Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCompass).Visibility = ViewStates.Visible;
+            Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCamera).Visibility = ViewStates.Visible;
 
             base.OnDestroy();
         }

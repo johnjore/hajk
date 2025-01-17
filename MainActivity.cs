@@ -136,10 +136,10 @@ namespace hajk
                     SetSupportActionBar(toolbar);
                 }
 
-                FloatingActionButton? fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
-                if (fab != null)
+                FloatingActionButton? fabCompass = FindViewById<FloatingActionButton>(Resource.Id.fabCompass);
+                if (fabCompass != null)
                 {
-                    fab.Click += FabOnClick;                    
+                    fabCompass.Click += FabOnClick;                    
                 }
 
                 FloatingActionButton? fabCamera = FindViewById<FloatingActionButton>(Resource.Id.fabCamera);
@@ -404,9 +404,9 @@ namespace hajk
             Preferences.Set("TrackLocation", !currentStatus);
 
             //Floating Button
-            FloatingActionButton? fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
+            FloatingActionButton? fabCompass = FindViewById<FloatingActionButton>(Resource.Id.fabCompass);
 
-            if (fab == null)
+            if (fabCompass == null)
             {
                 return;
             }
@@ -414,13 +414,13 @@ namespace hajk
             //Inverse as pref has been updated
             if (Preferences.Get("TrackLocation", true) == true)
             {
-                fab.Background?.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.Red));
+                fabCompass.Background?.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.Red));
                 Fragment_map.mapControl.Map.Navigator.PanLock = true;
                 Fragment_map.mapControl.Map.Navigator.RotationLock = true;
             }
             else
             {
-                fab.Background?.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.ParseColor("#ff33b5e5")));
+                fabCompass.Background?.SetTintList(ColorStateList.ValueOf(Android.Graphics.Color.ParseColor("#ff33b5e5")));
                 Fragment_map.mapControl.Map.Navigator.PanLock = false;
                 Fragment_map.mapControl.Map.Navigator.RotationLock = false;
             }
