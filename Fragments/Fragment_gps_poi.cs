@@ -50,8 +50,7 @@ namespace hajk.Fragments
                     try
                     {
                         string strLatLon = view?.FindViewById<EditText>(Resource.Id.editLatLonZone)?.Text;
-                        Coordinate c;
-                        if (Coordinate.TryParse(strLatLon, out c))
+                        if (Coordinate.TryParse(strLatLon, out Coordinate c))
                         {
                             Serilog.Log.Information($"Converted '{strLatLon}' to '{c}'"); //N 80º 20' 44.999" E 23º 45' 22.987"   
 
@@ -78,7 +77,7 @@ namespace hajk.Fragments
                         {
                             Toast.MakeText(Android.App.Application.Context, "Failed to parse string", ToastLength.Long)?.Show();
                         }
-                                                
+
                         //Reset GUI
                         (view?.FindViewById<EditText>(Resource.Id.editLatLonZone)).Text = string.Empty;
                         (view?.FindViewById<EditText>(Resource.Id.editLatLonZone)).RequestFocus();

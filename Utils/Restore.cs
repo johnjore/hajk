@@ -21,7 +21,7 @@ namespace hajk
                 string? sourceFile = await PickFileToRestore();
                 if (sourceFile == null || sourceFile == string.Empty)
                 {
-                    Serilog.Log.Warning("No filename to restore from");
+                    Serilog.Log.Information("No filename to restore from");
                     return;
                 }
 
@@ -75,7 +75,7 @@ namespace hajk
                 var sourceFile = await FilePicker.PickAsync(options);
                 if (sourceFile == null)
                 {
-                    Serilog.Log.Warning($"Failed to select file to restore");
+                    Serilog.Log.Information($"Failed to select file to restore");
                     return null;
                 }
 
