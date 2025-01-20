@@ -82,16 +82,13 @@ namespace hajk
 
             try
             {
-                PickOptions? options = new PickOptions
+                PickOptions? options = new()
                 {
-                    PickerTitle = "Select the GPX file to import",
-                    /*
+                    PickerTitle = "Select GPX file to import",
                     FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                     {
-                        //Limited to no support for GPX files: https://android.googlesource.com/platform/external/mime-support/+/refs/heads/main/mime.types
-                        { DevicePlatform.Android, null },
+                        { DevicePlatform.Android, new[] { "application/gpx", "application/octet-stream" } }
                     })
-                    */
                 };
 
                 FileResult? result = await FilePicker.PickAsync(options);

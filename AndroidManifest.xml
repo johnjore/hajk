@@ -11,14 +11,30 @@
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
-			<intent-filter>
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="file" android:pathPattern=".*\\.gpx" android:mimeType="application/*" />
-				<data android:scheme="content" android:pathPattern=".*\\.gpx" android:mimeType="application/*" />
-			</intent-filter>
-		</activity>
+
+      <!--
+         Used by the filepicker to only show GPX files for importing
+      -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="content" />
+        <data android:scheme="file" />
+        <data android:host="*" />
+        <data android:mimeType="*/*" />
+        <data android:mimeType="application/gpx" />
+        <data android:mimeType="application/octet-stream" />
+        <data android:pathPattern=".*\\.gpx" />
+        <data android:pathPattern=".*\\..*\\.gpx" />
+        <data android:pathPattern=".*\\..*\\..*\\.gpx" />
+        <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx" />
+        <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.gpx" />
+        <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.gpx" />
+        <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.gpx" />
+      </intent-filter>
+			
+    </activity>
     <service 
 			android:name=".LocationForegroundService"
 			android:foregroundServiceType="location"
