@@ -159,8 +159,8 @@ namespace hajk
                     return;
                 }
 
-                //Only ask if we have routes and/or tracks and/or Waypoints to import, and we have internet access. Most don't have a local tile server
-                if ((gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0) && Connectivity.NetworkAccess == NetworkAccess.Internet)
+                //Only ask if we have routes and/or tracks and/or Waypoints to import
+                if (gpxData.Routes.Count > 0 || gpxData.Tracks.Count > 0 || gpxData.Waypoints.Count > 0)
                 {
                     //Does the user want maps downloaded for offline usage?
                     msg = new(Platform.CurrentActivity);
