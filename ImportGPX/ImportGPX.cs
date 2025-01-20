@@ -3,51 +3,20 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.App;
 using AndroidX.Fragment.App;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using NetTopologySuite.Geometries;
-using NetTopologySuite.IO;
-using Mapsui;
-using Mapsui.Extensions;
-using Mapsui.Nts;
-using Mapsui.Nts.Extensions;
+using GPXUtils;
+using hajk.Data;
+using hajk.Fragments;
+using hajk.Models;
 using Mapsui.Layers;
 using Mapsui.Projections;
-using Mapsui.Providers;
 using Mapsui.Rendering.Skia;
-using Mapsui.Styles;
-using Mapsui.Tiling;
-using Mapsui.Tiling.Layers;
-using Mapsui.Utilities;
-using Mapsui.UI;
-using Mapsui.UI.Android;
-using Mapsui.Widgets;
-using Mapsui.Widgets.ScaleBar;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Devices;
-using Microsoft.Maui.Networking;
-using Microsoft.Maui.Storage;
-using hajk.Data;
-using hajk.Models;
-using hajk.Fragments;
-using SharpGPX;
-using SharpGPX.GPX1_1;
+using Mapsui;
 using SharpGPX.GPX1_1.Garmin;
 using SharpGPX.GPX1_1.Topografix;
-using GPXUtils;
-using hajk.GPX;
-using AndroidX.RecyclerView.Widget;
-using static AndroidX.RecyclerView.Widget.RecyclerView;
+using SharpGPX.GPX1_1;
+using SharpGPX;
 using System.Xml;
+using System;
 
 namespace hajk
 {
@@ -64,7 +33,14 @@ namespace hajk
             {
                 GpxClass? gpxData = Import.PickAndParseGPX().Result;
 
+                //Anything to process?
                 if (gpxData == null)
+                {
+                    return;
+                }
+
+                //Anything to process?
+                if (gpxData.Routes.Count == 0 && gpxData.Tracks.Count == 0 && gpxData.Waypoints.Count == 0)
                 {
                     return;
                 }
@@ -78,7 +54,7 @@ namespace hajk
         /// </summary>
         private static async Task<GpxClass?> PickAndParseGPX()
         {
-            GpxClass? gpx = null;
+            GpxClass? gpx = new GpxClass();
 
             try
             {
@@ -91,11 +67,11 @@ namespace hajk
                     })
                 };
 
-                FileResult? result = await FilePicker.PickAsync(options);
+                IEnumerable<FileResult> result = await FilePicker.PickMultipleAsync(options);
 
-                if (result == null || result.FileName == null || result.FullPath == null)
+                if (result == null || !result.Any())
                 {
-                    Serilog.Log.Information("Filename is null");
+                    Serilog.Log.Information("No files selected");
                     return null;
                 }
 
@@ -105,34 +81,60 @@ namespace hajk
                     return null;
                 }
 
-                if (GpxClass.CheckFile(result.FullPath) == false)
+                foreach (FileResult fileName in result)
                 {
-                    Show_Dialog msg2 = new Show_Dialog(Platform.CurrentActivity); //Don't use cached value
-                    await msg2.ShowDialog($"{result.FileName}", "is not a valid GPX file. Unable to import file.", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.OK);
+                    if (GpxClass.CheckFile(fileName.FullPath) == false)
+                    {
+                        Show_Dialog msg2 = new Show_Dialog(Platform.CurrentActivity); //Don't use cached value
+                        await msg2.ShowDialog($"'{fileName}'", "is not a valid GPX file. Unable to import file.", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.OK);
+                    }
+                    else
+                    {
+                        //We have a valid GPX file (we think)
+                        var stream = await fileName.OpenReadAsync();
+                        string contents = string.Empty;
+                        using (var reader = new StreamReader(stream))
+                        {
+                            contents = reader.ReadToEnd();
+                        }
 
+                        GpxClass? tempGPX = GpxClass.FromXml(contents);
+                        string r = (tempGPX.Routes.Count == 1) ? "route" : "routes";
+                        string t = (tempGPX.Tracks.Count == 1) ? "track" : "tracks";
+                        string p = (tempGPX.Waypoints.Count == 1) ? "POI" : "POIs";
+
+                        Show_Dialog msg1 = new Show_Dialog(Platform.CurrentActivity); //Don't use cached value
+                        Show_Dialog.MessageResult dialogResult = await msg1.ShowDialog($"'{fileName.FileName}'", $"Found {tempGPX.Routes.Count} {r}, {tempGPX.Tracks.Count} {t} and {tempGPX.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
+                        if (dialogResult.Equals(Show_Dialog.MessageResult.YES))
+                        {
+                            //Append tempGPX to GPX
+                            foreach (rteType route in tempGPX.Routes)
+                            {
+                                gpx.Routes.Add(route);
+                            }
+
+                            foreach (trkType track in tempGPX.Tracks)
+                            {
+                                gpx.Tracks.Add(track);
+                            }
+
+                            foreach (wptType waypoint in tempGPX.Waypoints)
+                            {
+                                gpx.Waypoints.Add(waypoint);
+                            }
+                        }
+                    }
+                }
+
+                //Could be populated with 0 routes, 0 tracks and 0 waypoints (POIs)
+                if (gpx.Routes.Count == 0 && gpx.Tracks.Count == 0 && gpx.Waypoints.Count == 0)
+                {
                     return null;
                 }
-
-                //We have a valid GPX file (we think)
-                var stream = await result.OpenReadAsync();
-                string contents = string.Empty;
-                using (var reader = new StreamReader(stream))
+                else
                 {
-                    contents = reader.ReadToEnd();
+                    return gpx;
                 }
-
-                gpx = GpxClass.FromXml(contents);
-                string r = (gpx.Routes.Count == 1) ? "route" : "routes";
-                string t = (gpx.Tracks.Count == 1) ? "track" : "tracks";
-                string p = (gpx.Waypoints.Count == 1) ? "POI" : "POIs";
-                                
-                Show_Dialog msg1 = new Show_Dialog(Platform.CurrentActivity); //Don't use cached value
-                if (await msg1.ShowDialog($"{result.FileName}", $"Found {gpx.Routes.Count} {r}, {gpx.Tracks.Count} {t} and {gpx.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) != Show_Dialog.MessageResult.YES)
-                {
-                    return null;
-                }
-
-                return gpx;
             }
             catch (Exception ex)
             {
