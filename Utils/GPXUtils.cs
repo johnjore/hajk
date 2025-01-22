@@ -13,12 +13,17 @@ namespace GPXUtils
 {
     public static class GPXUtils
     {
-        public static AwesomeTiles.TileRange GetTileRange(int zoom, hajk.Models.Map map)
+        public static AwesomeTiles.TileRange? GetTileRange(int zoom, hajk.Models.Map map)
         {
             try
             {
                 var leftBottom = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsLeft, map.BoundsBottom, zoom);
                 var topRight = AwesomeTiles.Tile.CreateAroundLocation(map.BoundsRight, map.BoundsTop, zoom);
+
+                if (leftBottom == null || topRight == null)
+                {
+                    return null;
+                }
 
                 var minX = Math.Min(leftBottom.X, topRight.X);
                 var maxX = Math.Max(leftBottom.X, topRight.X);
@@ -28,6 +33,7 @@ namespace GPXUtils
                 var tiles = new AwesomeTiles.TileRange(minX, minY, maxX, maxY, zoom);
                 //Serilog.Log.Information($"Need to download {tiles.Count} tiles for zoom level {zoom}");
                 return tiles;
+
             }
             catch (Exception ex)
             {
@@ -37,7 +43,7 @@ namespace GPXUtils
             return null;
         }
 
-        public static AwesomeTiles.TileRange GetTileRange(int zoom, GpxClass gpx)
+        public static AwesomeTiles.TileRange? GetTileRange(int zoom, GpxClass gpx)
         {
             try
             {
@@ -45,6 +51,11 @@ namespace GPXUtils
                 var leftBottom = AwesomeTiles.Tile.CreateAroundLocation((double)bounds.minlat, (double)bounds.minlon, zoom);
                 var topRight = AwesomeTiles.Tile.CreateAroundLocation((double)bounds.maxlat, (double)bounds.maxlon, zoom);
 
+                if (leftBottom == null || topRight == null)
+                {
+                    return null;
+                }
+
                 var minX = Math.Min(leftBottom.X, topRight.X);
                 var maxX = Math.Max(leftBottom.X, topRight.X);
                 var minY = Math.Min(leftBottom.Y, topRight.Y);
@@ -62,12 +73,17 @@ namespace GPXUtils
             return null;
         }
 
-        public static AwesomeTiles.TileRange GetTileRange(int zoom, Position pos)
+        public static AwesomeTiles.TileRange? GetTileRange(int zoom, Position pos)
         {
             try
             {
                 var leftBottom = AwesomeTiles.Tile.CreateAroundLocation(pos.Latitude, pos.Longitude, zoom);
                 var topRight = AwesomeTiles.Tile.CreateAroundLocation(pos.Latitude, pos.Longitude, zoom);
+
+                if (leftBottom == null || topRight == null)
+                {
+                    return null;
+                }
 
                 var minX = Math.Min(leftBottom.X, topRight.X);
                 var maxX = Math.Max(leftBottom.X, topRight.X);
@@ -301,7 +317,7 @@ namespace GPXUtils
         // Calculate Cross track distance (XTE)
         public static Tuple<double[], double> CalculateCrossTrackDistance(wptType a1, wptType a2, Position c)
         {
-            NVMath _NV = new NVMath();
+            NVMath _NV = new();
 
             var r_Earth = 6371e3; // m, mean Earth radius
 
@@ -322,7 +338,7 @@ namespace GPXUtils
         // Calculate intersection of a1-a2 and c-c_E
         public static Position CalculateCrossTrackPosition(wptType a1, wptType a2, Position c, double[] c_E)
         {
-            NVMath _NV = new NVMath();
+            NVMath _NV = new();
 
             // input as lat/long in deg:
             var n_EA1_E = _NV.lat_long2n_E(_NV.rad((double)a1.lat), _NV.rad((double)a1.lon));
@@ -345,7 +361,7 @@ namespace GPXUtils
         //Calculate distance between two locations
         public static double CalculateDistance(wptType a1, Position c_E)
         {
-            NVMath _NV = new NVMath();
+            NVMath _NV = new();
 
             // input as lat/long in deg:
             var n_EA_E = _NV.lat_long2n_E(_NV.rad((double)a1.lat), _NV.rad((double)a1.lon));
@@ -390,11 +406,11 @@ namespace GPXUtils
     public static class MapInformation
     {
         //Find WayPoint we are closest to. Use it, incorrectly, as start point for calculations
-        public static (Position, int) FindClosestWayPoint(rteType? route, Position? position)
+        public static (Position?, int) FindClosestWayPoint(rteType? route, Position? position)
         {
             try
             {
-                if (route == null)
+                if (route == null || position == null)
                     return (null, -1);
 
                 int pos_index_i = 0;           //Index to position closest to GPS Position
