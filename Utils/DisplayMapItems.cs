@@ -73,7 +73,7 @@ namespace hajk
             }
         }
 
-        public static void AddRouteToMap(string mapRoute, GPXType gpxtype, bool UpdateMenu, string name)
+        public static void AddRouteToMap(string? mapRoute, GPXType? gpxtype, bool UpdateMenu, string? name)
         {
             try
             {
@@ -86,18 +86,34 @@ namespace hajk
                 }
 
                 //Add layer
-                ILayer lineStringLayer;
+                ILayer? lineStringLayer;
                 if (gpxtype == GPXType.Route)
                 {
                     lineStringLayer = CreateRouteandTrackLayer(mapRoute, Mapsui.Styles.Color.Blue, CreateStyle("Blue"));
-                    lineStringLayer.Tag = Fragment_Preferences.Layer_Route;
+                    if (lineStringLayer != null)
+                    {
+                        lineStringLayer.Tag = Fragment_Preferences.Layer_Route;
+                    }
                 }
                 else
                 {
                     lineStringLayer = CreateRouteandTrackLayer(mapRoute, Mapsui.Styles.Color.Red, CreateStyle("Red"));
-                    lineStringLayer.Tag = Fragment_Preferences.Layer_Track;
+                    if (lineStringLayer != null)
+                    {
+                        lineStringLayer.Tag = Fragment_Preferences.Layer_Track;
+                    }
                 }
-                lineStringLayer.Name = name;
+
+                if (lineStringLayer == null)
+                {
+                    return;
+                }
+
+                if (name != null)
+                {
+                    lineStringLayer.Name = name;
+                }
+
                 lineStringLayer.IsMapInfoLayer = true;
                 lineStringLayer.Enabled = true;
                 Fragment_map.map.Layers.Add(lineStringLayer);
@@ -112,8 +128,8 @@ namespace hajk
             {
                 if (UpdateMenu)
                 {
-                    AndroidX.AppCompat.Widget.Toolbar toolbar = Platform.CurrentActivity.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
-                    toolbar.Menu.FindItem(Resource.Id.action_clearmap).SetEnabled(true);
+                    AndroidX.AppCompat.Widget.Toolbar? toolbar = Platform.CurrentActivity.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
+                    toolbar?.Menu?.FindItem(Resource.Id.action_clearmap)?.SetEnabled(true);
                 }
             }
             catch (Exception ex)
@@ -159,8 +175,14 @@ namespace hajk
             }
         }
 
-        private static ILayer CreateRouteandTrackLayer(string strRoute, Mapsui.Styles.Color sColor, IStyle? style = null)
+        private static ILayer? CreateRouteandTrackLayer(string? strRoute, Mapsui.Styles.Color sColor, IStyle? style = null)
         {
+
+            if (strRoute == null)
+            {
+                return null;
+            }
+
             var features = new List<IFeature>();
 
             try
@@ -258,8 +280,13 @@ namespace hajk
             };
         }
 
-        public static IStyle CreateStyle(string? colour)
+        public static IStyle? CreateStyle(string? colour)
         {
+            if (colour == null)
+            {
+                return null;
+            }
+
             return new VectorStyle
             {
                 Fill = null,
