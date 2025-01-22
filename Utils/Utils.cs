@@ -26,7 +26,7 @@ namespace Utils
                     return;
                 }
 
-                System.IO.DirectoryInfo di = new DirectoryInfo(directoryName);
+                System.IO.DirectoryInfo di = new (directoryName);
 
                 foreach (FileInfo file in di.GetFiles())
                 {
@@ -42,7 +42,7 @@ namespace Utils
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error($"Failed to empty folder '{directoryName}'");
+                Serilog.Log.Error(ex, $"Failed to empty folder '{directoryName}'");
             }
         }
 
