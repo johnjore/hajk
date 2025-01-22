@@ -90,15 +90,15 @@
     <PackageReference Include="System.Text.Json" Version="9.0.1" />
     <PackageReference Include="tilebelt" Version="2.0.0" />
     <PackageReference Include="Tnn.OxyPlot.Xamarin.Android" Version="2.1.2" />
-    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.0.4" />
-    <PackageReference Include="Xamarin.AndroidX.Browser" Version="1.8.0.7" />
-    <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.32" />
-    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.5.1" />
-    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.UI" Version="1.0.0.31" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.8.7.1" />
-    <PackageReference Include="Xamarin.AndroidX.Preference" Version="1.2.1.11" />
-    <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.3.2.9" />
-    <PackageReference Include="Xamarin.Google.Android.Material" Version="1.12.0.1" />
+    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.0.5" />
+    <PackageReference Include="Xamarin.AndroidX.Browser" Version="1.8.0.8" />
+    <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.33" />
+    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.5.2" />
+    <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.UI" Version="1.0.0.32" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.8.7.2" />
+    <PackageReference Include="Xamarin.AndroidX.Preference" Version="1.2.1.12" />
+    <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.3.2.10" />
+    <PackageReference Include="Xamarin.Google.Android.Material" Version="1.12.0.2" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Images\Arrow-up.svg" />
