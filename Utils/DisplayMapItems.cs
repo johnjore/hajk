@@ -284,6 +284,7 @@ namespace hajk
         {
             if (colour == null)
             {
+                Serilog.Log.Fatal("Do not call CreateStyle without a 'colour'");
                 return null;
             }
 
