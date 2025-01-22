@@ -28,12 +28,16 @@ namespace hajk
 
                 //Make sure GeoTiff folder exists 
                 if (!Directory.Exists(GeoTiffFolder)) 
+                {
                     Directory.CreateDirectory(GeoTiffFolder);
+                }
 
                 //Current contents
+                /*
                 Serilog.Log.Debug("Current files in GeoTiff Folder:");
                 foreach (string fileName in Directory.GetFiles(GeoTiffFolder))
                     Serilog.Log.Debug(fileName);
+                */
 
                 //Range of tiles
                 AwesomeTiles.TileRange? tiles = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, gpx);
@@ -68,11 +72,10 @@ namespace hajk
                 await DownloadElevationTilesAsync(tiles, intMissingTiles);
 
                 //Current contents
-                Serilog.Log.Debug("Files in GeoTiff Folder (after downloads):");
+                /*Serilog.Log.Debug("Files in GeoTiff Folder (after downloads):");
                 foreach (string fileName in Directory.GetFiles(GeoTiffFolder))
                     Serilog.Log.Debug(fileName);
-
-                return true;
+                */
             }
             catch (Exception ex)
             {
@@ -166,7 +169,7 @@ namespace hajk
         /// Loop through a list of Positions with elevation data and calculate how much ascent and descent
         /// </summary>
         /// <param name="LatLonEle"></param>
-        /// <returns>ascent & descent in meters</returns>
+        /// <returns>ascent and descent in meters</returns>
         public static (int, int) CalculateAscentDescent(List<Position> LatLonEle)
         {
             /**///List of Positions needs slicing to make more granular
@@ -221,8 +224,6 @@ namespace hajk
             {
             try
             {
-                await Task.Run(() =>
-                {
                     foreach (var tile in range)
                     {
                         var LocalFileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
@@ -256,7 +257,6 @@ namespace hajk
                             }
                         }
                     };
-                });
             }
             catch (Exception ex)
             {
