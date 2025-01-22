@@ -334,7 +334,7 @@ namespace hajk.Fragments
                     if (POIToImport == null || POIToImport.Count() == 0)
                     {
                         Serilog.Log.Warning("No POI found to restore");
-                        Progressbar.UpdateProgressBar.Progress = 100;
+                        Progressbar.UpdateProgressBar.Dismiss();
                         return false;
                     }
 
@@ -382,7 +382,7 @@ namespace hajk.Fragments
                 return false;
             }
 
-            Progressbar.UpdateProgressBar.Progress = 100.0;
+            Progressbar.UpdateProgressBar.Dismiss();
             Serilog.Log.Information("Done restoring POI Data");
             return true;
         }
@@ -413,7 +413,7 @@ namespace hajk.Fragments
                     if (TrackRoutesToImport == null || TrackRoutesToImport.Count() == 0)
                     {
                         Serilog.Log.Warning("No Tracks or Routes found to restore");
-                        Progressbar.UpdateProgressBar.Progress = 100;
+                        Progressbar.UpdateProgressBar.Dismiss();
                         return false;
                     }
 
@@ -460,7 +460,7 @@ namespace hajk.Fragments
                 return false;
             }
 
-            Progressbar.UpdateProgressBar.Progress = 100.0;
+            Progressbar.UpdateProgressBar.Dismiss();
             Serilog.Log.Information("Done restoring Route & Track Data");
             return true;
         }
@@ -480,7 +480,7 @@ namespace hajk.Fragments
                     if (OSMLayer == null)
                     {
                         Serilog.Log.Error("OSM Layer not found?");
-                        Progressbar.UpdateProgressBar.Progress = 100;
+                        Progressbar.UpdateProgressBar.Dismiss();
                         return false;
                     }
 
@@ -551,7 +551,7 @@ namespace hajk.Fragments
                 return false;
             }
 
-            Progressbar.UpdateProgressBar.Progress = 100.0;
+            Progressbar.UpdateProgressBar.Dismiss();
             Serilog.Log.Information("Done restoring Map Tiles");
             return true;
         }
@@ -615,7 +615,7 @@ namespace hajk.Fragments
             foreach (string fileName in Directory.GetFiles(Destination_Folder))
                 Serilog.Log.Debug(fileName);
 
-            Progressbar.UpdateProgressBar.Progress = 100.0;
+            Progressbar.UpdateProgressBar.Dismiss();
             Serilog.Log.Information("Done restoring GeoTiff Files");
             return true;
         }

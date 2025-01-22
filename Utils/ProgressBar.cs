@@ -65,6 +65,14 @@ namespace hajk.Progressbar
             await updateProgressBar.RunAsync();
         }
 
+        public static void Dismiss()
+        {
+            Progress = 100;
+            Thread.Sleep(10);
+
+            _dialog?.Dismiss();
+        }
+
         public async Task RunAsync()
         {
             var progress = new Progress<double>(percent =>

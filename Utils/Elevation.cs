@@ -157,8 +157,7 @@ namespace hajk
                 }
             });
 
-            //Anything above 99 will close the ProgressBar GUI
-            Progressbar.UpdateProgressBar.Progress = 100;
+            Progressbar.UpdateProgressBar.Dismiss();
 
             return ListLatLon;
         }
@@ -218,6 +217,8 @@ namespace hajk
             Progressbar.UpdateProgressBar.Progress = 0;
             Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {intMissingtiles}";
 
+            await Task.Run(() =>
+            {
             try
             {
                 await Task.Run(() =>
@@ -261,9 +262,11 @@ namespace hajk
             {
                 Serilog.Log.Fatal(ex, $"COGGeoTIFF - DownloadElevationTiles()");
             }
-
-            //Anything above 99 will close the ProgressBar GUI
-            Progressbar.UpdateProgressBar.Progress = 100;
+                finally
+                {
+                    Progressbar.UpdateProgressBar.Dismiss();
+                }
+            });
 
             return FileNames;
         }

@@ -145,7 +145,7 @@ namespace hajk
                 foreach (string files in Directory.GetFiles(tmpFolder))
                     Serilog.Log.Debug(files);
 
-                Progressbar.UpdateProgressBar.Progress = 100;
+                Progressbar.UpdateProgressBar.Dismiss();
                 Serilog.Log.Information("Done");
             }
             catch (Exception ex)

@@ -252,7 +252,7 @@ namespace hajk
             finally
             {
                 //Remove progress bar
-                Progressbar.UpdateProgressBar.Progress = 100;
+                Progressbar.UpdateProgressBar.Dismiss();
             }
 
             Serilog.Log.Information("Backup completed");

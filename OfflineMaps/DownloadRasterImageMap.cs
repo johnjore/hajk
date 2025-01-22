@@ -51,7 +51,7 @@ namespace hajk
                     Log.Information($"Need to download '{MissingTiles}' tiles for zoom level '{zoom}', total to download '{missingTilesCount}'");
                 }
 
-                //Download  missing tiles
+                //Download missing tiles
                 for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
                 {
                     AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
@@ -65,7 +65,7 @@ namespace hajk
                     }
                 }
 
-                Progressbar.UpdateProgressBar.Progress = 100;
+                Progressbar.UpdateProgressBar.Dismiss();
                 Log.Debug($"Done downloading map for {map.Id}");
 
                 if (ShowDialog)
@@ -283,7 +283,7 @@ namespace hajk
             {
                 Log.Fatal(ex, $"DownloadRasterIamgeMap - DownloadImageAsync()");
             }
-
+            
             return null;
         }
 
