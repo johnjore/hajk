@@ -25,6 +25,16 @@ steps:
     versionCodeOption: 'timestamp'
     printFile: true
 
+- task: UseDotNet@2
+  displayName: 'Install .NET sdk'
+  inputs:
+    packageType: sdk
+    
+- task: CmdLine@2
+  displayName: 'Install Maui Workload'
+  inputs:
+    script: 'dotnet workload install maui-android'
+
 - task: XamarinAndroid@1
   inputs:
     projectFile: '**/hajk.csproj'
