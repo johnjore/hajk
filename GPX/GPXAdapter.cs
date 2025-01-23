@@ -56,7 +56,7 @@ namespace hajk.Adapter
             {
                 GPXViewHolder? vh = holder as GPXViewHolder;
 
-                if (vh == null || vh.Name == null || vh.Distance == null || vh.Ascent == null || vh.Descent == null || vh.GPXTypeLogo == null || vh.TrackRouteMap == null || vh.TrackRouteElevation == null)
+                if (vh == null || vh.Name == null || vh.Distance == null || vh.Ascent == null || vh.Descent == null || vh.GPXTypeLogo == null || vh.TrackRouteMap == null || vh.TrackRouteElevation == null || vh.NaismithTravelTime == null)
                     return;
 
                 vh.Id = mGpxData[position].Id;
@@ -90,6 +90,13 @@ namespace hajk.Adapter
                 } else
                 {
                     Serilog.Log.Fatal("GPXType must be a route or track");
+                }
+
+                //Naismith Travel Time
+                (int travel_hours, int travel_min) = Naismith.CalculateTime_min(mGpxData[position].Distance, Fragment_Preferences.naismith_speed_kmh, mGpxData[position].Ascent, mGpxData[position].Descent);
+                if (vh.NaismithTravelTime != null && travel_hours > -1 && travel_min > -1)
+                {
+                    vh.NaismithTravelTime.Text = $"Naismith's Estimated Travel Time: {string.Format("{0:D2}", travel_hours)}:{string.Format("{0:D2}", travel_min)}";
                 }
 
                 //Map Thumbprint of route / track
@@ -632,6 +639,8 @@ namespace hajk.Adapter
                 if (elevationModel != null && vh.TrackRouteElevation != null)
                 {
                     vh.TrackRouteElevation.Model = elevationModel;
+
+                    Fragment_gpx.mAdapter?.NotifyItemChanged(menuitem);
                 }
             }
 
@@ -644,6 +653,13 @@ namespace hajk.Adapter
                 vh.Descent.Text = $"Descent: {route_to_download.Descent}m";
 
                 Fragment_gpx.mAdapter?.NotifyItemChanged(menuitem);
+            }
+
+            //Naismith Travel Time
+            (int travel_hours, int travel_min) = Naismith.CalculateTime_min(route_to_download.Distance, Fragment_Preferences.naismith_speed_kmh, route_to_download.Ascent, route_to_download.Descent);
+            if (vh.NaismithTravelTime != null && travel_hours > -1 && travel_min > -1)
+            {
+                vh.NaismithTravelTime.Text = $"Naismith's Estimated Travel Time: {string.Format("{0:D2}", travel_hours)}:{string.Format("{0:D2}", travel_min)}";
             }
 
             //Create / Update thumbsize map

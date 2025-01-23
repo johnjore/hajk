@@ -82,6 +82,28 @@
                     android:layout_marginLeft="@dimen/layout_marginLeft" />
             </LinearLayout>
 
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/GPXStats"
+                android:id="@+id/GPXStats2"
+                android:layout_marginTop="5dp"
+                android:layout_weight="1">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#333333"
+                android:text="Naismith's rule"
+                android:id="@+id/NaismithTravelTime"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/textViewOptions"
                 android:layout_width="wrap_content"
@@ -95,7 +117,7 @@
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@+id/GPXStats"
+                android:layout_below="@+id/GPXStats2"
                 android:id="@+id/TrackRouteMap"
                 android:scaleType="fitCenter"
                 android:layout_marginLeft="@dimen/layout_marginLeft"
@@ -105,7 +127,7 @@
             <OxyPlot.Xamarin.Android.PlotView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@+id/GPXStats"
+                android:layout_below="@+id/GPXStats2"
                 android:id="@+id/TrackRouteElevation"
                 android:scaleType="fitCenter"
                 android:layout_marginLeft="@dimen/layout_marginLeft"
@@ -113,5 +135,6 @@
                 android:visibility="gone" />
 
         </RelativeLayout>
+
     </androidx.cardview.widget.CardView>
 </FrameLayout>

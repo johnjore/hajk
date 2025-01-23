@@ -17,7 +17,7 @@ namespace hajk
         //Returns list of all items in list
         public GpxData(GPXType gpxtype)
         {
-            List<GPXDataRouteTrack> result = gpxtype switch
+            List<GPXDataRouteTrack>? result = gpxtype switch
             {
                 GPXType.Route => RouteDatabase.GetRoutesAsync().Result,
                 GPXType.Track => RouteDatabase.GetTracksAsync().Result,
@@ -70,6 +70,7 @@ namespace hajk
         public TextView? Distance { get; set; }
         public TextView? Ascent { get; set; }
         public TextView? Descent { get; set; }
+        public TextView? NaismithTravelTime { get; set; }
         public TextView? Img_more { get; set; }
         public ImageView? TrackRouteMap { get; set; }
         public PlotView? TrackRouteElevation { get; set; }
@@ -81,6 +82,7 @@ namespace hajk
             Distance = itemview?.FindViewById<TextView>(Resource.Id.Distance);
             Ascent = itemview?.FindViewById<TextView>(Resource.Id.Ascent);
             Descent = itemview?.FindViewById<TextView>(Resource.Id.Descent);
+            NaismithTravelTime = itemview?.FindViewById<TextView>(Resource.Id.NaismithTravelTime);
             Img_more = itemview?.FindViewById<TextView>(Resource.Id.textViewOptions);
             TrackRouteMap = itemview?.FindViewById<ImageView>(Resource.Id.TrackRouteMap);
             TrackRouteElevation = itemview?.FindViewById<PlotView>(Resource.Id.TrackRouteElevation);
