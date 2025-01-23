@@ -12,7 +12,7 @@ namespace hajk
 {
     internal class Naismith
     {
-        public static (int, int) CalculateTime_min(float distance_km, decimal walking_speed_kmh, int ascent_m, int descent_m)
+        public static (int, int) CalculateTime(float distance_km, decimal walking_speed_kmh, int ascent_m, int descent_m)
         {
             try
             {
