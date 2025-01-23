@@ -309,9 +309,15 @@ namespace hajk
             try
             {
                 var tileSource = TileCache.GetOSMBasemap(Fragment_Preferences.LiveData + "/" + Fragment_Preferences.CacheDB);
+                if (tileSource == null)
+                {
+                    Serilog.Log.Fatal("TileSource is null");
+                    return;
+                }
+
                 var tileLayer = new TileLayer(tileSource)
                 {
-                    Name = "OSM",
+                    Name = Fragment_Preferences.TileLayerName,
                 };
                 Fragments.Fragment_map.map.Layers.Insert(0, tileLayer);
             }

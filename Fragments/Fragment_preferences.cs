@@ -51,6 +51,7 @@ namespace hajk
         public const string SavedSettings = "SavedSettings.json";       //Saved Application Settings / Preferences
         public const string logFile = "walkabout_.txt";                 //Log file
         public const string GeoTiffFolder = "GeoTiff";                  //Folder for all GeoTiff Files
+        public const string TileLayerName = "OSM";                      //Name of Tilelayer
         public readonly static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
         public readonly static string LiveData = rootPath + "/" + "LiveData";   //Live Data
         public readonly static string? DownloadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;

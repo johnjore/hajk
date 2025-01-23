@@ -175,6 +175,72 @@ namespace hajk
             }
         }
 
+        public static string? CreateThumbnail(GPXType? gpxtype, GpxClass? gpx)
+        {
+            try
+            {
+                if (gpx == null)
+                {
+                    return null;
+                }
+
+                //Save list of enabled layers (excluding tile layer)
+                List<ILayer> enabledLayers = [];
+                for (int i = 0; i < Fragment_map.map.Layers.Count; i++)
+                {
+                    if (Fragment_map.map.Layers[i].Enabled && Fragment_map.map.Layers[i].Name != Fragment_Preferences.TileLayerName)
+                    {
+                        Fragment_map.map.Layers[i].Enabled = false;
+                        enabledLayers.Add(Fragment_map.map.Layers[i]);
+                    }
+                }
+
+                //Add layer for new route
+                ILayer? lineStringLayer;
+                if (gpxtype == GPXType.Route)
+                {
+                    string mapRoute = Import.ParseGPXtoRoute(gpx.Routes[0]).Item1;
+                    lineStringLayer = CreateRouteandTrackLayer(mapRoute, Mapsui.Styles.Color.Blue, CreateStyle("Blue"));
+                }
+                else if (gpxtype == GPXType.Track)
+                {
+                    string mapRoute = Import.ParseGPXtoRoute(gpx.Tracks[0].ToRoutes()[0]).Item1;
+                    lineStringLayer = CreateRouteandTrackLayer(mapRoute, Mapsui.Styles.Color.Red, CreateStyle("Red"));
+                }
+                else
+                {
+                    Serilog.Log.Fatal("Unsupported gpxtype");
+                    return null;
+                }
+
+                if (lineStringLayer == null)
+                {
+                    return null;
+                }
+
+                //Show only route/track on map tiles, create thumbprint, and remove the route/track again
+                lineStringLayer.Enabled = true;
+                Fragment_map.map.Layers.Add(lineStringLayer);
+                string? ImageBase64String = Import.CreateThumbprintMap(gpx);
+                Fragment_map.map.Layers.Remove(lineStringLayer);
+
+                //Re-enable the layers
+                foreach (ILayer layer in enabledLayers)
+                {
+                    layer.Enabled = true;
+                }
+
+                return ImageBase64String;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Fatal(ex, $"DisplayMapItems - AddRouteToMap()");
+            }
+
+            return null;
+        }
+
+
         private static ILayer? CreateRouteandTrackLayer(string? strRoute, Mapsui.Styles.Color sColor, IStyle? style = null)
         {
 

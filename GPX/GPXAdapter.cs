@@ -554,6 +554,12 @@ namespace hajk.Adapter
 
         private static async Task Download_And_Save_Offline_Map(GPXViewHolder vh, ViewGroup parent, int menuitem)
         {
+            if (vh == null)
+            {
+                Serilog.Log.Fatal("vh can't be null here");
+                return;
+            }
+
             Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text} / {vh.Id}'");
 
             //If using OSM, cancel out here
@@ -581,41 +587,28 @@ namespace hajk.Adapter
             {
                 await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null);
             }
-
-
-            //Clear existing GPX routes from map, else they will be included in thumbprint
-            Utils.Misc.ClearTrackRoutesFromMap();
-            string mapRouteGPX;
-
-            //Parse and draw route on map
-            if (vh.GPXType == GPXType.Route)
+            else
             {
-                mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Routes[0]).Item1;
-                DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Route, true, vh.Name.Text);
-            }
-            else if (vh.GPXType == GPXType.Track)
-            {
-                mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0]).Item1;
-                DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Track, true, vh.Name.Text);
+                Serilog.Log.Fatal("Unknown and unhandled GPXType");
+                return;
             }
 
             //Create / Update thumbsize map
-            string? ImageBase64String = Import.CreateThumbprintMap(gpx_to_download);
-            route_to_download.ImageBase64String = ImageBase64String;
-            RouteDatabase.SaveRouteAsync(route_to_download).Wait();
-
-            //Update RecycleView with new entry
-            vh?.TrackRouteMap?.SetImageResource(0);
+            string? ImageBase64String = DisplayMapItems.CreateThumbnail(vh.GPXType, gpx_to_download);
             if (ImageBase64String != null)
             {
+                route_to_download.ImageBase64String = ImageBase64String;
+                RouteDatabase.SaveRouteAsync(route_to_download).Wait();
+                
                 var bitmap = Utils.Misc.ConvertStringToBitmap(ImageBase64String);
                 if (bitmap != null)
                 {
+                    vh?.TrackRouteMap?.SetImageResource(0);
                     vh?.TrackRouteMap?.SetImageBitmap(bitmap);
                 }
-            }
 
-            Fragment_gpx.mAdapter?.NotifyItemChanged(menuitem);
+                Fragment_gpx.mAdapter?.NotifyItemChanged(menuitem);
+            }
 
             Toast.MakeText(Platform.AppContext, "Finished downloads", ToastLength.Short)?.Show();
         }
