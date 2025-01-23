@@ -6,6 +6,7 @@ using AndroidX.Fragment;
 using AndroidX.RecyclerView.Widget;
 using GeoTiffCOG.Struture;
 using Google.Android.Material.Navigation;
+using GPXUtils;
 using hajk.Data;
 using hajk.Fragments;
 using hajk.GPX;
@@ -19,7 +20,11 @@ using Mapsui.Utilities;
 using Mapsui;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+using OxyPlot;
 using Serilog;
+using SharpGPX.GPX1_1;
 using SharpGPX;
 using System.Collections.Generic;
 using System.IO;
@@ -27,11 +32,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System;
-using GPXUtils;
-using OxyPlot.Axes;
-using OxyPlot.Series;
-using OxyPlot;
-using Org.Apache.Http.Conn.Routing;
 
 namespace hajk.Adapter
 {
@@ -579,21 +579,65 @@ namespace hajk.Adapter
             await Elevation.GetElevationData(gpx_to_download);
 
             //Get map tiles
-            if (vh.GPXType == GPXType.Route)
+            if (vh.GPXType == GPXType.Route && gpx_to_download.Routes.Count == 1)
             {
                 await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null);
             }
-            else if (vh.GPXType == GPXType.Track)
+            else if (vh.GPXType == GPXType.Track && gpx_to_download.Tracks.Count == 1)
             {
                 await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null);
             }
             else
             {
-                Serilog.Log.Fatal("Unknown and unhandled GPXType");
+                Serilog.Log.Fatal("Unknown and unhandled GPXType or too many routes/tracks in GPX");
                 return;
             }
 
+            //Update route with elevation data
+            await Task.Run(() =>
+            {
+                if (vh.GPXType == GPXType.Route)
+                {
+                    rteType? updated_route = Elevation.LookupElevationData(gpx_to_download.Routes[0]);
+
+                    if (updated_route != null)
+                    {
+                        gpx_to_download.Routes.Clear();
+                        gpx_to_download.Routes.Add(updated_route);
+                        (route_to_download.Ascent, route_to_download.Descent) = Elevation.CalculateAscentDescent(updated_route);
+                    }
+                }
+                else if (vh.GPXType == GPXType.Track)
+                {
+                    trkType? updated_track = Elevation.LookupElevationData(gpx_to_download.Tracks[0]);
+
+                    if (updated_track != null)
+                    {
+                        gpx_to_download.Tracks.Clear();
+                        gpx_to_download.Tracks.Add(updated_track);
+                        (route_to_download.Ascent, route_to_download.Descent) = Elevation.CalculateAscentDescent(updated_track);
+                    }
+                }
+                else
+                {
+                    Serilog.Log.Fatal("Unknown and unhandled GPXType");
+                    return;
+                }
+            });
+
+            //Update with elevation data
+            route_to_download.GPX = gpx_to_download.ToXml();
+            RouteDatabase.SaveRouteAsync(route_to_download).Wait();
+            if (vh.Ascent != null && vh.Descent != null)
+            {
+                vh.Ascent.Text = $"Ascent: {route_to_download.Ascent}m";
+                vh.Descent.Text = $"Descent: {route_to_download.Descent}m";
+
+                Fragment_gpx.mAdapter?.NotifyItemChanged(menuitem);
+            }
+
             //Create / Update thumbsize map
+            Toast.MakeText(Platform.AppContext, "Creating new overview image", ToastLength.Short)?.Show();
             string? ImageBase64String = DisplayMapItems.CreateThumbnail(vh.GPXType, gpx_to_download);
             if (ImageBase64String != null)
             {

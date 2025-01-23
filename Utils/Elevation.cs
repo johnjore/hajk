@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SharpGPX;
+using SharpGPX.GPX1_1;
 using Mapsui.Projections;
 using GeoTiffCOG;
 using GPXUtils;
@@ -170,6 +171,173 @@ namespace hajk
         }
 
         /// <summary>
+        /// Lookup elevation data from a route and return same route with Elevation field populated
+        /// </summary>
+        public static rteType? LookupElevationData(rteType? route)
+        {
+            try
+            {
+                //Any data to process?
+                if (route == null)
+                {
+                    return null;
+                }
+
+                //Progressbar
+                int doneCount = 0;
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync($"Looking up elevation data");
+                    Progressbar.UpdateProgressBar.Progress = 0;
+                    Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {route.rtept.Count}";
+                });
+
+                //Add the GeoTiffFile name to the GPS position
+                for (int i = 0; i < route.rtept.Count; i++)
+                {
+                    //Data
+                    AwesomeTiles.Tile? tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position((double)route.rtept[i].lat, (double)route.rtept[i].lon, 0, null)).FirstOrDefault();
+                    route.rtept[i].src = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{Fragment_Preferences.Elevation_Tile_Zoom}-{tmp1?.X}-{tmp1?.Y}.tif";
+                }
+
+                //Unique filenames
+                var FileNames = route.rtept.Select(x => x.src).AsParallel().Distinct();
+
+                //Loop through each filename and extract the relevant elvation data
+                foreach (var FileName in FileNames)
+                {
+                    if (FileName == null || File.Exists(FileName) == false)
+                    {
+                        Serilog.Log.Error($"COGGeoTIFF - FileName is Null, or does not exist: '{FileName}'");
+                        throw new InvalidOperationException("Filename is null, or does not exist");
+                    }
+
+                    //Loop through identical FileNames
+                    var geoTiff = new GeoTiff(FileName);
+
+                    foreach (var e in route.rtept.Where(p => (p.src == FileName)))
+                    {
+                        try
+                        {
+                            var (y, x) = SphericalMercator.FromLonLat((double)e.lon, (double)e.lat);
+
+                            e.ele = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
+                            e.eleSpecified = true;
+                            Serilog.Log.Information($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters");
+                        }
+                        catch (Exception ex)
+                        {
+                            Serilog.Log.Fatal(ex, "Failed to lookup ElevationData");
+                            throw new InvalidOperationException("Failed to lookup ElevationData");
+                        }
+                        finally
+                        {
+                            //Update progress bar
+                            Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / (route.rtept.Count));
+                            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {route.rtept.Count}";
+                        }
+                    }
+
+                    geoTiff.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Failed to updated GPX with elevation data");
+            }
+            finally
+            {
+                Progressbar.UpdateProgressBar.Dismiss();
+            }
+
+            return route;
+        }
+
+        /// <summary>
+        /// Lookup elevation data from a track and return same trac with Elevation field populated
+        /// </summary>
+        public static trkType? LookupElevationData(trkType? track)
+        {
+            try
+            {
+                //Any data to process?
+                if (track == null)
+                {
+                    return null;
+                }
+
+                //Progressbar
+                int doneCount = 0;
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync($"Looking up elevation data");
+                    Progressbar.UpdateProgressBar.Progress = 0;
+                    Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {track.trkseg[0].trkpt.Count}";
+                });
+
+                //Add the GeoTiffFile name to the GPS position
+                for (int i = 0; i < track.trkseg[0].trkpt.Count; i++)
+                {
+                    //Data
+                    AwesomeTiles.Tile? tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position((double)track.trkseg[0].trkpt[i].lat, (double)track.trkseg[0].trkpt[i].lon, 0, null)).FirstOrDefault();
+                    track.trkseg[0].trkpt[i].src = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{Fragment_Preferences.Elevation_Tile_Zoom}-{tmp1?.X}-{tmp1?.Y}.tif";
+                }
+
+                //Unique filenames
+                var FileNames = track.trkseg[0].trkpt.Select(x => x.src).AsParallel().Distinct();
+
+                //Loop through each filename and extract the relevant elvation data
+                foreach (var FileName in FileNames)
+                {
+                    if (FileName == null || File.Exists(FileName) == false)
+                    {
+                        Serilog.Log.Error($"COGGeoTIFF - FileName is Null, or does not exist: '{FileName}'");
+                        throw new InvalidOperationException("Filename is null, or does not exist");
+                    }
+
+                    //Loop through identical FileNames
+                    var geoTiff = new GeoTiff(FileName);
+
+                    foreach (var e in track.trkseg[0].trkpt.Where(p => (p.src == FileName)))
+                    {
+                        try
+                        {
+                            var (y, x) = SphericalMercator.FromLonLat((double)e.lon, (double)e.lat);
+
+                            e.ele = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
+                            e.eleSpecified = true;
+                            Serilog.Log.Information($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters");
+                        }
+                        catch (Exception ex)
+                        {
+                            Serilog.Log.Fatal(ex, "Failed to lookup ElevationData");
+                            throw new InvalidOperationException("Failed to lookup ElevationData");
+                        }
+                        finally
+                        {
+                            //Update progress bar
+                            Progressbar.UpdateProgressBar.Progress = (int)Math.Floor((decimal)++doneCount * 100 / (track.trkseg[0].trkpt.Count));
+                            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {track.trkseg[0].trkpt.Count}";
+                        }
+                    }
+
+                    geoTiff.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Failed to updated GPX with elevation data");
+            }
+            finally
+            {
+                Progressbar.UpdateProgressBar.Dismiss();
+            }
+
+            return track;
+        }
+
+
+        /// <summary>
         /// Loop through a list of Positions with elevation data and calculate how much ascent and descent
         /// </summary>
         /// <param name="LatLonEle"></param>
@@ -202,9 +370,66 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"CalculateAscentDescent()");
+                Serilog.Log.Fatal(ex, $"CalculateAscentDescent(List<Position>)");
                 return (0, 0);
             }
+        }
+
+        /// <summary>
+        /// Loop through a route with elevation data and calculate how much ascent and descent
+        /// </summary>
+        /// <param name="route"></param>
+        /// <returns>ascent and descent in meters</returns>
+        public static (int, int) CalculateAscentDescent(rteType route)
+        {
+            /**///List of Positions needs slicing to make more granular
+
+            decimal ascent = 0;
+            decimal descent = 0;
+
+            try
+            {
+                for (int j = 0; j < route.rtept.Count - 1; j++)
+                {
+                    var j0 = route.rtept[j].ele;
+                    var j1 = route.rtept[j + 1].ele;
+
+                    if (j0 > j1)
+                    {
+                        descent += j0 - j1;
+                    }
+                    else
+                    {
+                        ascent += j1 - j0;
+                    }
+                }
+
+                return ((int)ascent, (int)descent);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Fatal(ex, $"CalculateAscentDescent(rteType)");
+                return (0, 0);
+            }
+        }
+
+        /// <summary>
+        /// Loop through a route with elevation data and calculate how much ascent and descent
+        /// </summary>
+        /// <param name="track"></param>
+        /// <returns>ascent and descent in meters</returns>
+        public static (int, int) CalculateAscentDescent(trkType track)
+        {
+            var route = track.ToRoutes();
+
+            if (route.Count != 1)
+            {
+                Serilog.Log.Fatal("Why is this not 1?");
+                return (0, 0);
+            }
+
+            (var ascent, var descent) = CalculateAscentDescent(route[0]);
+            return ((int)ascent, (int)descent);
         }
 
         private static async Task<(List<string>?, int)>? DownloadElevationTilesAsync(AwesomeTiles.TileRange? range, int intMissingtiles)
