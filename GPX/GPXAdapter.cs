@@ -625,6 +625,16 @@ namespace hajk.Adapter
                 }
             });
 
+            //Elevation plot, if we have data
+            if (route_to_download.Ascent > 0 || route_to_download.Descent > 0)
+            {
+                var elevationModel = CreatePlotModel(gpx_to_download);
+                if (elevationModel != null && vh.TrackRouteElevation != null)
+                {
+                    vh.TrackRouteElevation.Model = elevationModel;
+                }
+            }
+
             //Update with elevation data
             route_to_download.GPX = gpx_to_download.ToXml();
             RouteDatabase.SaveRouteAsync(route_to_download).Wait();
