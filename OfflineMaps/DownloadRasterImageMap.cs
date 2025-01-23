@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using SQLite;
 using static hajk.TileCache;
 using Microsoft.Maui.Networking;
+using Android.Widget;
 
 namespace hajk
 {
@@ -34,6 +35,7 @@ namespace hajk
                 doneCount = 0;
                 missingTilesCount = 0;
                 totalTilesCount = 0;
+                int intFailedDownloadsCounter = 0;
 
                 //Progress bar
                 _ = Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.DownloadTiles));
@@ -57,7 +59,7 @@ namespace hajk
                     AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
                     if (totalTilesCount > 0 && tiles != null)
                     {
-                        await DownloadTiles(tiles, zoom, TileCache.MbTileCache.sqlConn, map.Id, missingTilesCount, totalTilesCount);
+                        intFailedDownloadsCounter += await DownloadTiles(tiles, zoom, TileCache.MbTileCache.sqlConn, map.Id, missingTilesCount, totalTilesCount);
                     }
                     else
                     {
@@ -67,6 +69,11 @@ namespace hajk
 
                 Progressbar.UpdateProgressBar.Dismiss();
                 Log.Debug($"Done downloading map for {map.Id}");
+
+                if (intFailedDownloadsCounter > 0)
+                {
+                    Toast.MakeText(Platform.AppContext, $"{intFailedDownloadsCounter} map tiles failed to download", ToastLength.Long)?.Show();
+                }
 
                 if (ShowDialog)
                 {
@@ -107,22 +114,23 @@ namespace hajk
             return (CountTotalTiles, CountMissingTiles);
         }
 
-        private static async Task DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id, int intmissingTiles, int inttotalTiles)
+        private static async Task<int> DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id, int intmissingTiles, int inttotalTiles)
         {
             string OSMServer = string.Empty;
             string TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
-           
+            int FailedDownloadsCounter = 0;
+
             var MapSource = Fragment_Preferences.MapSources.Where(x => x.Name.Equals(TileBulkDownloadSource, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             if (MapSource == null)
             {
                 Serilog.Log.Error("No MapSource defined");
-                return;
+                return -1;
             }
 
             if (TileBulkDownloadSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
             {
                 Serilog.Log.Error("Can't use OSM as a bulkdownload server");
-                return;
+                return -1;
             }
             else if (TileBulkDownloadSource.Equals("Custom", StringComparison.OrdinalIgnoreCase))
             {
@@ -141,7 +149,7 @@ namespace hajk
                     var a = $"{TileBulkDownloadSource} requires the token to be set";
                     await msg.ShowDialog($"Token Required", a, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.CANCEL, Show_Dialog.MessageResult.NONE);
 
-                    return;
+                    return -1;
                 }
 
                 OSMServer = MapSource.BaseURL + token;
@@ -153,7 +161,7 @@ namespace hajk
                 {
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
                     tiles newTile = new();
-
+                    
                     for (int i = 0; i < 10; i++)
                     {
                         tiles oldTile;
@@ -204,6 +212,13 @@ namespace hajk
 
                                 //Break out of loop as we have an updatd blob
                                 break;
+                            }
+                            else
+                            {
+                                if (i == 9) //Last attempt
+                                {
+                                    FailedDownloadsCounter++;
+                                }
                             }
                         }
                         catch (Exception ex)
@@ -258,6 +273,8 @@ namespace hajk
             {
                 Log.Fatal(ex, $"DownloadRasterImageMap - DownloadTiles()");
             }
+
+            return FailedDownloadsCounter;
         }
 
         public static async Task<byte[]> DownloadImageAsync(string imageUrl)

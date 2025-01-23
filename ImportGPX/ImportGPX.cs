@@ -304,7 +304,7 @@ namespace hajk
                 if (DownloadOfflineMap)
                 {
                     var b = new boundsType(p.Lat, p.Lat, p.Lon, p.Lon);
-                    GetloadOfflineMap(b, -1, null, false);
+                    GetloadOfflineMap(b, -1, null);
                 }
             }
             catch (Exception ex)
@@ -400,7 +400,7 @@ namespace hajk
                     }
 
                     //Map tiles
-                    await GetloadOfflineMap(route.GetBounds(), r.Id, null, false);
+                    await GetloadOfflineMap(route.GetBounds(), r.Id, null);
                 }
 
                 //Create thumbsize map and save to DB
@@ -515,7 +515,7 @@ namespace hajk
                     }
 
                     //Map tiles
-                    await GetloadOfflineMap(track.GetBounds(), r.Id, null, false);
+                    await GetloadOfflineMap(track.GetBounds(), r.Id, null);
                 }
 
                 //Create thumbsize map and save to DB
@@ -592,7 +592,7 @@ namespace hajk
             return null;
         }
 
-        public static async Task GetloadOfflineMap(boundsType bounds, int id, string strFilePath, bool ShowDialog)
+        public static async Task GetloadOfflineMap(boundsType bounds, int id, string? strFilePath)
         {
             try
             {
@@ -625,7 +625,7 @@ namespace hajk
             }
         }
 
-        public static (string?, float, List<GPXUtils.Position>?) ParseGPXtoRoute(rteType route)
+        public static (string?, float, List<GPXUtils.Position>?) ParseGPXtoRoute(rteType? route)
         {
             try
             {

@@ -54,7 +54,7 @@ namespace hajk.Adapter
         {
             try
             {
-                GPXViewHolder vh = holder as GPXViewHolder;
+                GPXViewHolder? vh = holder as GPXViewHolder;
 
                 if (vh == null || vh.Name == null || vh.Distance == null || vh.Ascent == null || vh.Descent == null || vh.GPXTypeLogo == null || vh.TrackRouteMap == null || vh.TrackRouteElevation == null)
                     return;
@@ -259,9 +259,9 @@ namespace hajk.Adapter
                         //Fix menu text
                         if (vh.GPXType == GPXType.Track)
                         {
-                            popup.Menu.FindItem(Resource.Id.gpx_menu_followroute).SetTitle(Resource.String.follow_track);
-                            popup.Menu.FindItem(Resource.Id.gpx_menu_deleteroute).SetTitle(Resource.String.delete_track);
-                            popup.Menu.FindItem(Resource.Id.gpx_menu_reverseroute).SetTitle(Resource.String.Reverse_track);
+                            popup?.Menu?.FindItem(Resource.Id.gpx_menu_followroute)?.SetTitle(Resource.String.follow_track);
+                            popup?.Menu?.FindItem(Resource.Id.gpx_menu_deleteroute)?.SetTitle(Resource.String.delete_track);
+                            popup?.Menu?.FindItem(Resource.Id.gpx_menu_reverseroute)?.SetTitle(Resource.String.Reverse_track);
                         }
 
                         popup.MenuItemClick += async (s, args) =>
@@ -269,31 +269,31 @@ namespace hajk.Adapter
                             switch (args?.Item?.ItemId)
                             {
                                 case var value when value == Resource.Id.gpx_menu_followroute:
-                                    gpx_menu_followroute(vh, parent);
+                                    Gpx_Menu_Followroute(vh, parent);
 
                                     break;
                                 case var value when value == Resource.Id.gpx_menu_showonmap:
-                                    gpx_menu_showonmap(vh, parent);
+                                    Gpx_Menu_ShowOnMap(vh, parent);
 
                                     break;
                                 case var value when value == Resource.Id.gpx_menu_deleteroute:
-                                    await gpx_menu_deleteroute(vh);
+                                    await Gpx_Menu_DeleteRoute(vh);
 
                                     break;
                                 case var value when value == Resource.Id.gpx_menu_reverseroute:
-                                    gpx_menu_reverseroute(vh);
+                                    Gpx_Menu_ReverseRoute(vh);
 
                                     break;
                                 case var value when value == Resource.Id.gpx_menu_exportgpx:
-                                    gpx_menu_exportgpx(vh, parent);
+                                    Gpx_Menu_Exportgpx(vh, parent);
 
                                     break;
                                 case var value when value == Resource.Id.gpx_menu_exportmap:
-                                    gpx_menu_exportmap(vh, parent);
+                                    Gpx_Menu_Exportmap(vh, parent);
 
                                     break;
                                 case var value when value == Resource.Id.gpx_menu_saveofflinemap:
-                                    await download_and_save_offline_map(vh, parent, args.Item.ItemId);
+                                    await Download_And_Save_Offline_Map(vh, parent, args.Item.ItemId);
 
                                     break;
                             }
@@ -313,7 +313,7 @@ namespace hajk.Adapter
             return null;
         }
 
-        private void ToggleMapElevationProfile(GPXViewHolder vh)
+        private static void ToggleMapElevationProfile(GPXViewHolder vh)
         {
             vh.TrackRouteElevation.SetMinimumHeight(vh.TrackRouteMap.Height);
 
@@ -343,7 +343,7 @@ namespace hajk.Adapter
         }
         */
 
-        private void gpx_menu_followroute(GPXViewHolder vh, ViewGroup parent)
+        private static void Gpx_Menu_Followroute(GPXViewHolder vh, ViewGroup parent)
         {
             Log.Information($"Follow route or track '{vh.Name.Text}'");
 
@@ -371,9 +371,9 @@ namespace hajk.Adapter
             //Fragment_map.mapControl.Map.Navigator.ZoomTo(PrefsActivity.MaxZoom);
 
             //Show the full route
-            var min_1 = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
-            var max_1 = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
-            Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min_1.x, min_1.y, max_1.x, max_1.y), MBoxFit.Fit);
+            var (x1, y1) = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
+            var (x2, y2) = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+            Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(x1, y1, x2, y2), MBoxFit.Fit);
 
             //Switch to map
             ProcessFragmentChanges.SwitchFragment(Fragment_Preferences.Fragment_Map, (FragmentActivity)parent?.Context);
@@ -385,7 +385,7 @@ namespace hajk.Adapter
             RecordTrack.StartTrackTimer();
         }
 
-        private void gpx_menu_showonmap(GPXViewHolder vh, ViewGroup parent)
+        private static void Gpx_Menu_ShowOnMap(GPXViewHolder vh, ViewGroup parent)
         {
             Log.Information($"Show route on map '{vh.Name.Text}'");
 
@@ -426,7 +426,7 @@ namespace hajk.Adapter
             }
         }
 
-        private async Task gpx_menu_deleteroute(GPXViewHolder vh)
+        private async Task Gpx_Menu_DeleteRoute(GPXViewHolder vh)
         {
             Log.Information($"Delete route '{vh.Name.Text}'");
 
@@ -445,7 +445,7 @@ namespace hajk.Adapter
             }
         }
 
-        private void gpx_menu_reverseroute(GPXViewHolder vh)
+        private static void Gpx_Menu_ReverseRoute(GPXViewHolder vh)
         {
             Log.Information($"Reverse route '{vh.Name.Text}'");
 
@@ -480,17 +480,17 @@ namespace hajk.Adapter
             Fragment_gpx.mAdapter.NotifyDataSetChanged();
         }
 
-        private void gpx_menu_exportgpx(GPXViewHolder vh, ViewGroup parent)
+        private static void Gpx_Menu_Exportgpx(GPXViewHolder vh, ViewGroup parent)
         {
             Log.Information($"Export route '{vh.Name.Text}'");
 
-            Android.Views.View view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
-            AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder = new(parent.Context);
+            Android.Views.View? view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
+            AndroidX.AppCompat.App.AlertDialog.Builder? alertbuilder = new(parent.Context);
             alertbuilder.SetView(view);
-            var userdata = view.FindViewById<EditText>(Resource.Id.editText);
+            EditText? userdata = view?.FindViewById<EditText>(Resource.Id.editText);
             userdata.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".gpx";
 
-            alertbuilder.SetCancelable(false)
+            alertbuilder?.SetCancelable(false)
             .SetPositiveButton(Resource.String.Submit, delegate
             {
                 //Get the route
@@ -508,15 +508,15 @@ namespace hajk.Adapter
                 {
                     alertbuilder.Dispose();
                 });
-            AndroidX.AppCompat.App.AlertDialog dialog = alertbuilder.Create();
-            dialog.Show();
+            AndroidX.AppCompat.App.AlertDialog dialog = alertbuilder?.Create();
+            dialog?.Show();
         }
                             
-        private void gpx_menu_exportmap(GPXViewHolder vh, ViewGroup parent)
+        private static void Gpx_Menu_Exportmap(GPXViewHolder? vh, ViewGroup parent)
         {
-            Log.Information($"Export Map '{vh.Name.Text}'");
+            Log.Information($"Export Map '{vh?.Name.Text}'");
 
-            Android.Views.View view2 = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
+            Android.Views.View? view2 = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
             AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder2 = new(parent.Context);
             alertbuilder2.SetView(view2);
             var userdata2 = view2.FindViewById<EditText>(Resource.Id.editText);
@@ -535,12 +535,12 @@ namespace hajk.Adapter
 
                     if (vh.GPXType == GPXType.Track)
                     {
-                        Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, mbtTilesPath, false);
+                        Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, mbtTilesPath);
                     }
 
                     if (vh.GPXType == GPXType.Route)
                     {
-                        Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, mbtTilesPath, false);
+                        Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, mbtTilesPath);
                     }
                 }
             })
@@ -552,7 +552,7 @@ namespace hajk.Adapter
             dialog2.Show();
         }
 
-        private async Task download_and_save_offline_map(GPXViewHolder vh, ViewGroup parent, int menuitem)
+        private static async Task Download_And_Save_Offline_Map(GPXViewHolder vh, ViewGroup parent, int menuitem)
         {
             Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text} / {vh.Id}'");
 
@@ -566,34 +566,41 @@ namespace hajk.Adapter
                 return;
             }
 
-            //Clear existing GPX routes from map, else they will be included
-            Utils.Misc.ClearTrackRoutesFromMap();
-
             var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
             GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
 
             //Get elevation data first
-            Elevation.GetElevationData(gpx_to_download);
+            await Elevation.GetElevationData(gpx_to_download);
 
-            string mapRouteGPX = string.Empty;
-            if (vh.GPXType == GPXType.Track)
+            //Get map tiles
+            if (vh.GPXType == GPXType.Route)
             {
-                await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null, true);
+                await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null);
+            }
+            else if (vh.GPXType == GPXType.Track)
+            {
+                await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null);
+            }
 
+
+            //Clear existing GPX routes from map, else they will be included in thumbprint
+            Utils.Misc.ClearTrackRoutesFromMap();
+            string mapRouteGPX;
+
+            //Parse and draw route on map
+            if (vh.GPXType == GPXType.Route)
+            {
+                mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Routes[0]).Item1;
+                DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Route, true, vh.Name.Text);
+            }
+            else if (vh.GPXType == GPXType.Track)
+            {
                 mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Tracks[0].ToRoutes()[0]).Item1;
                 DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Track, true, vh.Name.Text);
             }
 
-            if (vh.GPXType == GPXType.Route)
-            {
-                await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null, false);
-
-                mapRouteGPX = Import.ParseGPXtoRoute(gpx_to_download.Routes[0]).Item1;
-                DisplayMapItems.AddRouteToMap(mapRouteGPX, GPXType.Route, true, vh.Name.Text);
-            }
-
             //Create / Update thumbsize map
-            string ImageBase64String = Import.CreateThumbprintMap(gpx_to_download);
+            string? ImageBase64String = Import.CreateThumbprintMap(gpx_to_download);
             route_to_download.ImageBase64String = ImageBase64String;
             RouteDatabase.SaveRouteAsync(route_to_download).Wait();
 
@@ -608,7 +615,9 @@ namespace hajk.Adapter
                 }
             }
 
-            Fragment_gpx.mAdapter.NotifyItemChanged(menuitem);
+            Fragment_gpx.mAdapter?.NotifyItemChanged(menuitem);
+
+            Toast.MakeText(Platform.AppContext, "Finished downloads", ToastLength.Short)?.Show();
         }
     }
 }

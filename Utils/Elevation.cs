@@ -68,8 +68,12 @@ namespace hajk
                     return true;
                 }
 
-                //Download tiles
-                await DownloadElevationTilesAsync(tiles, intMissingTiles);
+                //Download elevation tiles
+                (List<string>? FileNames, int MissingTilesCounter) = await DownloadElevationTilesAsync(tiles, intMissingTiles);
+                if (MissingTilesCounter > 0)
+                {
+                    Toast.MakeText(Platform.AppContext, $"{MissingTilesCounter} elevation tiles failed to download", ToastLength.Long)?.Show();
+                }
 
                 //Current contents
                 /*Serilog.Log.Debug("Files in GeoTiff Folder (after downloads):");
@@ -110,7 +114,7 @@ namespace hajk
                 for (int i = 0; i < ListLatLon.Count; i++)
                 {
                     //Data
-                    var tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position(ListLatLon[i].Latitude, ListLatLon[i].Longitude, 0, null)).FirstOrDefault();
+                    AwesomeTiles.Tile? tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position(ListLatLon[i].Latitude, ListLatLon[i].Longitude, 0, null)).FirstOrDefault();
                     ListLatLon[i].GeoTiffFileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{Fragment_Preferences.Elevation_Tile_Zoom}-{tmp1?.X}-{tmp1?.Y}.tif";
 
                     //Update progress bar
@@ -203,17 +207,18 @@ namespace hajk
             }
         }
 
-        private static async Task<List<string>?>? DownloadElevationTilesAsync(AwesomeTiles.TileRange? range, int intMissingtiles)
+        private static async Task<(List<string>?, int)>? DownloadElevationTilesAsync(AwesomeTiles.TileRange? range, int intMissingtiles)
         {
             if (range == null)
             {
-                return [];
+                return ([], -1);
             }
 
             //Misc
             List<string> FileNames = [];
             string COGGeoTiffServer = Fragment_Preferences.COGGeoTiffServer;
             int doneCount = 0;
+            int FailedtoDownloadTilesCounter = 0;
 
             //Progress bar
             _ = Progressbar.UpdateProgressBar.CreateGUIAsync($"Downloading elevation tiles");
@@ -222,8 +227,8 @@ namespace hajk
 
             await Task.Run(() =>
             {
-            try
-            {
+                try
+                {
                     foreach (var tile in range)
                     {
                         var LocalFileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
@@ -253,22 +258,26 @@ namespace hajk
                                 else
                                 {
                                     Serilog.Log.Information($"Failed to download Elevation Tile: x/y: {tile.X}/{tile.Y}, ID: {tile.Id} on attempt '{i}'");
+                                    if (i == 9)
+                                    {
+                                        FailedtoDownloadTilesCounter++;
+                                    }
                                 }
                             }
                         }
                     };
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, $"COGGeoTIFF - DownloadElevationTiles()");
-            }
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Fatal(ex, $"COGGeoTIFF - DownloadElevationTiles()");
+                }
                 finally
                 {
                     Progressbar.UpdateProgressBar.Dismiss();
                 }
             });
 
-            return FileNames;
+            return (FileNames, FailedtoDownloadTilesCounter);
         }
 
         private static void WriteCOGGeoTiff(string? imageUrl, byte[]? data)
