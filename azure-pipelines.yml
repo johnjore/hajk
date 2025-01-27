@@ -26,16 +26,18 @@ steps:
     versionCodeOption: 'timestamp'
     printFile: true
 
-- task: UseDotNet@3
+- task: UseDotNet@2
   displayName: 'Install .NET sdk'
   inputs:
     packageType: sdk
+    version: '9.x'
+    installationPath: '$(Agent.ToolsDirectory)/dotnet'
     versionSpec: $(dotnet_version)
     
-- task: CmdLine@2
-  displayName: 'Install Maui Workload'
-  inputs:
-    script: 'dotnet workload install maui-android'
+#- task: CmdLine@2
+#  displayName: 'Install Maui Workload'
+#  inputs:
+#    script: 'dotnet workload install maui-android'
 
 #- task: XamarinAndroid@1
 #  inputs:
