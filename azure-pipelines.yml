@@ -11,6 +11,7 @@ pool:
 variables:
   buildConfiguration: 'Release'
   outputDirectory: '$(build.binariesDirectory)/$(buildConfiguration)'
+  dotnet_version: '9.0'
 
 steps:
 - task: NuGetToolInstaller@1
@@ -19,38 +20,47 @@ steps:
   inputs:
     restoreSolution: '**/*.sln'
 
-- task: android-manifest-version@2
+- task: android-manifest-version@1
   inputs:
     sourcePath: './AndroidManifest.xml'
     versionCodeOption: 'timestamp'
     printFile: true
 
-- task: UseDotNet@2
+- task: UseDotNet@3
   displayName: 'Install .NET sdk'
   inputs:
     packageType: sdk
+    versionSpec: $(dotnet_version)
     
 - task: CmdLine@2
   displayName: 'Install Maui Workload'
   inputs:
     script: 'dotnet workload install maui-android'
 
-- task: XamarinAndroid@1
-  inputs:
-    projectFile: '**/hajk.csproj'
-    outputDirectory: '$(outputDirectory)'
-    configuration: '$(buildConfiguration)'
-    msbuildVersionOption: 'latest'
-    jdkOption: 'JDKVersion'
-    jdkVersionOption: '1.11'
+#- task: XamarinAndroid@1
+#  inputs:
+#    projectFile: '**/hajk.csproj'
+#    outputDirectory: '$(outputDirectory)'
+#    configuration: '$(buildConfiguration)'
+#    msbuildVersionOption: 'latest'
+#    jdkOption: 'JDKVersion'
+#    jdkVersionOption: '1.11'
 
-- task: AndroidSigning@3
+#- task: AndroidSigning@3
+#  inputs:
+#      apkFiles: '$(outputDirectory)\*.apk'
+#      apksignerKeystoreFile: 'hajk.keystore'
+#      apksignerKeystorePassword: '$(Keystore_Password)'
+#      apksignerKeystoreAlias: 'Kala'
+#      apksignerKeyPassword: '$(Keystore_Password)'
+
+- task: BuildAndroid@1
   inputs:
-      apkFiles: '$(outputDirectory)\*.apk'
-      apksignerKeystoreFile: 'hajk.keystore'
-      apksignerKeystorePassword: '$(Keystore_Password)'
-      apksignerKeystoreAlias: 'Kala'
-      apksignerKeyPassword: '$(Keystore_Password)'
+      androidSdkDirectory: '$(Agent.ToolsDirectory)/dotnet'
+      keystoreFile: 'hajk.keystore'
+      keystorePassword: '$(Keystore_Password)'
+      keyAlias: 'Kala'
+      keyAliasPassword: '$(Keystore_Password)'
 
 - task: PublishBuildArtifacts@1
   inputs:
