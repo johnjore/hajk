@@ -19,7 +19,7 @@ steps:
   inputs:
     restoreSolution: '**/*.sln'
 
-- task: android-manifest-version@1
+- task: android-manifest-version@2
   inputs:
     sourcePath: './AndroidManifest.xml'
     versionCodeOption: 'timestamp'
