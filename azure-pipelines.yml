@@ -1,6 +1,4 @@
-# Xamarin.Android
-# Add steps that test, sign, and distribute an app, save build artifacts, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/xamarin
+name: Build  .NET MAUI Android app
 
 trigger:
 - master
@@ -32,12 +30,11 @@ steps:
     packageType: sdk
     version: '9.x'
     installationPath: '$(Agent.ToolsDirectory)/dotnet'
-    versionSpec: $(dotnet_version)
     
-#- task: CmdLine@2
-#  displayName: 'Install Maui Workload'
-#  inputs:
-#    script: 'dotnet workload install maui-android'
+- task: CmdLine@2
+  displayName: 'Install Maui Workload'
+  inputs:
+    script: 'dotnet workload install maui-android'
 
 #- task: XamarinAndroid@1
 #  inputs:
@@ -48,6 +45,12 @@ steps:
 #    jdkOption: 'JDKVersion'
 #    jdkVersionOption: '1.11'
 
+- task: CmdLine@2
+  displayName: 'Build project'
+  inputs:
+    script: |
+      dotnet publish $(app-path-project) -f $(app-target-framework-android) -c Release /p:ApplicationId=$(app-id-android) /p:ApplicationDisplayVersion=$(MAJOR).$(MINOR).$(PATCH).$(PRE_RELEASE) /p:ApplicationVersion=$(MAJOR)$(MINOR)$(PATCH)$(PRE_RELEASE) /p:AndroidSigningKeyPass=$(key-password) /p:AndroidSigningStorePass=$(keystore-password) /p:AndroidSigningKeyStore=$(System.DefaultWorkingDirectory)\\$(keystore-filename) /p:AndroidSigningKeyAlias=$(keystore-alias) /p:AndroidKeyStore=true
+    
 #- task: AndroidSigning@3
 #  inputs:
 #      apkFiles: '$(outputDirectory)\*.apk'
@@ -55,14 +58,6 @@ steps:
 #      apksignerKeystorePassword: '$(Keystore_Password)'
 #      apksignerKeystoreAlias: 'Kala'
 #      apksignerKeyPassword: '$(Keystore_Password)'
-
-- task: BuildAndroid@1
-  inputs:
-      androidSdkDirectory: '$(Agent.ToolsDirectory)/dotnet'
-      keystoreFile: 'hajk.keystore'
-      keystorePassword: '$(Keystore_Password)'
-      keyAlias: 'Kala'
-      keyAliasPassword: '$(Keystore_Password)'
 
 - task: PublishBuildArtifacts@1
   inputs:
