@@ -35,7 +35,6 @@
     <None Remove="Resources\layout\get_userinput.xml" />
     <None Remove="Resources\layout\nav_header_main.xml" />
     <None Remove="Resources\layout\progressbardialog.xml" />
-    <None Remove="Resources\mipmap-anydpi-v26\ic_launcher.xml" />
     <None Remove="Resources\mipmap-anydpi-v26\ic_launcher_round.xml" />
     <None Remove="Resources\mipmap-hdpi\ic_launcher.png" />
     <None Remove="Resources\mipmap-hdpi\ic_launcher_foreground.png" />
