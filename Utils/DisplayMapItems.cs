@@ -240,7 +240,6 @@ namespace hajk
             return null;
         }
 
-
         private static ILayer? CreateRouteandTrackLayer(string? strRoute, Mapsui.Styles.Color sColor, IStyle? style = null)
         {
 
@@ -403,6 +402,8 @@ namespace hajk
                     SymbolScale = 1.0f,
                     RotateWithMap = true,
                     BitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource(svg),
+                    MaxVisible = 30.0f,
+                    MinVisible = 0.0f,
                 });
 
                 features.Add(feature);
