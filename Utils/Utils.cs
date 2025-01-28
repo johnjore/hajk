@@ -212,13 +212,22 @@ namespace Utils
                 return;
             }
 
+            
             using (var alert = new AlertDialog.Builder(Platform.CurrentActivity))
             {
                 alert.SetTitle(Platform.CurrentActivity?.Resources?.GetString(hajk.Resource.String.ExitTitle));
                 alert.SetMessage(Platform.CurrentActivity?.Resources?.GetString(hajk.Resource.String.ExitPrompt));
                 alert.SetPositiveButton(hajk.Resource.String.Yes, (sender, args) => 
-                { 
-                    Platform.CurrentActivity?.FinishAffinity(); 
+                {
+                    Task.Run(async () =>
+                    {
+                        if ((Preferences.Get("RecordingTrack", false) == true))
+                        {
+                            await RecordTrack.EndTrackTimer();
+                        }
+
+                        Platform.CurrentActivity?.FinishAffinity();
+                    });
                 });
                 alert.SetNegativeButton(hajk.Resource.String.No, (sender, args) => 
                 {
