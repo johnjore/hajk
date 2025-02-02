@@ -14,6 +14,7 @@ using GeoTiffCOG;
 using GPXUtils;
 using Android.Widget;
 
+
 namespace hajk
 {
     internal class Elevation
@@ -214,15 +215,25 @@ namespace hajk
 
                     //Loop through identical FileNames
                     var geoTiff = new GeoTiff(FileName);
+                    Serilog.Log.Information($"Loking up Elevation data in: {FileName}");
 
                     foreach (var e in route.rtept.Where(p => (p.src == FileName)))
                     {
+                        double y, x;
+                        float f = 0.0f;
+                        decimal g;
+
                         try
                         {
-                            var (y, x) = SphericalMercator.FromLonLat((double)e.lon, (double)e.lat);
+                            Serilog.Log.Information($"Looking up: {e.lat}, {e.lon} in {e.src}");
+                            //(y, x) = SphericalMercator.FromLonLat((double)e.lon, (double)e.lat);
+                            //f = geoTiff.GetElevationAtLatLon(x, y);
+                            f = geoTiff.GetElevationAtLatLon((double)e.lat, (double)e.lon);
 
-                            e.ele = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
+                            g = Convert.ToDecimal(f);
+                            e.ele = g;
                             e.eleSpecified = true;
+
                             Serilog.Log.Information($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters");
                         }
                         catch (Exception ex)
