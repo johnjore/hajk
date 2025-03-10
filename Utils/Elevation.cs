@@ -201,7 +201,7 @@ namespace hajk
                 }
 
                 //Unique filenames
-                var FileNames = route.rtept.Select(x => x.src).AsParallel().Distinct();
+                var FileNames = route.rtept.Select(x => x.src).Distinct().Order();
 
                 //Loop through each filename and extract the relevant elvation data
                 foreach (var FileName in FileNames)
