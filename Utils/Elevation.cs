@@ -143,15 +143,18 @@ namespace hajk
                     foreach (var e in ListLatLon.Where(p => (p.GeoTiffFileName == FileName)))
                     {
                         var (y, x) = SphericalMercator.FromLonLat((double)e.Longitude, (double)e.Latitude);
+
                         try
                         {
                             e.Elevation = geoTiff.GetElevationAtLatLon(x, y);
-                            Serilog.Log.Information($"Elevaton at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                            e.ElevationSpecified = true;
+                            Serilog.Log.Debug($"Elevaton at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
                         }
                         catch (Exception ex)
                         {
-                            Serilog.Log.Fatal(ex, "Failed to lookup ElevationData");
-                            throw new InvalidOperationException("Failed to lookup ElevationData");
+                            Serilog.Log.Error(ex, $"Failed to lookup ElevationData for x:{x} and y:{y} in {FileName}");
+                            e.Elevation = 0;
+                            e.ElevationSpecified = false;
                         }
 
                         //Update progress bar
@@ -213,22 +216,23 @@ namespace hajk
                     }
 
                     //Loop through identical FileNames
+                    Serilog.Log.Information($"Looking Up Elevation Data in '{FileName}'");
                     var geoTiff = new GeoTiff(FileName);
 
                     foreach (var e in route.rtept.Where(p => (p.src == FileName)))
                     {
+                        var (y, x) = SphericalMercator.FromLonLat((double)e.lon, (double)e.lat);
                         try
-                        {
-                            var (y, x) = SphericalMercator.FromLonLat((double)e.lon, (double)e.lat);
-
+                        {                        
                             e.ele = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
                             e.eleSpecified = true;
-                            Serilog.Log.Information($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters");
+                            Serilog.Log.Debug($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters in FileName '{FileName}'");
                         }
                         catch (Exception ex)
                         {
-                            Serilog.Log.Fatal(ex, "Failed to lookup ElevationData");
-                            throw new InvalidOperationException("Failed to lookup ElevationData");
+                            Serilog.Log.Error(ex, $"Failed to lookup ElevationData for x:{x}, y{y} in {FileName}");
+                            e.ele = 0;
+                            e.eleSpecified = false;
                         }
                         finally
                         {
@@ -300,18 +304,19 @@ namespace hajk
 
                     foreach (var e in track.trkseg[0].trkpt.Where(p => (p.src == FileName)))
                     {
+                        var (y, x) = SphericalMercator.FromLonLat((double)e.lon, (double)e.lat);
+
                         try
                         {
-                            var (y, x) = SphericalMercator.FromLonLat((double)e.lon, (double)e.lat);
-
                             e.ele = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
                             e.eleSpecified = true;
-                            Serilog.Log.Information($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters");
+                            Serilog.Log.Debug($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters");
                         }
                         catch (Exception ex)
                         {
-                            Serilog.Log.Fatal(ex, "Failed to lookup ElevationData");
-                            throw new InvalidOperationException("Failed to lookup ElevationData");
+                            Serilog.Log.Error(ex, $"Failed to lookup ElevationData for x:{x}, y{y} in {FileName}");
+                            e.ele = 0;
+                            e.eleSpecified = false;                            
                         }
                         finally
                         {
@@ -349,12 +354,15 @@ namespace hajk
             double ascent = 0;
             double descent = 0;
 
+            //Only include where "ElevationSpecified == true"
+            var filtered_list = LatLonEle.Where(x => x.ElevationSpecified == true).ToList();
+
             try
             {
-                for (int j = 0; j < LatLonEle.Count - 1; j++)
+                for (int j = 0; j < filtered_list.Count - 1; j++)
                 {
-                    var j0 = LatLonEle[j].Elevation;
-                    var j1 = LatLonEle[j + 1].Elevation;
+                    var j0 = filtered_list[j].Elevation;
+                    var j1 = filtered_list[j + 1].Elevation;
 
                     if (j0 > j1)
                     {
@@ -386,13 +394,16 @@ namespace hajk
 
             decimal ascent = 0;
             decimal descent = 0;
+            
+            //Only include where "eleSpecified == true"
+            var filtered_route = route.rtept.Where(x => x.eleSpecified == true).ToList();
 
             try
             {
-                for (int j = 0; j < route.rtept.Count - 1; j++)
+                for (int j = 0; j < filtered_route.Count - 1; j++)
                 {
-                    var j0 = route.rtept[j].ele;
-                    var j1 = route.rtept[j + 1].ele;
+                    var j0 = filtered_route[j].ele;
+                    var j1 = filtered_route[j + 1].ele;
 
                     if (j0 > j1)
                     {
