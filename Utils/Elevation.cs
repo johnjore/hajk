@@ -21,7 +21,7 @@ namespace hajk
         /// <summary>
         /// Download Elevation data files (GeoTiff) from AWS S3 bucket
         /// </summary>
-        public static async Task<bool> GetElevationData(GpxClass gpx)
+        public static async Task<bool> DownloadElevationData(GpxClass gpx)
         {
             try
             {

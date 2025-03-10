@@ -582,8 +582,8 @@ namespace hajk.Adapter
             var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
             GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
 
-            //Get elevation data first
-            await Elevation.GetElevationData(gpx_to_download);
+            //Download elevation data first
+            await Elevation.DownloadElevationData(gpx_to_download);
 
             //Get map tiles
             if (vh.GPXType == GPXType.Route && gpx_to_download.Routes.Count == 1)

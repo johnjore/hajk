@@ -389,7 +389,7 @@ namespace hajk
                 if (DownloadOfflineMap)
                 {
                     //GeoTiff files
-                    await Elevation.GetElevationData(newGPX);
+                    await Elevation.DownloadElevationData(newGPX);
 
                     //Calculate ascent/descent
                     List<GPXUtils.Position>? tmp = await Elevation.LookupElevationData(LatLon);
@@ -504,7 +504,7 @@ namespace hajk
                 if (DownloadOfflineMap)
                 {
                     //GeoTiff files
-                    await Elevation.GetElevationData(newGPX);
+                    await Elevation.DownloadElevationData(newGPX);
 
                     //Calculate ascent/descent
                     List<GPXUtils.Position>? tmp = await Elevation.LookupElevationData(LatLon);
