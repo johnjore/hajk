@@ -126,7 +126,7 @@ namespace hajk
                 }
 
                 //Unique filenames
-                var FileNames = ListLatLon.Select(x => x.GeoTiffFileName).AsParallel().Distinct();
+                var FileNames = ListLatLon.Select(x => x.GeoTiffFileName).Distinct().Order();
 
                 //Loop through each filename and extract the relevant elvation data
                 foreach (var FileName in FileNames)
