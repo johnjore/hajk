@@ -196,7 +196,7 @@ namespace hajk
                 for (int i = 0; i < route.rtept.Count; i++)
                 {
                     //Data
-                    AwesomeTiles.Tile? tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position((double)route.rtept[i].lat, (double)route.rtept[i].lon, 0, null)).FirstOrDefault();
+                    AwesomeTiles.Tile? tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position((double)route.rtept[i].lat, (double)route.rtept[i].lon, 0, false, null))?.FirstOrDefault();
                     route.rtept[i].src = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{Fragment_Preferences.Elevation_Tile_Zoom}-{tmp1?.X}-{tmp1?.Y}.tif";
                 }
 
