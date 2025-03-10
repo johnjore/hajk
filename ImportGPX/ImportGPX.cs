@@ -636,12 +636,12 @@ namespace hajk
 
                 float mapDistance_m = 0.0f;
                 var p = new PositionHandler();
-                var p2 = new GPXUtils.Position(0, 0, 0, null);
+                var p2 = new GPXUtils.Position(0, 0, 0, false, null);
                 List<GPXUtils.Position> ListLatLon = [];
 
                 for (int i = 0; i < route.rtept.Count; i++)
                 {
-                    ListLatLon.Add(new GPXUtils.Position((double)route.rtept[i].lat, (double)route.rtept[i].lon, 0, null));
+                    ListLatLon.Add(new GPXUtils.Position((double)route.rtept[i].lat, (double)route.rtept[i].lon, 0, false, null));
 
                     var rtePteExt = route.rtept[i].GetExt<RoutePointExtension>();
                     if (rtePteExt != null)
@@ -650,28 +650,28 @@ namespace hajk
 
                         for (int j = 0; j < rtePteExt.rpt.Count; j++)
                         {
-                            ListLatLon.Add(new GPXUtils.Position((double)rtePteExt.rpt[j].lat, (double)rtePteExt.rpt[j].lon, 0, null));
+                            ListLatLon.Add(new GPXUtils.Position((double)rtePteExt.rpt[j].lat, (double)rtePteExt.rpt[j].lon, 0, false, null));
 
                             //Previous leg
                             if (j == 0 && p2.Latitude != 0 && p2.Longitude != 0)
                             {
-                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, null);
+                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, false, null);
                                 mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
 
                             //First leg
                             if (j == 0)
                             {
-                                var p1 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0, null);
-                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, null);
+                                var p1 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0, false, null);
+                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, false, null);
                                 mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
 
                             //All other legs
                             if (j >= 1)
                             {
-                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j - 1].lat, (float)rtePteExt.rpt[j - 1].lon, 0, null);
-                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, null);
+                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j - 1].lat, (float)rtePteExt.rpt[j - 1].lon, 0, false, null);
+                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, false, null);
                                 mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                             }
                         }
@@ -686,8 +686,8 @@ namespace hajk
                         //Previous leg
                         if (i >= 1)
                         {
-                            var p1 = new GPXUtils.Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, 0, null);
-                            p2 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0, null);
+                            var p1 = new GPXUtils.Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, 0, false, null);
+                            p2 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0, false, null);
                             mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                         }
                     }

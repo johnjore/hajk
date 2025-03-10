@@ -115,7 +115,7 @@ namespace hajk
                 for (int i = 0; i < ListLatLon.Count; i++)
                 {
                     //Data
-                    AwesomeTiles.Tile? tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position(ListLatLon[i].Latitude, ListLatLon[i].Longitude, 0, null)).FirstOrDefault();
+                    AwesomeTiles.Tile? tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position(ListLatLon[i].Latitude, ListLatLon[i].Longitude, 0, false, null))?.FirstOrDefault();
                     ListLatLon[i].GeoTiffFileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{Fragment_Preferences.Elevation_Tile_Zoom}-{tmp1?.X}-{tmp1?.Y}.tif";
 
                     //Update progress bar
@@ -279,7 +279,7 @@ namespace hajk
                 for (int i = 0; i < track.trkseg[0].trkpt.Count; i++)
                 {
                     //Data
-                    AwesomeTiles.Tile? tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position((double)track.trkseg[0].trkpt[i].lat, (double)track.trkseg[0].trkpt[i].lon, 0, null)).FirstOrDefault();
+                    AwesomeTiles.Tile? tmp1 = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, new Position((double)track.trkseg[0].trkpt[i].lat, (double)track.trkseg[0].trkpt[i].lon, 0, false, null))?.FirstOrDefault();
                     track.trkseg[0].trkpt[i].src = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{Fragment_Preferences.Elevation_Tile_Zoom}-{tmp1?.X}-{tmp1?.Y}.tif";
                 }
 

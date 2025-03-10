@@ -183,17 +183,19 @@ namespace GPXUtils
 
     public class Position
     {
-        public Position(double latitude, double longitude, double elevation, string? geotifffilename)
+        public Position(double latitude, double longitude, double elevation, bool eleSpecified, string? geotifffilename)
         {
             Latitude = latitude;
             Longitude = longitude;
             Elevation = elevation;
+            ElevationSpecified = eleSpecified;
             GeoTiffFileName = geotifffilename;
         }
 
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public double Elevation { get; set; }
+        public bool ElevationSpecified { get; set; }
         public string? GeoTiffFileName { get; set; }
     }
 
