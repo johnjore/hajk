@@ -405,7 +405,6 @@ namespace hajk
                 {
                     await Task.Run(async () =>
                     {
-
                         await AddGPXToDatabase(r.Id);                        
                     });
                 }
@@ -416,7 +415,7 @@ namespace hajk
                 {
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
-                        Fragment_gpx.mAdapter?.mGpxData.Insert(r);
+                        Fragment_gpx.mAdapter?.mGpxData.Insert(RouteDatabase.GetRouteAsync(r.Id).Result);
                         Fragment_gpx.mAdapter?.NotifyDataSetChanged();
                     });
                 }
@@ -426,7 +425,6 @@ namespace hajk
                 Serilog.Log.Fatal(ex, $"Import - AddGPXRoute()");
             }
 
-            Serilog.Log.Information("Done with AddGPXRoute");
             return true;
         }
         
@@ -511,7 +509,7 @@ namespace hajk
                 {
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
-                        Fragment_gpx.mAdapter?.mGpxData.Insert(r);
+                        Fragment_gpx.mAdapter?.mGpxData.Insert(RouteDatabase.GetRouteAsync(r.Id).Result);
                         Fragment_gpx.mAdapter?.NotifyDataSetChanged();
                     });
                 }
@@ -596,9 +594,6 @@ namespace hajk
                 {
                     DownloadRasterImageMap.ExportMapTiles(id, strFilePath);
                 }
-
-                //Refresh with new map
-                Serilog.Log.Information($"Done downloading map for {map.Id}");
             }
             catch (Exception ex)
             {
