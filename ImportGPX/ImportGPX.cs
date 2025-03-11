@@ -411,7 +411,7 @@ namespace hajk
 
                 //Update RecycleView with new entry, if the fragment exists
                 FragmentActivity? activity = Platform.CurrentActivity as FragmentActivity;
-                if (activity?.SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_GPX) != null)
+                if (activity?.SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_GPX) != null && Fragment_gpx.GPXDisplay == Models.GPXType.Route)
                 {
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
@@ -505,7 +505,7 @@ namespace hajk
 
                 //Update RecycleView with new entry, if the fragment exists
                 FragmentActivity? activity = Platform.CurrentActivity as FragmentActivity;
-                if (activity?.SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_GPX) != null)
+                if (activity?.SupportFragmentManager.FindFragmentByTag(Fragment_Preferences.Fragment_GPX) != null && Fragment_gpx.GPXDisplay == Models.GPXType.Track)
                 {
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
