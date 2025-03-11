@@ -442,12 +442,6 @@ namespace hajk
                     return false;
                 }
 
-                //Clear existing GPX routes from map, else they will be included
-                Utils.Misc.ClearTrackRoutesFromMap();
-
-                //Add to map
-                DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Track, false, track.name);
-
                 //Create a standalone GPX
                 var newGPX = new GpxClass()
                 {
@@ -486,31 +480,26 @@ namespace hajk
                     Description = track.desc,
                     GPX = newGPX.ToXml(),
                 };
-                RouteDatabase.SaveRoute(r);
+                r.Id = RouteDatabase.SaveRoute(r);
 
                 //If we are downloading GeoTiff and tiles
                 if (DownloadOfflineMap)
                 {
-                    //GeoTiff files
-                    await Elevation.DownloadElevationData(newGPX);
-
-                    //Calculate ascent/descent
-                    List<GPXUtils.Position>? tmp = await Elevation.LookupElevationData(LatLon);
-                    if (tmp != null)
+                    await Task.Run(() =>
                     {
-                        LatLon = tmp;
-                        (r.Ascent, r.Descent) = Elevation.CalculateAscentDescent(LatLon);
-                    }
+                        var myLooper = Looper.MyLooper();
+                        if (myLooper == null)
+                        {
+                            Looper.Prepare();
+                        }
+                    });
 
                     //Map tiles
-                    await GetloadOfflineMap(track.GetBounds(), r.Id, null);
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        await AddGPXToDatabase(r.Id);
+                    });
                 }
-
-                //Create thumbsize map and save to DB
-                r.ImageBase64String = CreateThumbprintMap(newGPX);
-
-                //Save updated entry to DB
-                RouteDatabase.SaveRouteAsync(r).Wait();
 
                 //Update RecycleView with new entry, if the fragment exists
                 FragmentActivity? activity = Platform.CurrentActivity as FragmentActivity;
@@ -525,7 +514,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"Import - AddGPXRoute()");
+                Serilog.Log.Fatal(ex, $"Import - AddGPXTrack()");
             }
 
             return true;
@@ -758,7 +747,7 @@ namespace hajk
                 return false;
             }
 
-            //Update route with elevation data
+            //Update with elevation data
             await Task.Run(() =>
             {
                 if (route_to_download.GPXType == GPXType.Route)
@@ -790,10 +779,9 @@ namespace hajk
                 }
             });
 
-            //Update with elevation data
+            //Add elevation data
             route_to_download.GPX = gpx_to_import.ToXml();
-            RouteDatabase.SaveRouteAsync(route_to_download).Wait();
-
+            
             //Naismith Travel Time
             (int travel_hours, int travel_min) = Naismith.CalculateTime(route_to_download.Distance, Fragment_Preferences.naismith_speed_kmh, route_to_download.Ascent, route_to_download.Descent);
 
@@ -803,8 +791,10 @@ namespace hajk
             if (ImageBase64String != null)
             {
                 route_to_download.ImageBase64String = ImageBase64String;
-                RouteDatabase.SaveRouteAsync(route_to_download).Wait();
             }
+
+            //Save to DB
+            RouteDatabase.SaveRouteAsync(route_to_download).Wait();
 
             Toast.MakeText(Platform.AppContext, "Finished downloads", ToastLength.Short)?.Show();
             return true;
