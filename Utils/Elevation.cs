@@ -13,6 +13,7 @@ using Mapsui.Projections;
 using GeoTiffCOG;
 using GPXUtils;
 using Android.Widget;
+using Android.OS;
 
 namespace hajk
 {
@@ -66,6 +67,11 @@ namespace hajk
                 //Nothing to download?
                 if (intMissingTiles == 0)
                 {
+                    if (Looper.MyLooper() == null)
+                    {
+                        Looper.Prepare();
+                    }
+
                     Toast.MakeText(Platform.AppContext, "Elevation tiles already downloaded", ToastLength.Short)?.Show();
                     return true;
                 }
@@ -74,6 +80,11 @@ namespace hajk
                 (List<string>? FileNames, int MissingTilesCounter) = await DownloadElevationTilesAsync(tiles, intMissingTiles);
                 if (MissingTilesCounter > 0)
                 {
+                    if (Looper.MyLooper() == null)
+                    {
+                        Looper.Prepare();
+                    }
+
                     Toast.MakeText(Platform.AppContext, $"{MissingTilesCounter} elevation tiles failed to download", ToastLength.Long)?.Show();
                 }
 
@@ -311,7 +322,7 @@ namespace hajk
                         {
                             e.ele = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
                             e.eleSpecified = true;
-                            Serilog.Log.Debug($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters");
+                            //Serilog.Log.Debug($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters");
                         }
                         catch (Exception ex)
                         {

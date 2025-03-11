@@ -170,20 +170,39 @@ namespace hajk
                     }
                 }
 
+                if (Looper.MyLooper() == null)
+                {
+                    Looper.Prepare();
+                }
+
                 foreach (rteType route in gpxData.Routes)
                 {
+                    Serilog.Log.Information($"Importing '{route.name}'");
+
                     if (AddGPXRoute(route, DownloadOfflineMap)?.Result == false)
                     {
                         Toast.MakeText(Platform.AppContext, $"Failed to import '{route.name}'", ToastLength.Short)?.Show();
                     }
+                    else
+                    {
+                        Serilog.Log.Information($"Done importing '{route.name}'");
+                        Toast.MakeText(Platform.AppContext, $"Imported '{route.name}'", ToastLength.Short)?.Show();
+                    }
                 }
-                
+
                 foreach (trkType track in gpxData.Tracks)
                 {
+                    Serilog.Log.Information($"Importing {track.name}");
+                    
                     if (AddGPXTrack(track, DownloadOfflineMap)?.Result == false)
                     {
                         Toast.MakeText(Platform.AppContext, $"Failed to import '{track.name}'", ToastLength.Short)?.Show();
-                    };
+                    }
+                    else
+                    {
+                        Serilog.Log.Information($"Done importing '{track.name}'");
+                        Toast.MakeText(Platform.AppContext, $"Imported '{track.name}'", ToastLength.Short)?.Show();
+                    }
                 }
 
                 foreach (wptType wptType in gpxData.Waypoints)
@@ -197,7 +216,7 @@ namespace hajk
                     DisplayMapItems.AddPOIToMap();
                 }
 
-                Serilog.Log.Information($"Done importing gpx file");
+                Serilog.Log.Information($"Done importing all items in gpx file");
             }
             catch (Exception ex)
             {
@@ -302,8 +321,11 @@ namespace hajk
 
                 if (DownloadOfflineMap)
                 {
-                    var b = new boundsType(p.Lat, p.Lat, p.Lon, p.Lon);
-                    GetloadOfflineMap(b, -1, null);
+                    Task.Run(async () =>
+                    {
+                        var b = new boundsType(p.Lat, p.Lat, p.Lon, p.Lon);
+                        await GetloadOfflineMap(b, -1, null);
+                    });
                 }
             }
             catch (Exception ex)
@@ -381,19 +403,10 @@ namespace hajk
                 //If we are downloading GeoTiff and tiles
                 if (DownloadOfflineMap)
                 {
-                    await Task.Run(() =>
+                    await Task.Run(async () =>
                     {
-                        var myLooper = Looper.MyLooper();
-                        if (myLooper == null)
-                        {
-                            Looper.Prepare();
-                        }
-                    });
 
-                    //Map tiles
-                    MainThread.BeginInvokeOnMainThread(async () =>
-                    {
-                        await AddGPXToDatabase(r.Id);
+                        await AddGPXToDatabase(r.Id);                        
                     });
                 }
 
@@ -413,11 +426,12 @@ namespace hajk
                 Serilog.Log.Fatal(ex, $"Import - AddGPXRoute()");
             }
 
+            Serilog.Log.Information("Done with AddGPXRoute");
             return true;
         }
         
         private static async Task<bool>? AddGPXTrack(trkType track, bool DownloadOfflineMap)
-        {
+        {            
             try
             {
                 //Parse and extract information from GPX file
@@ -485,17 +499,7 @@ namespace hajk
                 //If we are downloading GeoTiff and tiles
                 if (DownloadOfflineMap)
                 {
-                    await Task.Run(() =>
-                    {
-                        var myLooper = Looper.MyLooper();
-                        if (myLooper == null)
-                        {
-                            Looper.Prepare();
-                        }
-                    });
-
-                    //Map tiles
-                    MainThread.BeginInvokeOnMainThread(async () =>
+                    await Task.Run(async () =>
                     {
                         await AddGPXToDatabase(r.Id);
                     });
@@ -677,7 +681,7 @@ namespace hajk
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"Import - GPXtoRoute()");
+                Serilog.Log.Fatal(ex, $"Import - ParseGPXtoRoute()");
             }
 
             return (null, 0, null);
@@ -785,7 +789,13 @@ namespace hajk
             //Naismith Travel Time
             (int travel_hours, int travel_min) = Naismith.CalculateTime(route_to_download.Distance, Fragment_Preferences.naismith_speed_kmh, route_to_download.Ascent, route_to_download.Descent);
 
-            //Create / Update thumbsize map
+            //Create Looper if needed for Toast messages
+            if (Looper.MyLooper() == null)
+            {
+                Looper.Prepare();
+            }
+
+            //Create / Update thumbsize map            
             Toast.MakeText(Platform.AppContext, "Creating new overview image", ToastLength.Short)?.Show();
             string? ImageBase64String = DisplayMapItems.CreateThumbnail(route_to_download.GPXType, gpx_to_import);
             if (ImageBase64String != null)
@@ -796,7 +806,7 @@ namespace hajk
             //Save to DB
             RouteDatabase.SaveRouteAsync(route_to_download).Wait();
 
-            Toast.MakeText(Platform.AppContext, "Finished downloads", ToastLength.Short)?.Show();
+            Toast.MakeText(Platform.AppContext, $"Finished downloads for {route_to_download.Name}", ToastLength.Short)?.Show();
             return true;
         }
     }
