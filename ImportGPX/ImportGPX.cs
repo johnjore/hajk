@@ -246,16 +246,6 @@ namespace hajk
                         return;
                     }
 
-                    if (CheckFile_Walkabout(stream) == false && Platform.CurrentActivity != null)
-                    {
-                        MainThread.BeginInvokeOnMainThread(async () =>
-                        {
-                            Show_Dialog? msg2 = new (Platform.CurrentActivity); //Don't use cached value
-                            await msg2?.ShowDialog($"{uri?.PathSegments[uri.PathSegments.Count - 1]}", "is not a valid GPX file. Unable to import file.", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.OK);
-                        });
-                        return;
-                    }
-
                     string contents = String.Empty;
                     using (var reader = new StreamReader(stream))
                     {
@@ -278,6 +268,16 @@ namespace hajk
                     if (gpx == null)
                     {
                         Serilog.Log.Fatal("'gpx' is null");
+                        return;
+                    }
+
+                    if (CheckFile_Walkabout(contents) == false && Platform.CurrentActivity != null)
+                    {
+                        MainThread.BeginInvokeOnMainThread(async () =>
+                        {
+                            Show_Dialog? msg2 = new (Platform.CurrentActivity); //Don't use cached value
+                            await msg2?.ShowDialog($"{uri?.PathSegments[uri.PathSegments.Count - 1]}", "is not a valid GPX file. Unable to import file.", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.OK);
+                        });
                         return;
                     }
 
@@ -708,12 +708,12 @@ namespace hajk
             return LineString;
         }
 
-        private static bool CheckFile_Walkabout(Stream stream)
+        private static bool CheckFile_Walkabout(String content)
         {
             try
             {
                 XmlDocument xmlDocument = new ();
-                xmlDocument.Load(stream);
+                xmlDocument.LoadXml(content);
                 return xmlDocument.DocumentElement != null && (xmlDocument.DocumentElement.NamespaceURI == "http://www.topografix.com/GPX/1/0" || xmlDocument.DocumentElement.NamespaceURI == "http://www.topografix.com/GPX/1/1");
             }
             catch (Exception ex)
