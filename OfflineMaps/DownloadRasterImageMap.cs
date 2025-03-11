@@ -38,9 +38,12 @@ namespace hajk
                 int intFailedDownloadsCounter = 0;
 
                 //Progress bar
-                _ = Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.DownloadTiles));
-                Progressbar.UpdateProgressBar.Progress = 0;
-                Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount} - ({missingTilesCount})";
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.DownloadTiles));
+                    Progressbar.UpdateProgressBar.Progress = 0;
+                    Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount} - ({missingTilesCount})";
+                });
 
                 //Count required tiles to download
                 for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
