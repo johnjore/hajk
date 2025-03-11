@@ -98,7 +98,7 @@ namespace GeoTiffCOG.Struture
                 , Math.Min(zMin, zMax), Math.Max(zMin, zMax));
         }
 
-        public override bool Equals(object? obj)
+        public override bool Equals(object obj)
         {
             BoundingBox objTyped = obj as BoundingBox;
 
@@ -203,13 +203,9 @@ namespace GeoTiffCOG.Struture
                 , xMin, xMax, yMin, yMax, zMin, zMax, Center[0], Center[1], Center[2]);
         }
 
-        public bool Equals(BoundingBox? other)
+        public bool Equals(BoundingBox other)
         {
-            if (other is null || other == null)
-            {
-                return false;
-            }
-
+            if (other == null) return false;
             return xMin == other.xMin
                     && xMax == other.xMax
                     && yMin == other.yMin
