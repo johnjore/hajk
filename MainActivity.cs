@@ -34,8 +34,6 @@ using System.Threading;
 using System;
 using Serilog.Events;
 using static Android.Content.PM.PackageManager;
-using AndroidX.Core.App;
-using Android.Graphics.Drawables;
 
 namespace hajk
 {

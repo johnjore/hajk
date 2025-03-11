@@ -567,7 +567,7 @@ namespace hajk.Adapter
                 return;
             }
 
-            Log.Information(Resource.String.download_and_save_offline_map + " '{vh.Name.Text} / {vh.Id}'");
+            Log.Information(Resource.String.download_and_save_offline_map + " '" + vh.Name?.Text + "' / '" + vh.Id + "'");
 
             //If using OSM, cancel out here
             string? TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
@@ -582,17 +582,18 @@ namespace hajk.Adapter
             var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
             GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
 
-            //Download elevation data first
-            await Elevation.DownloadElevationData(gpx_to_download);
 
             //Get map tiles
             if (vh.GPXType == GPXType.Route && gpx_to_download.Routes.Count == 1)
             {
+                //Download elevation data first
+                await Elevation.DownloadElevationData(gpx_to_download);
+
                 await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null);
             }
             else if (vh.GPXType == GPXType.Track && gpx_to_download.Tracks.Count == 1)
             {
-                await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null);
+                //await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null);
             }
             else
             {
@@ -616,14 +617,17 @@ namespace hajk.Adapter
                 }
                 else if (vh.GPXType == GPXType.Track)
                 {
-                    trkType? updated_track = Elevation.LookupElevationData(gpx_to_download.Tracks[0]);
+                    /*trkType? updated_track = Elevation.LookupElevationData(gpx_to_download.Tracks[0]);
 
                     if (updated_track != null)
                     {
                         gpx_to_download.Tracks.Clear();
                         gpx_to_download.Tracks.Add(updated_track);
                         (route_to_download.Ascent, route_to_download.Descent) = Elevation.CalculateAscentDescent(updated_track);
-                    }
+                    }*/
+
+                    //Elevation data
+                    (route_to_download.Ascent, route_to_download.Descent) = Elevation.CalculateAscentDescent(gpx_to_download.Tracks[0]);
                 }
                 else
                 {
