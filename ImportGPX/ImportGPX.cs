@@ -801,7 +801,7 @@ namespace hajk
             //Save to DB
             RouteDatabase.SaveRouteAsync(route_to_download).Wait();
 
-            Toast.MakeText(Platform.AppContext, $"Finished downloads for {route_to_download.Name}", ToastLength.Short)?.Show();
+            Toast.MakeText(Platform.AppContext, $"Finished downloads for '{route_to_download.Name}'", ToastLength.Short)?.Show();
             return true;
         }
     }
