@@ -54,7 +54,7 @@ namespace hajk
         /// </summary>
         private static async Task<GpxClass?> PickAndParseGPX()
         {
-            GpxClass? gpx = new GpxClass();
+            GpxClass? gpx = new();
 
             try
             {
@@ -85,7 +85,7 @@ namespace hajk
                 {
                     if (GpxClass.CheckFile(fileName.FullPath) == false)
                     {
-                        Show_Dialog msg2 = new Show_Dialog(Platform.CurrentActivity); //Don't use cached value
+                        Show_Dialog? msg2 = new (Platform.CurrentActivity); //Don't use cached value
                         await msg2.ShowDialog($"'{fileName}'", "is not a valid GPX file. Unable to import file.", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.OK);
                     }
                     else
@@ -103,8 +103,8 @@ namespace hajk
                         string t = (tempGPX.Tracks.Count == 1) ? "track" : "tracks";
                         string p = (tempGPX.Waypoints.Count == 1) ? "POI" : "POIs";
 
-                        Show_Dialog msg1 = new Show_Dialog(Platform.CurrentActivity); //Don't use cached value
-                        Show_Dialog.MessageResult dialogResult = await msg1.ShowDialog($"'{fileName.FileName}'", $"Found {tempGPX.Routes.Count} {r}, {tempGPX.Tracks.Count} {t} and {tempGPX.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
+                        Show_Dialog? msg1 = new (Platform.CurrentActivity); //Don't use cached value
+                        Show_Dialog.MessageResult dialogResult = await msg1?.ShowDialog($"'{fileName.FileName}'", $"Found {tempGPX.Routes.Count} {r}, {tempGPX.Tracks.Count} {t} and {tempGPX.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
                         if (dialogResult.Equals(Show_Dialog.MessageResult.YES))
                         {
                             //Append tempGPX to GPX
@@ -164,7 +164,7 @@ namespace hajk
                 {
                     //Does the user want maps downloaded for offline usage?
                     msg = new(Platform.CurrentActivity);
-                    if (await msg.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                    if (await msg?.ShowDialog($"Offline Map", $"Download map for offline usage?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                     {
                         DownloadOfflineMap = true;
                     }
@@ -172,7 +172,7 @@ namespace hajk
 
                 foreach (rteType route in gpxData.Routes)
                 {
-                    if (AddGPXRoute(route, DownloadOfflineMap).Result == false)
+                    if (AddGPXRoute(route, DownloadOfflineMap)?.Result == false)
                     {
                         Toast.MakeText(Platform.AppContext, $"Failed to import '{route.name}'", ToastLength.Short)?.Show();
                     }
@@ -180,7 +180,7 @@ namespace hajk
                 
                 foreach (trkType track in gpxData.Tracks)
                 {
-                    if (AddGPXTrack(track, DownloadOfflineMap).Result == false)
+                    if (AddGPXTrack(track, DownloadOfflineMap)?.Result == false)
                     {
                         Toast.MakeText(Platform.AppContext, $"Failed to import '{track.name}'", ToastLength.Short)?.Show();
                     };
@@ -227,18 +227,17 @@ namespace hajk
                         return;
                     }
 
-                    if (CheckFile_Walkabout(stream) == false)
+                    if (CheckFile_Walkabout(stream) == false && Platform.CurrentActivity != null)
                     {
                         MainThread.BeginInvokeOnMainThread(async () =>
                         {
-                            Show_Dialog msg2 = new Show_Dialog(Platform.CurrentActivity); //Don't use cached value
-                            await msg2.ShowDialog($"{uri.PathSegments[uri.PathSegments.Count - 1]}", "is not a valid GPX file. Unable to import file.", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.OK);
+                            Show_Dialog? msg2 = new (Platform.CurrentActivity); //Don't use cached value
+                            await msg2?.ShowDialog($"{uri?.PathSegments[uri.PathSegments.Count - 1]}", "is not a valid GPX file. Unable to import file.", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.OK);
                         });
                         return;
                     }
 
                     string contents = String.Empty;
-                    stream = Platform.CurrentActivity?.ContentResolver?.OpenInputStream(uri);
                     using (var reader = new StreamReader(stream))
                     {
                         contents = reader.ReadToEndAsync().Result;
@@ -269,8 +268,8 @@ namespace hajk
 
                     MainThread.BeginInvokeOnMainThread(async () =>
                     {
-                        Show_Dialog msg = new Show_Dialog(Platform.CurrentActivity);
-                        if (await msg.ShowDialog($"{uri.LastPathSegment}", $"Found {gpx.Routes.Count} {r}, {gpx.Tracks.Count} {t} and {gpx.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
+                        Show_Dialog msg = new (Platform.CurrentActivity);
+                        if (await msg?.ShowDialog($"{uri.LastPathSegment}", $"Found {gpx.Routes.Count} {r}, {gpx.Tracks.Count} {t} and {gpx.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                         {
                             await Task.Run(() =>
                             {
@@ -291,7 +290,7 @@ namespace hajk
             try
             {
                 //Add to POI DB
-                GPXDataPOI p = new GPXDataPOI
+                GPXDataPOI p = new()
                 {
                     Name = wptType.name,
                     Description = wptType.desc,
@@ -338,13 +337,7 @@ namespace hajk
                     Serilog.Log.Information("No LatLon coordinates");
                     return false;
                 }
-                
-                //Clear existing GPX routes from map, else they will be included
-                Utils.Misc.ClearTrackRoutesFromMap();
 
-                //Add to map
-                DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Route, false, route.name);
-                               
                 //Create a standalone GPX
                 var newGPX = new GpxClass()
                 {
@@ -360,7 +353,7 @@ namespace hajk
 
                 foreach (var i in LatLon)
                 {
-                    wptType wptType = new wptType
+                    wptType wptType = new ()
                     {
                         lat = (decimal)i.Latitude,
                         lon = (decimal)i.Longitude,
@@ -388,26 +381,21 @@ namespace hajk
                 //If we are downloading GeoTiff and tiles
                 if (DownloadOfflineMap)
                 {
-                    //GeoTiff files
-                    await Elevation.DownloadElevationData(newGPX);
-
-                    //Calculate ascent/descent
-                    List<GPXUtils.Position>? tmp = await Elevation.LookupElevationData(LatLon);
-                    if (tmp != null)
+                    await Task.Run(() =>
                     {
-                        LatLon = tmp;
-                        (r.Ascent, r.Descent) = Elevation.CalculateAscentDescent(LatLon);
-                    }
+                        var myLooper = Looper.MyLooper();
+                        if (myLooper == null)
+                        {
+                            Looper.Prepare();
+                        }
+                    });
 
                     //Map tiles
-                    await GetloadOfflineMap(route.GetBounds(), r.Id, null);
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        await AddGPXToDatabase(r.Id);
+                    });
                 }
-
-                //Create thumbsize map and save to DB
-                r.ImageBase64String = CreateThumbprintMap(newGPX);
-
-                //Save updated entry to DB
-                RouteDatabase.SaveRouteAsync(r).Wait();
 
                 //Update RecycleView with new entry, if the fragment exists
                 FragmentActivity? activity = Platform.CurrentActivity as FragmentActivity;
@@ -475,7 +463,7 @@ namespace hajk
 
                 foreach (var i in LatLon)
                 {
-                    wptType wptType = new wptType
+                    wptType wptType = new ()
                     {
                         lat = (decimal)i.Latitude,
                         lon = (decimal)i.Longitude,
@@ -736,7 +724,7 @@ namespace hajk
         {
             try
             {
-                XmlDocument xmlDocument = new XmlDocument();
+                XmlDocument xmlDocument = new ();
                 xmlDocument.Load(stream);
                 return xmlDocument.DocumentElement != null && (xmlDocument.DocumentElement.NamespaceURI == "http://www.topografix.com/GPX/1/0" || xmlDocument.DocumentElement.NamespaceURI == "http://www.topografix.com/GPX/1/1");
             }
@@ -745,6 +733,81 @@ namespace hajk
                 Serilog.Log.Debug("GpxClass.CheckFile: Error reading stream. Contents is not xml:\r\n{1}", ex);
                 return false;
             }
+        }
+
+        private static async Task<bool> AddGPXToDatabase(int databaseId)
+        {
+            var route_to_download = RouteDatabase.GetRouteAsync(databaseId).Result;
+            GpxClass gpx_to_import = GpxClass.FromXml(route_to_download.GPX);
+
+            //Get elevation data first
+            await Elevation.DownloadElevationData(gpx_to_import);
+
+            //Get map tiles
+            if (route_to_download.GPXType == GPXType.Route && gpx_to_import.Routes.Count == 1)
+            {
+                await Import.GetloadOfflineMap(gpx_to_import.Routes[0].GetBounds(), databaseId, null);
+            }
+            else if (route_to_download.GPXType == GPXType.Track && gpx_to_import.Tracks.Count == 1)
+            {
+                await Import.GetloadOfflineMap(gpx_to_import.Tracks[0].GetBounds(), databaseId, null);
+            }
+            else
+            {
+                Serilog.Log.Fatal("Unknown and unhandled GPXType or too many routes/tracks in GPX");
+                return false;
+            }
+
+            //Update route with elevation data
+            await Task.Run(() =>
+            {
+                if (route_to_download.GPXType == GPXType.Route)
+                {
+                    rteType? updated_route = Elevation.LookupElevationData(gpx_to_import.Routes[0]);
+
+                    if (updated_route != null)
+                    {
+                        gpx_to_import.Routes.Clear();
+                        gpx_to_import.Routes.Add(updated_route);
+                        (route_to_download.Ascent, route_to_download.Descent) = Elevation.CalculateAscentDescent(updated_route);
+                    }
+                }
+                else if (route_to_download.GPXType == GPXType.Track)
+                {
+                    trkType? updated_track = Elevation.LookupElevationData(gpx_to_import.Tracks[0]);
+
+                    if (updated_track != null)
+                    {
+                        gpx_to_import.Tracks.Clear();
+                        gpx_to_import.Tracks.Add(updated_track);
+                        (route_to_download.Ascent, route_to_download.Descent) = Elevation.CalculateAscentDescent(updated_track);
+                    }
+                }
+                else
+                {
+                    Serilog.Log.Fatal("Unknown and unhandled GPXType");
+                    return;
+                }
+            });
+
+            //Update with elevation data
+            route_to_download.GPX = gpx_to_import.ToXml();
+            RouteDatabase.SaveRouteAsync(route_to_download).Wait();
+
+            //Naismith Travel Time
+            (int travel_hours, int travel_min) = Naismith.CalculateTime(route_to_download.Distance, Fragment_Preferences.naismith_speed_kmh, route_to_download.Ascent, route_to_download.Descent);
+
+            //Create / Update thumbsize map
+            Toast.MakeText(Platform.AppContext, "Creating new overview image", ToastLength.Short)?.Show();
+            string? ImageBase64String = DisplayMapItems.CreateThumbnail(route_to_download.GPXType, gpx_to_import);
+            if (ImageBase64String != null)
+            {
+                route_to_download.ImageBase64String = ImageBase64String;
+                RouteDatabase.SaveRouteAsync(route_to_download).Wait();
+            }
+
+            Toast.MakeText(Platform.AppContext, "Finished downloads", ToastLength.Short)?.Show();
+            return true;
         }
     }
 }
