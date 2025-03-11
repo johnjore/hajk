@@ -79,7 +79,7 @@ namespace hajk.Data
             }
         }
 
-        public static void SaveRoute(GPXDataRouteTrack route)
+        public static int SaveRoute(GPXDataRouteTrack route)
         {
             if (route.Id != 0)
             {
@@ -91,6 +91,8 @@ namespace hajk.Data
                 // Save a new route
                 database.InsertAsync(route).Wait();
             }
+
+            return (route.Id);
         }
 
         public static Task<int> DeleteRouteAsync(GPXDataRouteTrack route)

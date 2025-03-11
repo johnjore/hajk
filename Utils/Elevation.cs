@@ -13,6 +13,7 @@ using Mapsui.Projections;
 using GeoTiffCOG;
 using GPXUtils;
 using Android.Widget;
+using Android.OS;
 
 namespace hajk
 {
@@ -53,8 +54,9 @@ namespace hajk
                 int intMissingTiles = 0;
                 foreach (var tile in tiles)
                 {
-                    var LocalFileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
-                    if (Downloaded(LocalFileName) == false)
+                    var LocalFileName = $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
+                    var FullFileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + LocalFileName;
+                    if (Downloaded(FullFileName) == false)
                     {
                         Serilog.Log.Information($"Need to download elevation tile: '{LocalFileName}'");
                         intMissingTiles++;
@@ -65,6 +67,11 @@ namespace hajk
                 //Nothing to download?
                 if (intMissingTiles == 0)
                 {
+                    if (Looper.MyLooper() == null)
+                    {
+                        Looper.Prepare();
+                    }
+
                     Toast.MakeText(Platform.AppContext, "Elevation tiles already downloaded", ToastLength.Short)?.Show();
                     return true;
                 }
@@ -73,6 +80,11 @@ namespace hajk
                 (List<string>? FileNames, int MissingTilesCounter) = await DownloadElevationTilesAsync(tiles, intMissingTiles);
                 if (MissingTilesCounter > 0)
                 {
+                    if (Looper.MyLooper() == null)
+                    {
+                        Looper.Prepare();
+                    }
+
                     Toast.MakeText(Platform.AppContext, $"{MissingTilesCounter} elevation tiles failed to download", ToastLength.Long)?.Show();
                 }
 
@@ -148,7 +160,7 @@ namespace hajk
                         {
                             e.Elevation = geoTiff.GetElevationAtLatLon(x, y);
                             e.ElevationSpecified = true;
-                            Serilog.Log.Debug($"Elevaton at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                            //Serilog.Log.Debug($"Elevation at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
                         }
                         catch (Exception ex)
                         {
@@ -226,7 +238,7 @@ namespace hajk
                         {                        
                             e.ele = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
                             e.eleSpecified = true;
-                            Serilog.Log.Debug($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters in FileName '{FileName}'");
+                            //Serilog.Log.Debug($"Elevation at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters in FileName '{FileName}'");
                         }
                         catch (Exception ex)
                         {
@@ -310,7 +322,7 @@ namespace hajk
                         {
                             e.ele = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
                             e.eleSpecified = true;
-                            Serilog.Log.Debug($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters");
+                            //Serilog.Log.Debug($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters");
                         }
                         catch (Exception ex)
                         {
