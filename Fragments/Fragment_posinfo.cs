@@ -83,7 +83,7 @@ namespace hajk.Fragments
                     rteType? route = MainActivity.ActiveRoute?.Routes.First();
 
                     //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
-                    var r1 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0, null));
+                    var r1 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0, false, null));
                     var route_index_end = r1.Item2;
 
                     var p = route.rtept[route_index_end];
@@ -117,11 +117,11 @@ namespace hajk.Fragments
 
                         /**/
                         //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
-                        var r2 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0, null));
+                        var r2 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0, false, null));
                         var route_index_end = r2.Item2;
 
                         //WayPoint we are closest to
-                        var r1 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(GpsLocation.Latitude, GpsLocation.Longitude, 0, null));
+                        var r1 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(GpsLocation.Latitude, GpsLocation.Longitude, 0, false, null));
                         var p1 = r1.Item1;
                         var route_index_start = r1.Item2;
 
@@ -161,7 +161,7 @@ namespace hajk.Fragments
                     //Distance Straight Line from Start to Map Position
                     try
                     {
-                        var PositionStart = new GPXUtils.Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0, null);
+                        var PositionStart = new GPXUtils.Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0, false, null);
 
                         var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, PositionStart, DistanceType.Meters));
                         string v = Utils.Misc.KMvsM(DistanceStraightLine_m);
@@ -176,7 +176,7 @@ namespace hajk.Fragments
                     //Distance Straight Line from Start to Current Position
                     try
                     {
-                        var PositionStart = new GPXUtils.Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0, null);
+                        var PositionStart = new GPXUtils.Position((double)RecordTrack.trackGpx.Waypoints.First().lat, (double)RecordTrack.trackGpx.Waypoints.First().lon, 0, false, null);
 
                         var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(PositionStart, GpsLocation, DistanceType.Meters));
                         string v = Utils.Misc.KMvsM(DistanceStraightLine_m);
@@ -256,11 +256,11 @@ namespace hajk.Fragments
 
                 /**/
                 //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
-                var r2 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0, null));
+                var r2 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0, false, null));
                 var map_index = r2.Item2;
 
                 //WayPoint we are closest to
-                var r1 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(GpsLocation.Latitude, GpsLocation.Longitude, 0, null));
+                var r1 = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(GpsLocation.Latitude, GpsLocation.Longitude, 0, false, null));
                 var gps_index = r1.Item2;
 
                 List<ChartEntry> entries = new List<ChartEntry>();

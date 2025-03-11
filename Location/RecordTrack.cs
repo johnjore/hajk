@@ -130,8 +130,8 @@ namespace hajk
                 var p = new PositionHandler();
                 for (int j = 1; j < track.Tracks[0].trkseg[0].trkpt.Count; j++)
                 {
-                    var p1 = new GPXUtils.Position((float)track.Tracks[0].trkseg[0].trkpt[j - 1].lat, (float)track.Tracks[0].trkseg[0].trkpt[j - 1].lon, 0, null);
-                    var p2 = new GPXUtils.Position((float)track.Tracks[0].trkseg[0].trkpt[j].lat, (float)track.Tracks[0].trkseg[0].trkpt[j].lon, 0, null);
+                    var p1 = new GPXUtils.Position((float)track.Tracks[0].trkseg[0].trkpt[j - 1].lat, (float)track.Tracks[0].trkseg[0].trkpt[j - 1].lon, 0, false, null);
+                    var p2 = new GPXUtils.Position((float)track.Tracks[0].trkseg[0].trkpt[j].lat, (float)track.Tracks[0].trkseg[0].trkpt[j].lon, 0, false, null);
                     mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
                 }
 
@@ -180,7 +180,7 @@ namespace hajk
                 }
 
                 //Our location
-                var pos_c = new GPXUtils.Position((float)location.Latitude, (float)location.Longitude, 0, null);
+                var pos_c = new GPXUtils.Position((float)location.Latitude, (float)location.Longitude, 0, false, null);
 
                 //Distance to check
                 int OffTrackDistanceWarning_m = int.Parse(Preferences.Get("OffTrackDistanceWarning_m", Fragment_Preferences.OffTrackDistanceWarning_m.ToString()));
@@ -198,7 +198,7 @@ namespace hajk
 
                     //Calculate Distance
                     var p = new PositionHandler();
-                    var pos_a = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0, null);
+                    var pos_a = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0, false, null);
                     double mapDistanceMeters = CrossTrackCalculations.CalculateDistance(pos_a, pos_c);
 
                     Log.Debug($"Location is: " + mapDistanceMeters.ToString("N2") + " meters from index:" + i.ToString());

@@ -279,7 +279,7 @@ namespace hajk.Fragments
                 if (layer.Name == Fragment_Preferences.Layer_Route && layer.Tag.ToString() == Fragment_Preferences.Layer_Route && style?.ToString() == "Mapsui.Styles.SymbolStyle" && args.MapInfo != null && args.MapInfo.WorldPosition != null)
                 {
                     var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-                    MapPosition = new Position(b.lon, b.lat, 0, null);
+                    MapPosition = new Position(b.lon, b.lat, 0, false, null);
                     Serilog.Log.Debug($"Route Object. GPS Position: " + b.ToString());
 
                     var activity = (FragmentActivity?)Platform.CurrentActivity;

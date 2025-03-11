@@ -11,24 +11,25 @@ namespace GeoTiffCOG
     public class GeoTiff
     {
         BitMiracle.LibTiff.Classic.Tiff _tiff;
-        string _tiffPath;
+        string _tiffSource;
         TraceTiffErrorHandler _traceLogHandler = new TraceTiffErrorHandler();
         Dictionary<int, byte[]> tilesCache;
-        public FileMetadata metadata { get; private set; }
+        public Metadata metadata { get; private set; }
 
         internal Tiff TiffFile
         {
             get { return _tiff; }
         }
 
-        public string FilePath
+        public string Source
         {
-            get { return _tiffPath; }
+            get { return _tiffSource; }
         }
         public GeoTiff(Uri urlCOG, string directoryCache)
         {
             Tiff.SetErrorHandler(_traceLogHandler);
             _tiff = Tiff.ClientOpen("tiff", "r", null, new TiffSteamCustom(urlCOG.ToString(), directoryCache));
+            _tiffSource = urlCOG.ToString();
 
             metadata = this.ParseMetaData(new DEMFileDefinition());
         }
@@ -37,6 +38,7 @@ namespace GeoTiffCOG
         {
             Tiff.SetErrorHandler(_traceLogHandler);
             _tiff = Tiff.ClientOpen("tiff", "r", null, new TiffSteamCustom(urlCOG.ToString(), directoryCache, webProxy, credentials));
+            _tiffSource = urlCOG.ToString();
 
             metadata = this.ParseMetaData(new DEMFileDefinition());
         }
@@ -47,7 +49,7 @@ namespace GeoTiffCOG
             if (!File.Exists(tiffPath))
                 throw new Exception($"File {tiffPath} does not exists !");
 
-            _tiffPath = tiffPath;
+            _tiffSource = tiffPath;
             
             _tiff = Tiff.Open(tiffPath, "r");
 
@@ -66,10 +68,8 @@ namespace GeoTiffCOG
             get
             {
                 if (tileWidth == 0)
-                {
                     tileWidth = TiffFile.GetField(TiffTag.TILEWIDTH)[0].ToInt();
-                }
-
+ 
                 return tileWidth;
             }
         }
@@ -80,9 +80,7 @@ namespace GeoTiffCOG
             get
             {
                 if (tileHeight == 0)
-                {
                     tileHeight = TiffFile.GetField(TiffTag.TILELENGTH)[0].ToInt();
-                }
 
                 return tileHeight;
             }
@@ -94,9 +92,7 @@ namespace GeoTiffCOG
             get
             {
                 if (tileSize == 0)
-                {
                     tileSize = TiffFile.TileSize();
-                }
 
                 return tileSize;
             }
@@ -147,11 +143,17 @@ namespace GeoTiffCOG
         public float GetElevationAtLatLon(double latitude, double longitude)
         {
             Utils.GetXYFromLatLon(metadata, latitude, longitude, out int x, out int y);
+
+            if (x < 0) throw new Exception($"Error longitude: {longitude} not valid to [{metadata.PhysicalStartLon}, {metadata.PhysicalEndLon}] offsetX: {x}");
+            if (y < 0) throw new Exception($"Error latitude: {latitude} not valid to [{metadata.PhysicalStartLat}, {metadata.PhysicalEndLat}] offsetY: {y}");
+
             return GetElevationAtPoint(x, y);
         }
 
         public float GetElevationAtPoint(int x, int y)
         {
+            Console.WriteLine($"XXXXXXXXXXX: {x}, {y}");
+
             float heightValue = 0;
             try
             {
@@ -198,7 +200,7 @@ namespace GeoTiffCOG
             return heightValue;
         }
 
-        public float GetElevationAtPoint(int offset, byte[] buffer)
+        protected float GetElevationAtPoint(int offset, byte[] buffer)
         {
             float heightValue = 0;
             try
@@ -210,24 +212,18 @@ namespace GeoTiffCOG
                         break;
                     case RasterSampleFormat.INTEGER:
                         if (metadata.BitsPerSample == 32)
-                        {
                             heightValue = BitConverter.ToInt32(buffer, offset * metadata.BitsPerSample / 8);
-                        }
                         else
-                        {
                             heightValue = BitConverter.ToInt16(buffer, offset * metadata.BitsPerSample / 8);
-                        }
                         heightValue = heightValue * metadata.Scale + metadata.Offset;
                         break;
                     case RasterSampleFormat.UNSIGNED_INTEGER:
                         if (metadata.BitsPerSample == 32)
-                        {
                             heightValue = BitConverter.ToUInt32(buffer, offset * metadata.BitsPerSample / 8);
-                        }
-                        else
-                        {
+                        else if (metadata.BitsPerSample == 16)
                             heightValue = BitConverter.ToUInt16(buffer, offset * metadata.BitsPerSample / 8);
-                        }
+                        else if (metadata.BitsPerSample == 8)
+                            heightValue = buffer[offset];
                         heightValue = heightValue * metadata.Scale + metadata.Offset;
                         break;
                     default:
@@ -253,7 +249,7 @@ namespace GeoTiffCOG
 
         }
 
-        private GDALMetaData ParseXml(string xml)
+        protected GDALMetaData ParseXml(string xml)
         {
             GDALMetaData gdal = new GDALMetaData()
             {
@@ -286,9 +282,10 @@ namespace GeoTiffCOG
 
             return gdal;
         }
-        private FileMetadata ParseMetaData(DEMFileDefinition format)
+
+        protected Metadata ParseMetaData(DEMFileDefinition format)
         {
-            FileMetadata _metadata = new FileMetadata(FilePath, format);
+            Metadata _metadata = new Metadata(Source, format);
 
             _metadata.Height = TiffFile.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
             _metadata.Width = TiffFile.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
@@ -347,51 +344,201 @@ namespace GeoTiffCOG
             _metadata.BitsPerSample = TiffFile.GetField(TiffTag.BITSPERSAMPLE)[0].ToInt();
             var sampleFormat = TiffFile.GetField(TiffTag.SAMPLEFORMAT);
             _metadata.SampleFormat = sampleFormat[0].Value.ToString();
-            _metadata.WorldUnits = "meter";
+
+            LoadGEOTiffTags(_metadata);
+
+            return _metadata;
+        }
+
+        protected void LoadGEOTiffTags(Metadata _metadata)
+        {
+            //defaults
+            _metadata.Properties.CoordinateSystemId = 4326; // WGS 84
+            _metadata.Properties.ModelType = ModelType.Geographic;
+            _metadata.Properties.RasterType = RasterType.RasterPixelIsArea;
+            _metadata.Properties.AngularUnit = AngularUnits.Degree;
+
+            var geoKeys = TiffFile.GetField((TiffTag)GEOTIFF_TAGS.GEOTIFF_GEOKEYDIRECTORYTAG);
+            if (geoKeys != null)
+            {
+                var geoDoubleParams = TiffFile.GetField((TiffTag)GEOTIFF_TAGS.GEOTIFF_GEODOUBLEPARAMSTAG);
+                double[] doubleParams = null;
+                if (geoDoubleParams != null)
+                {
+                    doubleParams = geoDoubleParams[1].ToDoubleArray();
+                }
+                var geoAsciiParams = TiffFile.GetField((TiffTag)GEOTIFF_TAGS.GEOTIFF_GEOASCIIPARAMSTAG);
+                if (geoAsciiParams != null) _metadata.Properties.GeotiffAsciiParams = geoAsciiParams[1].ToString().Trim('\0');
+
+                // Array of GeoTIFF GeoKeys values
+                var keys = geoKeys[1].ToUShortArray();
+                if (keys.Length > 4)
+                {
+                    // Header={KeyDirectoryVersion, KeyRevision, MinorRevision, NumberOfKeys}
+                    var keyDirectoryVersion = keys[0];
+                    var keyRevision = keys[1];
+                    var minorRevision = keys[2];
+                    var numberOfKeys = keys[3];
+                    for (var keyIndex = 4; keyIndex < keys.Length;)
+                    {
+                        switch (keys[keyIndex])
+                        {
+                            case (ushort)GeoTiffKey.GTModelTypeGeoKey:
+                                {
+                                    _metadata.Properties.ModelType = (ModelType)keys[keyIndex + 3];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GTRasterTypeGeoKey:
+                                {
+                                    _metadata.Properties.RasterType = (RasterType)keys[keyIndex + 3];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GTCitationGeoKey:
+                                {
+                                    _metadata.Properties.GTCitationGeo = keys[keyIndex + 3];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeographicTypeGeoKey:
+                                {
+                                    _metadata.Properties.CoordinateSystemId = keys[keyIndex + 3]; //geographicType
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeogCitationGeoKey:
+                                {
+                                    _metadata.Properties.GeogCitation = keys[keyIndex + 3];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeogGeodeticDatumGeoKey:
+                                {
+                                    // 6.3.2.2 Geodetic Datum Codes
+                                    _metadata.Properties.GeodeticDatum = keys[keyIndex + 3];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeogPrimeMeridianGeoKey:
+                                {
+                                    // 6.3.2.4 Prime Meridian Codes
+                                    _metadata.Properties.PrimeMeridian = keys[keyIndex + 3];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeogAngularUnitsGeoKey:
+                                {
+                                    _metadata.Properties.AngularUnit = (AngularUnits)keys[keyIndex + 3];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeogAngularUnitSizeGeoKey:
+                                {
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeogEllipsoidGeoKey:
+                                {
+                                    // 6.3.2.3 Ellipsoid Codes
+                                    _metadata.Properties.Ellipsoid = keys[keyIndex + 3];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeogSemiMajorAxisGeoKey:
+                                {
+                                    if (doubleParams != null)
+                                        _metadata.Properties.SemiMajorAxis = doubleParams[keys[keyIndex + 3]];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeogSemiMinorAxisGeoKey:
+                                {
+                                    if (doubleParams != null)
+                                        _metadata.Properties.SemiMinorAxis = doubleParams[keys[keyIndex + 3]];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeogInvFlatteningGeoKey:
+                                {
+                                    if (doubleParams != null)
+                                        _metadata.Properties.InvFlattening = doubleParams[keys[keyIndex + 3]];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeogAzimuthUnitsGeoKey:
+                                {
+                                    _metadata.Properties.AngularUnit = (AngularUnits)keys[keyIndex + 3];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.GeogPrimeMeridianLongGeoKey:
+                                {
+                                    _metadata.Properties.PrimeMeridianLong = keys[keyIndex + 3];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.ProjectedCSTypeGeoKey:
+                                {
+                                    _metadata.Properties.CoordinateSystemId = keys[keyIndex + 3]; //projectedCSType
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.PCSCitationGeoKey:
+                                {
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            case (ushort)GeoTiffKey.ProjLinearUnitsGeoKey:
+                                {
+                                    _metadata.Properties.LinearUnit = (LinearUnits)keys[keyIndex + 3];
+                                    keyIndex += 4;
+                                    break;
+                                }
+                            default:
+                                {
+                                    // Just skipping all unprocessed keys
+                                    keyIndex += 4;
+                                    break;
+                                }
+                        }
+                    }
+
+                }
+
+            }
 
             // TIFF Tag GDAL_METADATA 42112
             _metadata.Scale = 1;
-            var tag42112 = TiffFile.GetField((TiffTag)42112);
+            var tag42112 = TiffFile.GetField((TiffTag)GEOTIFF_TAGS.GEOTIFF_GDAL_METADATA);
             if (tag42112 != null && tag42112.Length >= 1)
             {
-                var xml = tag42112[1].ToString().Trim('\0');
-                var gd = ParseXml(xml);
+                _metadata.Properties.GdalMetadata = tag42112[1].ToString().Trim('\0');
+                var gd = ParseXml(_metadata.Properties.GdalMetadata);
                 _metadata.Offset = gd.Offset;
                 _metadata.Scale = gd.Scale;
             }
 
             // TIFF Tag GDAL_NODATA 42113
             _metadata.NoDataValue = "-10000";
-            var tag42113 = TiffFile.GetField((TiffTag)42113);
+            var tag42113 = TiffFile.GetField((TiffTag)GEOTIFF_TAGS.GEOTIFF_GDAL_NODATA);
             if (tag42113 != null && tag42113.Length >= 1)
             {
                 _metadata.NoDataValue = tag42113[1].ToString().Trim('\0');
             }
-
-            return _metadata;
         }
+
         public HeightMap GetHeightMapInBBox(BoundingBox bbox, float noDataValue = 0)
         {
-            int yStart = 0;
-            int yEnd = 0;
-            int xStart = 0;
-            int xEnd = 0;
-            if (metadata.FileFormat.Registration == DEMFileRegistrationMode.Grid)
-            {
-                yStart = (int)Math.Floor((bbox.yMax - metadata.PhysicalEndLat) / metadata.pixelSizeY);
-                yEnd = (int)Math.Ceiling((bbox.yMin - metadata.PhysicalEndLat) / metadata.pixelSizeY);
-                xStart = (int)Math.Floor((bbox.xMin - metadata.PhysicalStartLon) / metadata.pixelSizeX);
-                xEnd = (int)Math.Ceiling((bbox.xMax - metadata.PhysicalStartLon) / metadata.pixelSizeX);
-            }
-            else
-            {
-                yStart = (int)Math.Floor((bbox.yMax - metadata.DataEndLat) / metadata.pixelSizeY);
-                yEnd = (int)Math.Ceiling((bbox.yMin - metadata.DataEndLat) / metadata.pixelSizeY);
-                xStart = (int)Math.Floor((bbox.xMin - metadata.DataStartLon) / metadata.pixelSizeX);
-                xEnd = (int)Math.Ceiling((bbox.xMax - metadata.DataStartLon) / metadata.pixelSizeX);
-            }
+            double rasterEndLat = metadata.DataEndLat;
+            double rasterStartLon = metadata.PhysicalStartLon;
 
-            // Tiled geotiffs like aster have overlapping 1px borders
+            int yStart = (int)Math.Floor((bbox.yMax - rasterEndLat) / metadata.pixelSizeY);
+            int yEnd = (int)Math.Ceiling((bbox.yMin - rasterEndLat) / metadata.pixelSizeY);
+            int xStart = (int)Math.Floor((bbox.xMin - rasterStartLon) / metadata.pixelSizeX);
+            int xEnd = (int)Math.Ceiling((bbox.xMax - rasterStartLon) / metadata.pixelSizeX);
+
+            // Tiled geotiffs like raster have overlapping 1px borders
             int overlappingPixel = this.IsTiled ? 1 : 0;
 
             xStart = Math.Max(0, xStart);
@@ -406,8 +553,6 @@ namespace GeoTiffCOG
 
             if (this.IsTiled)
             {
-                // Tiled rasters are composed of multiple "sub" images
-                // TODO store in metadata
                 int tileWidth = this.TileWidth;
                 int tileHeight = this.TileHeight;
                 int tileSize = this.TileSize;
@@ -415,13 +560,13 @@ namespace GeoTiffCOG
 
                 for (int y = yStart; y <= yEnd; y++)
                 {
-                    double latitude = metadata.DataEndLat + (metadata.pixelSizeY * y);
-                    // bounding box
+                    double latitude = rasterEndLat + (metadata.pixelSizeY * y);
+
                     if (y == yStart)
                     {
                         heightMap.BoundingBox.yMax = latitude;
-                        heightMap.BoundingBox.xMin = metadata.DataStartLon + (metadata.pixelSizeX * xStart);
-                        heightMap.BoundingBox.xMax = metadata.DataStartLon + (metadata.pixelSizeX * xEnd);
+                        heightMap.BoundingBox.xMin = rasterStartLon + (metadata.pixelSizeX * xStart);
+                        heightMap.BoundingBox.xMax = rasterStartLon + (metadata.pixelSizeX * xEnd);
                     }
                     if (y == yEnd)
                     {
@@ -430,7 +575,7 @@ namespace GeoTiffCOG
 
                     for (int x = xStart; x <= xEnd; x++)
                     {
-                        double longitude = metadata.DataStartLon + (metadata.pixelSizeX * x);
+                        double longitude = rasterStartLon + (metadata.pixelSizeX * x);
                         var tileX = (x / tileWidth) * tileWidth;
                         var tileY = (y / tileHeight) * tileHeight;
 
@@ -466,23 +611,17 @@ namespace GeoTiffCOG
             }
             else
             {
-                // metadata.BitsPerSample
-                // When 16 we have 2 bytes per sample
-                // When 32 we have 4 bytes per sample
                 int bytesPerSample = metadata.BitsPerSample / 8;
                 byte[] byteScanline = new byte[metadata.ScanlineSize];
-                double endLat = metadata.DataEndLat + metadata.pixelSizeY / 2d;
-                double startLon = metadata.DataStartLon + metadata.pixelSizeX / 2d;
+                double endLat = rasterEndLat + metadata.pixelSizeY / 2d;
+                double startLon = rasterStartLon + metadata.pixelSizeX / 2d;
 
                 for (int y = yStart; y <= yEnd; y++)
                 {
 
                     TiffFile.ReadScanline(byteScanline, y);
-
-                    // TODO: handle Cell registered DEMs: lat is 1/2 pixel off
                     double latitude = endLat + (metadata.pixelSizeY * y);
 
-                    // bounding box
                     if (y == yStart)
                     {
                         heightMap.BoundingBox.yMax = latitude;
@@ -505,10 +644,18 @@ namespace GeoTiffCOG
                                 heightValue = BitConverter.ToSingle(byteScanline, x * bytesPerSample);
                                 break;
                             case RasterSampleFormat.INTEGER:
-                                heightValue = BitConverter.ToInt16(byteScanline, x * bytesPerSample);
+                                if (metadata.BitsPerSample == 32)
+                                    heightValue = BitConverter.ToInt32(byteScanline, x * bytesPerSample);
+                                else
+                                    heightValue = BitConverter.ToInt16(byteScanline, x * bytesPerSample);
                                 break;
                             case RasterSampleFormat.UNSIGNED_INTEGER:
-                                heightValue = BitConverter.ToUInt16(byteScanline, x * bytesPerSample);
+                                if (metadata.BitsPerSample == 32)
+                                    heightValue = BitConverter.ToUInt32(byteScanline, x * bytesPerSample);
+                                else if (metadata.BitsPerSample == 16)
+                                    heightValue = BitConverter.ToUInt16(byteScanline, x * bytesPerSample);
+                                else if (metadata.BitsPerSample == 8)
+                                    heightValue = byteScanline[x * bytesPerSample];
                                 break;
                             default:
                                 throw new Exception("Sample format unsupported.");
@@ -523,81 +670,32 @@ namespace GeoTiffCOG
                             heightMap.Minimum = Math.Min(heightMap.Minimum, heightValue);
                             heightMap.Maximum = Math.Max(heightMap.Maximum, heightValue);
                         }
-
                         else
                         {
                             heightValue = (float)noDataValue;
                         }
                         coords.Add(new GeoPoint(latitude, longitude, heightValue));
-
                     }
                 }
 
             }
             heightMap.BoundingBox.zMin = heightMap.Minimum;
             heightMap.BoundingBox.zMax = heightMap.Maximum;
-            Debug.Assert(heightMap.Width * heightMap.Height == coords.Count);
 
             heightMap.Coordinates = coords;
             return heightMap;
         }
 
-        public HeightMap GetHeightMap()
+        public void CropArea(double bottomLeftLat, double bottomLeftLon, double upperRightLat, double upperRightLon, string fileToSave, GeoTiffCOG.Struture.RasterOutputType rasterOutputType)
         {
-            if (this.isTiled)
-                throw new NotImplementedException("Whole height map with tile geoTiff is not implemented");
-
-            HeightMap heightMap = new HeightMap(metadata.Width, metadata.Height);
-            heightMap.Count = heightMap.Width * heightMap.Height;
-            var coords = new List<GeoPoint>(heightMap.Count);
-
-            // metadata.BitsPerSample
-            // When 16 we have 2 bytes per sample
-            // When 32 we have 4 bytes per sample
-            int bytesPerSample = metadata.BitsPerSample / 8;
-            byte[] byteScanline = new byte[metadata.ScanlineSize];
-
-            for (int y = 0; y < metadata.Height; y++)
-            {
-                TiffFile.ReadScanline(byteScanline, y);
-
-                double latitude = metadata.DataStartLat + (metadata.pixelSizeY * y);
-                for (int x = 0; x < metadata.Width; x++)
-                {
-                    double longitude = metadata.DataStartLon + (metadata.pixelSizeX * x);
-
-                    float heightValue = 0;
-                    switch (metadata.SampleFormat)
-                    {
-                        case RasterSampleFormat.FLOATING_POINT:
-                            heightValue = BitConverter.ToSingle(byteScanline, x * metadata.BitsPerSample / 8);
-                            break;
-                        case RasterSampleFormat.INTEGER:
-                            heightValue = BitConverter.ToInt16(byteScanline, x * metadata.BitsPerSample / 8);
-                            break;
-                        case RasterSampleFormat.UNSIGNED_INTEGER:
-                            heightValue = BitConverter.ToUInt16(byteScanline, x * metadata.BitsPerSample / 8);
-                            break;
-                        default:
-                            throw new Exception("Sample format unsupported.");
-                    }
-                    if (heightValue < 32768)
-                    {
-                        heightMap.Minimum = Math.Min(metadata.MinimumAltitude, heightValue);
-                        heightMap.Maximum = Math.Max(metadata.MaximumAltitude, heightValue);
-                    }
-                    else
-                    {
-                        heightValue = 0;
-                    }
-                    coords.Add(new GeoPoint(latitude, longitude, heightValue));
-
-                }
-            }
-
-            heightMap.Coordinates = coords;
-            return heightMap;
+            //box
+            var bboxArea = new BoundingBox(bottomLeftLon, upperRightLon, bottomLeftLat, upperRightLat);
+            //getting data
+            var heightMapArea = GetHeightMapInBBox(bboxArea, metadata.NoDataValueFloat);
+            //making raster
+            MetaDataRaster metaDataRaster = RasterServices.GetMetaDataRaster(heightMapArea.Coordinates);
+            //saving
+            RasterServices.SaveRaster(metaDataRaster, fileToSave, rasterOutputType);
         }
-
     }
 }

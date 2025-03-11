@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace GeoTiffCOG.Struture
 {
-    public enum RasterOutputType
+    /// <summary>
+    /// Raster Types.
+    /// </summary>
+    public enum RasterType
     {
-        XYZ,
-        XYZGZIP,
-        GEOTIFF,
-        GEOTIFFDEFLATE
+        RasterPixelIsArea = 1,
+        RasterPixelIsPoint = 2,
     }
 }
