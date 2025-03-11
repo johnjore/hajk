@@ -383,7 +383,7 @@ namespace hajk
                     Description = route.desc,
                     GPX = newGPX.ToXml(),
                 };
-                RouteDatabase.SaveRoute(r);
+                r.Id = RouteDatabase.SaveRoute(r);
 
                 //If we are downloading GeoTiff and tiles
                 if (DownloadOfflineMap)
