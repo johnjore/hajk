@@ -53,8 +53,9 @@ namespace hajk
                 int intMissingTiles = 0;
                 foreach (var tile in tiles)
                 {
-                    var LocalFileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
-                    if (Downloaded(LocalFileName) == false)
+                    var LocalFileName = $"{tile.Zoom}-{tile.X}-{tile.Y}.tif";
+                    var FullFileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + LocalFileName;
+                    if (Downloaded(FullFileName) == false)
                     {
                         Serilog.Log.Information($"Need to download elevation tile: '{LocalFileName}'");
                         intMissingTiles++;
@@ -148,7 +149,7 @@ namespace hajk
                         {
                             e.Elevation = geoTiff.GetElevationAtLatLon(x, y);
                             e.ElevationSpecified = true;
-                            Serilog.Log.Debug($"Elevaton at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                            //Serilog.Log.Debug($"Elevation at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
                         }
                         catch (Exception ex)
                         {
@@ -226,7 +227,7 @@ namespace hajk
                         {                        
                             e.ele = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
                             e.eleSpecified = true;
-                            Serilog.Log.Debug($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters in FileName '{FileName}'");
+                            //Serilog.Log.Debug($"Elevation at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters in FileName '{FileName}'");
                         }
                         catch (Exception ex)
                         {
