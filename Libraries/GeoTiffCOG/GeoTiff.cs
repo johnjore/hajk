@@ -50,7 +50,7 @@ namespace GeoTiffCOG
                 throw new Exception($"File {tiffPath} does not exists !");
 
             _tiffSource = tiffPath;
-            
+
             _tiff = Tiff.Open(tiffPath, "r");
 
             if (_tiff == null)
@@ -69,7 +69,7 @@ namespace GeoTiffCOG
             {
                 if (tileWidth == 0)
                     tileWidth = TiffFile.GetField(TiffTag.TILEWIDTH)[0].ToInt();
- 
+
                 return tileWidth;
             }
         }
@@ -152,8 +152,6 @@ namespace GeoTiffCOG
 
         public float GetElevationAtPoint(int x, int y)
         {
-            Console.WriteLine($"XXXXXXXXXXX: {x}, {y}");
-
             float heightValue = 0;
             try
             {
@@ -241,7 +239,7 @@ namespace GeoTiffCOG
 
             return heightValue;
         }
- 
+
         public class GDALMetaData
         {
             public float Offset { get; set; }
