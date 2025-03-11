@@ -291,8 +291,8 @@ namespace hajk
                 for (int i = 0; i < GPSlineString.NumPoints - 1; i++)
                 {
                     //End points for line
-                    GPXUtils.Position p1 = new(GPSlineString.Coordinates[i].X, GPSlineString.Coordinates[i].Y, 0, null);
-                    GPXUtils.Position p2 = new(GPSlineString.Coordinates[i + 1].X, GPSlineString.Coordinates[i + 1].Y, 0, null);
+                    GPXUtils.Position p1 = new(GPSlineString.Coordinates[i].X, GPSlineString.Coordinates[i].Y, 0, false, null);
+                    GPXUtils.Position p2 = new(GPSlineString.Coordinates[i + 1].X, GPSlineString.Coordinates[i + 1].Y, 0, false, null);
 
                     //Quarter point on line for arrow
                     MPoint p_quarter = Utils.Misc.CalculateQuarter(lineString.Coordinates[i].Y, lineString.Coordinates[i].X, lineString.Coordinates[i + 1].Y, lineString.Coordinates[i + 1].X);
