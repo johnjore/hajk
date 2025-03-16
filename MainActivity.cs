@@ -203,9 +203,6 @@ namespace hajk
                 //Disable battery optimization
                 Utilities.BatteryOptimization.SetDozeOptimization(this);
 
-                //Create alarm
-                Utilities.Alarms.CreateAlarm();
-
                 Log.Information($"Daily Backup?");
                 if (Preferences.Get("EnableBackupAtStartup", Fragment_Preferences.EnableBackupAtStartup))
                 {
@@ -372,12 +369,20 @@ namespace hajk
         protected override void OnPause()
         {
             Log.Information($"OnPause()");
+
+            //Create alarm
+            Utilities.Alarms.CreateAlarm();
+
             base.OnPause();
         }
 
         protected override void OnResume()
         {
             Log.Information($"OnResume()");
+
+            //Cancel any alarms scheduled
+            Utilities.Alarms.CancelAlarm();
+
             base.OnResume();
         }
 
