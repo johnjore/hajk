@@ -1,4 +1,5 @@
 ﻿using Android.App;
+using Android.OS;
 using Android.Widget;
 using System;
 using System.Collections.Generic;
@@ -53,7 +54,7 @@ namespace hajk.Utilities
 
                 Task.Run(() =>
                 {
-                    //PerformBackups(ProgressBarIncrement);
+                    PerformBulkDownloads();
                 });
             });
 
@@ -67,6 +68,71 @@ namespace hajk.Utilities
 
             builder.Create();
             builder.Show();
+        }
+
+        private static async void PerformBulkDownloads()
+        {
+            if (Preferences.Get("BulkDownloadRoutes", true))
+            {
+                GpxData? mGpxData = new GpxData(Models.GPXType.Route);
+                await Task.Run(async () =>
+                {
+                    if (Looper.MyLooper() == null)
+                    {
+                        Looper.Prepare();
+                    }
+
+                    for (int i = 0; i < mGpxData.NumGpx; i++)
+                    {
+                        Serilog.Log.Information($"Processing '{mGpxData[i].Name}'");
+
+                        if (await Import.UpdateRouteOrTrack(mGpxData[i].Id) == false)
+                        {
+                            Serilog.Log.Information($"Failed to update '{mGpxData[i].Name}'");
+                            Toast.MakeText(Platform.AppContext, $"Failed to update '{mGpxData[i].Name}'", ToastLength.Short)?.Show();
+                        }
+                        else
+                        {
+                            Serilog.Log.Information($"Done updating '{mGpxData[i].Name}'");
+                            Toast.MakeText(Platform.AppContext, $"Updated '{mGpxData[i].Name}'", ToastLength.Short)?.Show();
+                        }
+                    }
+                });
+            }
+
+            if (Preferences.Get("BulkDownloadTracks", true))
+            {
+                GpxData? mGpxData = new GpxData(Models.GPXType.Track);
+                await Task.Run(async () =>
+                {
+                    if (Looper.MyLooper() == null)
+                    {
+                        Looper.Prepare();
+                    }
+
+                    for (int i = 0; i < mGpxData.NumGpx; i++)
+                    {
+                        Serilog.Log.Information($"Processing '{mGpxData[i].Name}'");
+
+                        if (await Import.UpdateRouteOrTrack(mGpxData[i].Id) == false)
+                        {
+                            Serilog.Log.Information($"Failed to update '{mGpxData[i].Name}'");
+                            Toast.MakeText(Platform.AppContext, $"Failed to update '{mGpxData[i].Name}'", ToastLength.Short)?.Show();
+                        }
+                        else
+                        {
+                            Serilog.Log.Information($"Done updating '{mGpxData[i].Name}'");
+                            Toast.MakeText(Platform.AppContext, $"Updated '{mGpxData[i].Name}'", ToastLength.Short)?.Show();
+                        }
+                    }
+                });
+            }
+
+            if (Preferences.Get("BulkDownloadPOI", true))
+            {
+
+
+            }
         }
     }
 }
