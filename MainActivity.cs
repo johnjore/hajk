@@ -33,7 +33,6 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 using Serilog.Events;
-using static Android.Content.PM.PackageManager;
 
 namespace hajk
 {
@@ -333,6 +332,10 @@ namespace hajk
             else if (id == Resource.Id.ExportRogainingPOI)
             {
                 Export.ExportPOI("Rogaining");
+            }
+            else if (id == Resource.Id.BulkDownload)
+            {
+                Serilog.Log.Information("Not Yet Implemented");
             }
             else if (id == Resource.Id.action_clearmap)
             {
