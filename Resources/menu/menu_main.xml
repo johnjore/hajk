@@ -3,31 +3,36 @@
     xmlns:tools="http://schemas.android.com/tools">
 
   <item
-      android:id="@+id/AddCurrentLocationAsPOI"
-      android:title="@string/AddCurrentLocationAsPOI" />
+    android:id="@+id/AddCurrentLocationAsPOI"
+    android:title="@string/AddCurrentLocationAsPOI" />
 
   <item
-      android:id="@+id/SaveGPSasPOI"
-      android:title="@string/SaveGPSasPOI" />
+    android:id="@+id/SaveGPSasPOI"
+    android:title="@string/SaveGPSasPOI" />
 
   <item
-      android:id="@+id/AddRogainingPOI"
-      android:title="@string/AddRogainingPOI" />
+    android:id="@+id/AddRogainingPOI"
+    android:title="@string/AddRogainingPOI" />
 
   <item
     android:id="@+id/ExportRogainingPOI"
     android:title="@string/ExportRogainingPOI" />
 
   <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
+    android:id="@+id/BulkDownload"
+    android:title="@string/Bulk_Download"
+    app:showAsAction="never" />
 
-    <item
-        android:id="@+id/action_clearmap"
-        android:orderInCategory="90"
-        android:title="@string/Clear_map_of_routes_and_tracks"
-        app:showAsAction="never" />
+  <item
+    android:id="@+id/action_settings"
+    android:orderInCategory="100"
+    android:title="@string/action_settings"
+    app:showAsAction="never" />
+
+  <item
+    android:id="@+id/action_clearmap"
+    android:orderInCategory="90"
+    android:title="@string/Clear_map_of_routes_and_tracks"
+    app:showAsAction="never" />
 
 </menu>
