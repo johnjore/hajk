@@ -238,24 +238,27 @@ namespace hajk
                     }
 
                     //Update Reference field
-                    List<int> r = new();
-                    if (newTile.reference != null && newTile.reference != string.Empty)
+                    if (id != 999999) //Do not update if id is a POI
                     {
-                        try
+                        List<int> r = new();
+                        if (newTile.reference != null && newTile.reference != string.Empty)
                         {
-                            r = JsonSerializer.Deserialize<List<int>>(newTile.reference);
+                            try
+                            {
+                                r = JsonSerializer.Deserialize<List<int>>(newTile.reference);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Fatal(ex, $"Crashed");
+                                r.Clear();
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            Log.Fatal(ex, $"Crashed");
-                            r.Clear();
-                        }
-                    }
 
-                    if (r.Contains(id) == false)
-                    {
-                        r.Add(id);
-                        newTile.reference = JsonSerializer.Serialize(r);
+                        if (r.Contains(id) == false)
+                        {
+                            r.Add(id);
+                            newTile.reference = JsonSerializer.Serialize(r);
+                        }
                     }
 
                     if (MBTilesWriter.WriteTile(newTile) == 0)
