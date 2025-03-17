@@ -63,6 +63,7 @@ namespace hajk
         public readonly static bool RecordingTrack = false;             //True when recording a Track
         public readonly static bool TrackLocation = false;              //True when map is continiously moved to center on our location
         public readonly static int OfflineMaxAge = 90;                  //Don't refresh tiles until this threashhold in days
+        public const int WakLockInterval = 10;                          //How long before each wakelock request
 
         //Location Service
         public const int SERVICE_RUNNING_NOTIFICATION_ID = 11000;

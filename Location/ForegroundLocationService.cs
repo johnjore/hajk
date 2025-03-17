@@ -85,6 +85,11 @@ namespace hajk
             return currentLocation;
         }
 
+        public static void SetLocation(Android.Locations.Location location)
+        {
+            currentLocation = location;
+        }
+
         private string InitializeLocationManager()
         {
             LocationManager? lm = GetSystemService(LocationService) as LocationManager;

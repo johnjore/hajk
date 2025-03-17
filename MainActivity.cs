@@ -203,9 +203,6 @@ namespace hajk
                 //Disable battery optimization
                 Utilities.BatteryOptimization.SetDozeOptimization(this);
 
-                //Create alarm
-                Utilities.Alarms.CreateAlarm();
-
                 Log.Information($"Daily Backup?");
                 if (Preferences.Get("EnableBackupAtStartup", Fragment_Preferences.EnableBackupAtStartup))
                 {
@@ -219,6 +216,11 @@ namespace hajk
                 {
                     Serilog.Log.Debug(file);
                 }
+
+                //Wakelock - Wake-up phone when recording and in battery save mode, and screenlocked
+                PowerManager? powerManager = (PowerManager)Android.App.Application.Context.GetSystemService(Context.PowerService) as PowerManager;
+                Utilities.Alarms.wakelock = powerManager?.NewWakeLock(WakeLockFlags.Full | WakeLockFlags.AcquireCausesWakeup | WakeLockFlags.OnAfterRelease, "walkabout:Alarms");
+                Utilities.Alarms.wakelock?.SetReferenceCounted(false);
             }
             catch (Exception ex)
             {
@@ -372,12 +374,20 @@ namespace hajk
         protected override void OnPause()
         {
             Log.Information($"OnPause()");
+
+            //Create alarm
+            Utilities.Alarms.CreateAlarm();
+
             base.OnPause();
         }
 
         protected override void OnResume()
         {
             Log.Information($"OnResume()");
+
+            //Cancel any alarms scheduled
+            Utilities.Alarms.CancelAlarm();
+
             base.OnResume();
         }
 
