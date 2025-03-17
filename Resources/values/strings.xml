@@ -98,7 +98,8 @@
   <string name="EnableBackupAtStartup">"Backup on first launch of the day"</string>
   <string name="AddCurrentLocationAsPOI">"Save Current Location as POI</string>
   <string name="SaveGPSasPOI">"Save GPS Coordinates as POI"</string>
-  <string name="Bulk_Download">"Bulk download tiles"</string>
+  <string name="BulkDownload">"Bulk download tiles"</string>
+  <string name="BulkDownloadOptions">"Choose Download Options"</string>
 
   <!-- Map Tile provider Start -->
     <string name="MapTileSources">"Map Tile Sources"</string>

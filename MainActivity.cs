@@ -335,7 +335,7 @@ namespace hajk
             }
             else if (id == Resource.Id.BulkDownload)
             {
-                Serilog.Log.Information("Not Yet Implemented");
+                Utilities.BulkDownload.RunBulkDownload();
             }
             else if (id == Resource.Id.action_clearmap)
             {

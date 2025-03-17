@@ -20,7 +20,7 @@
 
   <item
     android:id="@+id/BulkDownload"
-    android:title="@string/Bulk_Download"
+    android:title="@string/BulkDownload"
     app:showAsAction="never" />
 
   <item
