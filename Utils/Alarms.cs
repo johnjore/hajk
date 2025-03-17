@@ -11,19 +11,22 @@ namespace hajk.Utilities
 {
     internal class Alarms
     {
+        public static volatile PowerManager.WakeLock? wakelock;
+        public static volatile int counter = 0;
+
         public static void CreateAlarm()
         {
-            int time = Fragment_Preferences.freq_s * 2;
-
             Intent intent = new Intent(Platform.CurrentActivity, typeof(AlarmReceiver));
             PendingIntent? pi = PendingIntent.GetBroadcast(Platform.CurrentActivity, 0, intent, PendingIntentFlags.Immutable);
             AlarmManager? alarmManager = Android.App.Application.Context.GetSystemService(Context.AlarmService) as AlarmManager;
 
-            if (pi != null && alarmManager != null)
+            if (pi != null && alarmManager is AlarmManager)
             {
-                long AlermTimeInMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() + (time * 1000);
-
-                alarmManager.Set(AlarmType.RtcWakeup, AlermTimeInMilliseconds, pi);
+                long AlarmTimeInMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() + (Fragment_Preferences.WakLockInterval * 1000);
+                alarmManager.Set(AlarmType.RtcWakeup, AlarmTimeInMilliseconds, pi);
+                
+                DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(AlarmTimeInMilliseconds);
+                Serilog.Log.Debug($"Alarm set for {dateTimeOffset.DateTime.ToLocalTime()}");
             }
         }
 
@@ -52,6 +55,13 @@ namespace hajk.Utilities
                 Android.Locations.Location? GpsLocation = LocationForegroundService.GetLocation();
                 if (GpsLocation == null)
                 {
+                    if (wakelock?.IsHeld == false)
+                    {
+                        Serilog.Log.Debug("Acquireing Lock");
+                        wakelock?.Acquire();
+                        Thread.Sleep(1000);
+                    }
+
                     LocationHelper locationHelper = new LocationHelper(Platform.CurrentActivity);
                     locationHelper.GetCurrentLocation();
                 }
@@ -64,6 +74,13 @@ namespace hajk.Utilities
 
                     if (gpsUTCDateTime.AddSeconds(Fragment_Preferences.freq_s * 2) < DateTime.UtcNow && (Preferences.Get("RecordingTrack", false) == true))
                     {
+                        if (wakelock?.IsHeld == false)
+                        {
+                            Serilog.Log.Debug("Acquireing Lock");
+                            wakelock?.Acquire();
+                            Thread.Sleep(1000);
+                        }
+
                         LocationHelper locationHelper = new LocationHelper(Platform.CurrentActivity);
                         locationHelper.GetCurrentLocation();
                     }
@@ -72,7 +89,6 @@ namespace hajk.Utilities
         }
     }
 }
-
 
 public class LocationHelper
 {
@@ -101,6 +117,7 @@ public class LocationHelper
                     if (location != null)
                     {
                         Serilog.Log.Debug($"Location Updated from Alarm - {DateTime.Now:hh:mm:ss}: {location.Latitude:0.00000}, {location.Longitude:0.00000}");
+                        hajk.Utilities.Alarms.wakelock.Release();
 
                         //Update location variable
                         hajk.LocationForegroundService.SetLocation(location);
@@ -151,16 +168,36 @@ public class LocationHelper
             _onLocationReceived = onLocationReceived;
         }
 
-        public void Accept(Java.Lang.Object obj)
+        public void Accept(Java.Lang.Object? obj)
         {
             // Cast the Java object to a Location and call the provided callback
             if (obj is Android.Locations.Location location)
             {
+                if (hajk.Utilities.Alarms.wakelock?.IsHeld == true)
+                {
+                    Serilog.Log.Debug("Releasing Lock");
+                    hajk.Utilities.Alarms.wakelock?.Release();
+                }
                 _onLocationReceived?.Invoke(location);
             }
             else
             {
                 Serilog.Log.Information("No new locationdata provided. Powersave?");
+
+                Thread.Sleep(1000);
+                if (hajk.Utilities.Alarms.counter++ <= 5)
+                {
+                    Serilog.Log.Debug($"Counter: {hajk.Utilities.Alarms.counter}");
+                    LocationHelper locationHelper = new LocationHelper(Platform.CurrentActivity);
+                    locationHelper.GetCurrentLocation();
+                }
+                else
+                {
+                    hajk.Utilities.Alarms.counter = 0;
+
+                    Serilog.Log.Debug("Emergency Releasing Lock");
+                    hajk.Utilities.Alarms.wakelock?.Release();
+                }
             }
         }
     }
