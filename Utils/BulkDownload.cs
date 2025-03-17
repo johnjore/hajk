@@ -1,6 +1,10 @@
 ﻿using Android.App;
 using Android.OS;
 using Android.Widget;
+using hajk.Data;
+using hajk.Models;
+using SharpGPX;
+using SharpGPX.GPX1_1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -130,8 +134,42 @@ namespace hajk.Utilities
 
             if (Preferences.Get("BulkDownloadPOI", true))
             {
+                await Task.Run(async () =>
+                {
+                    List<GPXDataPOI> POIs = POIDatabase.GetPOIAsync().Result;
 
+                    foreach (GPXDataPOI POI in POIs)
+                    {
+                        Serilog.Log.Debug(POI.Name);
 
+                        GpxClass gpx = new()
+                        {
+                            Waypoints = [new()
+                            {
+                                lat = (decimal)POI.Lat,
+                                lon = (decimal)POI.Lon,
+                            }]
+                        };
+
+                        //Download Elevation data
+                        await Elevation.DownloadElevationData(gpx);
+
+                        var bounds = gpx.Waypoints.GetBounds();
+                        Models.Map map = new()
+                        {
+                            Id = 999999,
+                            ZoomMin = Fragment_Preferences.MinZoom,
+                            ZoomMax = Fragment_Preferences.MaxZoom,
+                            BoundsLeft = (double)bounds.minlat,
+                            BoundsBottom = (double)bounds.maxlon,
+                            BoundsRight = (double)bounds.maxlat,
+                            BoundsTop = (double)bounds.minlon
+                        };
+
+                        //Get all missing tiles
+                        await DownloadRasterImageMap.DownloadMap(map, false);
+                    }
+                });
             }
         }
     }
