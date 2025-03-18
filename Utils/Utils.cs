@@ -179,6 +179,20 @@ namespace Utils
             };
         }
 
+        public static Mapsui.MPoint CalculateNofM(GPXUtils.Position p1, GPXUtils.Position p2, float p1p2_Ddistance, double interval)
+        {
+            double xMin = Math.Min(p1.Latitude, p2.Latitude);
+            double xMax = Math.Max(p1.Latitude, p2.Latitude);
+            double yMin = Math.Min(p1.Longitude, p2.Longitude);
+            double yMax = Math.Max(p1.Longitude, p2.Longitude);
+
+            return new Mapsui.MPoint()
+            {
+                X = xMin + (interval / p1p2_Ddistance * (xMax - xMin)),
+                Y = yMin + (interval / p1p2_Ddistance * (yMax - yMin))
+            };
+        }
+
         public static bool ClearTrackRoutesFromMap()
         {
             //Serilog.Log.Information($"Clear gpx entries from map");
