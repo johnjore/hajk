@@ -505,6 +505,12 @@ namespace hajk.Adapter
                 var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
                 GpxClass gpx_to_export = GpxClass.FromXml(route_to_export.GPX);
 
+                //Clear the src field. Internal only
+                for (int i = 0; i < gpx_to_export.Routes[0].rtept.Count; i++)
+                {
+                    gpx_to_export.Routes[0].rtept[i].src = "";
+                }
+
                 string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
                 if (DownLoadFolder != null)
                 {
