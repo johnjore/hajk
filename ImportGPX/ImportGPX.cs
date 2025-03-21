@@ -601,78 +601,60 @@ namespace hajk
             }
         }
 
-        public static (string?, float, List<GPXUtils.Position>?) ParseGPXtoRoute(rteType? route)
+        public static (string?, float, List<Position>?) ParseGPXtoRoute(rteType? route)
         {
             try
             {
                 if (route == null)
                 {
+                    Serilog.Log.Information("Route is 'null'");
                     return (null, 0, null);
                 }
 
-                float mapDistance_m = 0.0f;
-                var p = new PositionHandler();
-                var p2 = new GPXUtils.Position(0, 0, 0, false, null);
-                List<GPXUtils.Position> ListLatLon = [];
-
-                for (int i = 0; i < route.rtept.Count; i++)
+                List<Position>? ListLatLon = GetAllWayPointsFromRoute(route);
+                if (ListLatLon == null)
                 {
-                    ListLatLon.Add(new GPXUtils.Position((double)route.rtept[i].lat, (double)route.rtept[i].lon, 0, false, null));
+                    Serilog.Log.Information("Unable to extract WayPoints from route, ListLatLon is 'null'");
+                    return (null, 0, null);
+                }
 
-                    var rtePteExt = route.rtept[i].GetExt<RoutePointExtension>();
-                    if (rtePteExt != null)
+                var p = new PositionHandler();
+                double maxDistance = Fragment_Preferences.ElevationDistanceLookup; //Divvy up the leg in sectionss
+                float mapDistance_m = 0.0f;
+                List<Position>? ListLatLonEle = [];
+
+                for (int i = 1; i < ListLatLon.Count; i++)
+                {
+                    var p1 = ListLatLon[i - 1];
+                    var p2 = ListLatLon[i];
+
+                    //Add elements 0 to n-1
+                    ListLatLonEle.Add(p1);
+
+                    float distance_m = (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
+                    mapDistance_m += distance_m;
+
+                    //Add more points if distance between p1 and p2 is too great
+                    if (distance_m > maxDistance)
                     {
-                        Serilog.Log.Debug("Route '{0}' has Garmin extension", route.name);
+                        int Chunks = Convert.ToInt32(Math.Ceiling((double)distance_m / maxDistance));
 
-                        for (int j = 0; j < rtePteExt.rpt.Count; j++)
+                        for (int j = 1; j < Chunks; j++)
                         {
-                            ListLatLon.Add(new GPXUtils.Position((double)rtePteExt.rpt[j].lat, (double)rtePteExt.rpt[j].lon, 0, false, null));
-
-                            //Previous leg
-                            if (j == 0 && p2.Latitude != 0 && p2.Longitude != 0)
-                            {
-                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, false, null);
-                                mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
-                            }
-
-                            //First leg
-                            if (j == 0)
-                            {
-                                var p1 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0, false, null);
-                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, false, null);
-                                mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
-                            }
-
-                            //All other legs
-                            if (j >= 1)
-                            {
-                                var p1 = new GPXUtils.Position((float)rtePteExt.rpt[j - 1].lat, (float)rtePteExt.rpt[j - 1].lon, 0, false, null);
-                                p2 = new GPXUtils.Position((float)rtePteExt.rpt[j].lat, (float)rtePteExt.rpt[j].lon, 0, false, null);
-                                mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
-                            }
-                        }
-
-                        //Any points?
-                        if (rtePteExt.rpt.Count == 0)
-                            rtePteExt = null;
-                    }
-
-                    if (rtePteExt == null)
-                    {
-                        //Previous leg
-                        if (i >= 1)
-                        {
-                            var p1 = new GPXUtils.Position((float)route.rtept[i - 1].lat, (float)route.rtept[i - 1].lon, 0, false, null);
-                            p2 = new GPXUtils.Position((float)route.rtept[i].lat, (float)route.rtept[i].lon, 0, false, null);
-                            mapDistance_m += (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
+                            var p3 = Utils.Misc.CalculateNofM(p1, p2, distance_m, (double)((double)distance_m / (double)Chunks * (double)j));
+                            ListLatLonEle.Add(new Position(p3.X, p3.Y, 0, false, null));
+                            Serilog.Log.Debug($"{p3.X}, {p3.Y}");
                         }
                     }
                 }
 
-                //Convert the list to a string
-                string mapRoute = ConvertLatLonListToLineString(ListLatLon);
+                //Add last item
+                ListLatLonEle.Add(ListLatLon.Last());
 
-                return (mapRoute, mapDistance_m, ListLatLon);
+                //Convert the list to a string
+                string mapRoute = ConvertLatLonListToLineString(ListLatLonEle);
+
+                return (mapRoute, mapDistance_m, ListLatLonEle);
             }
             catch (Exception ex)
             {
@@ -681,7 +663,33 @@ namespace hajk
 
             return (null, 0, null);
         }
-               
+
+        private static List<Position>? GetAllWayPointsFromRoute(rteType? route)
+        {
+            if (route == null)
+                return null;
+
+            List<Position> ListLatLon = [];
+
+            for (int i = 0; i < route.rtept.Count; i++)
+            {
+                ListLatLon.Add(new Position((double)route.rtept[i].lat, (double)route.rtept[i].lon, (double)route.rtept[i].ele, route.rtept[i].eleSpecified, null));
+
+                var rtePteExt = route.rtept[i].GetExt<RoutePointExtension>();
+                if (rtePteExt != null)
+                {
+                    Serilog.Log.Debug($"Route '{route.name}' has Garmin extension. Adding additional route points");
+
+                    for (int j = 0; j < rtePteExt.rpt.Count; j++)
+                    {
+                        ListLatLon.Add(new Position((double)rtePteExt.rpt[j].lat, (double)rtePteExt.rpt[j].lon, 0, false, null));
+                    }
+                }
+            }
+
+            return ListLatLon;
+        }
+
         private static string ConvertLatLonListToLineString(List<GPXUtils.Position> ListLatLon)
         {
             var LineString = "LINESTRING(";
@@ -707,6 +715,37 @@ namespace hajk
 
             return LineString;
         }
+
+        public static string? ConvertRouteToLineString(rteType? route)
+        {
+            if (route == null)
+                return null;
+
+
+            var LineString = "LINESTRING(";
+
+            try
+            {
+                for (int i = 0; i < route.rtept.Count; i++)
+                {
+                    if (i != 0)
+                    {
+                        LineString += ",";
+                    }
+
+                    LineString += route.rtept[i].lat+ " " + route.rtept[i].lon;
+                }
+
+                LineString += ")";
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Fatal(ex, $"Import - ConvertRouteToLineString()");
+            }
+
+            return LineString;
+        }
+
 
         private static bool CheckFile_Walkabout(String content)
         {

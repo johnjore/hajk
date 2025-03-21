@@ -149,7 +149,11 @@ namespace hajk
                 }
 
                 //Needed for Toast.MakeText() to work
-                Looper.Prepare();
+                if (Looper.MyLooper() == null)
+                {
+                    Looper.Prepare();
+                }
+
 
                 //Backups
                 if (Preferences.Get("BackupPreferences", true))
