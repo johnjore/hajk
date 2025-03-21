@@ -29,6 +29,7 @@ namespace hajk
 
         //GeoTiff
         public readonly static int Elevation_Tile_Zoom = 14;            //Best AWS bucket has
+        public readonly static double ElevationDistanceLookup = 100.0;  //Add additional waypoints every n meters
 
         //Settings
         public readonly static int freq_s = 5;                          //How often do we get/save current position for track recordings

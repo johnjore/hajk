@@ -619,7 +619,7 @@ namespace hajk
                 }
 
                 var p = new PositionHandler();
-                double maxDistance = 100.0; //Divvy up the leg in sectionss
+                double maxDistance = Fragment_Preferences.ElevationDistanceLookup; //Divvy up the leg in sectionss
                 float mapDistance_m = 0.0f;
                 List<Position>? ListLatLonEle = [];
 
