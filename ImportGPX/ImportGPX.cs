@@ -619,7 +619,7 @@ namespace hajk
                 }
 
                 var p = new PositionHandler();
-                double maxDistance = 20.0; //Divvy up the leg in sections
+                double maxDistance = 100.0; //Divvy up the leg in sectionss
                 float mapDistance_m = 0.0f;
                 List<Position>? ListLatLonEle = [];
 
@@ -715,6 +715,37 @@ namespace hajk
 
             return LineString;
         }
+
+        public static string? ConvertRouteToLineString(rteType? route)
+        {
+            if (route == null)
+                return null;
+
+
+            var LineString = "LINESTRING(";
+
+            try
+            {
+                for (int i = 0; i < route.rtept.Count; i++)
+                {
+                    if (i != 0)
+                    {
+                        LineString += ",";
+                    }
+
+                    LineString += route.rtept[i].lat+ " " + route.rtept[i].lon;
+                }
+
+                LineString += ")";
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Fatal(ex, $"Import - ConvertRouteToLineString()");
+            }
+
+            return LineString;
+        }
+
 
         private static bool CheckFile_Walkabout(String content)
         {

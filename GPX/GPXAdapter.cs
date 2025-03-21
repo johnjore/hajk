@@ -363,7 +363,7 @@ namespace hajk.Adapter
                 gpx.Routes.Add(gpx.Tracks[0].ToRoutes()[0]);
             }
 
-            string mapRoute = Import.ParseGPXtoRoute(gpx.Routes[0]).Item1;
+            string? mapRoute = Import.ConvertRouteToLineString(gpx.Routes[0]);
 
             //Add GPX to Map
             DisplayMapItems.AddRouteToMap(mapRoute, GPXType.Route, true, vh.Name.Text);
@@ -407,7 +407,8 @@ namespace hajk.Adapter
             {
                 gpx_2.Routes.Add(gpx_2.Tracks[0].ToRoutes()[0]);
             }
-            string mapRouteTrack_2 = Import.ParseGPXtoRoute(gpx_2.Routes[0]).Item1;
+
+            string? mapRouteTrack_2 = Import.ConvertRouteToLineString(gpx_2.Routes[0]);
 
             //Add GPX to Map
             DisplayMapItems.AddRouteToMap(mapRouteTrack_2, routetrack_2.GPXType, true, vh.Name.Text);
