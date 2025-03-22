@@ -81,7 +81,7 @@ namespace hajk.Fragments
 
             var c1 = view?.FindViewById<TextView>(Resource.Id.lblRestoreMap);
             var c2 = view?.FindViewById<RadioGroup>(Resource.Id.radioMapData);
-            if (File.Exists(tmpFolder + "/" + Fragment_Preferences.CacheDB) == false && c1 != null && c2 != null)
+            if (Directory.Exists(tmpFolder + "/" + Path.GetFileName(Fragment_Preferences.MapFolder)) == false && c1 != null && c2 != null)
             {
                 c1.Visibility = ViewStates.Gone;
                 c2.Visibility = ViewStates.Gone;
@@ -470,12 +470,12 @@ namespace hajk.Fragments
             try
             {
                 Serilog.Log.Information("Restoring Map Tiles");
-                string RestoreFile = tmpFolder + "/" + Fragment_Preferences.CacheDB;
+                string RestoreFolder = tmpFolder + "/" + Path.GetFileName(Fragment_Preferences.MapFolder);
 
                 if (RestoreChoice == RestoreSelection.Overwrite)
                 {
                     //Remove OSM Layer
-                    Progressbar.UpdateProgressBar.Progress = 10;
+                    Progressbar.UpdateProgressBar.Progress = 5;
                     var OSMLayer = Fragment_map.map.Layers.FindLayer("OSM").FirstOrDefault();
                     if (OSMLayer == null)
                     {
@@ -484,20 +484,47 @@ namespace hajk.Fragments
                         return false;
                     }
 
-                    Progressbar.UpdateProgressBar.Progress = 20;
+                    Progressbar.UpdateProgressBar.Progress = 10;
                     Fragment_map.map.Layers.Remove(OSMLayer);
-                    File.Copy(RestoreFile, Fragment_Preferences.LiveData + Fragment_Preferences.CacheDB, true);
-                    Progressbar.UpdateProgressBar.Progress = 90;
+                }
+
+                var filesToRestore = Directory.GetFiles(RestoreFolder);
+                Serilog.Log.Debug($"MapTile files to restore from backup: " + filesToRestore.Count().ToString());
+                double ProgressBarIncrement = ((double)90 / filesToRestore.Count());
+                Serilog.Log.Debug($"ProgressBarIncrement '{ProgressBarIncrement}'");
+
+                string TileBrowseSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source), Fragment_Preferences.TileBrowseSource);
+
+                foreach (string fileName in Directory.GetFiles(RestoreFolder))
+                {
+                    if (RestoreChoice == RestoreSelection.Merge && fileName.Contains(TileBrowseSource) == true)
+                    {
+                        //Do Nothing
+                    }
+                    else
+                    {
+                        File.Copy(fileName, Fragment_Preferences.MapFolder + "/" + Path.GetFileName(fileName), true);
+                    }
+
+                    Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
+                    Progressbar.UpdateProgressBar.MessageBody = $"'{Path.GetFileName(fileName)}'";
+                }
+
+
+                if (RestoreChoice == RestoreSelection.Overwrite)
+                { 
                     DownloadRasterImageMap.LoadOSMLayer();
+                    Progressbar.UpdateProgressBar.Progress = 100;
                 }
 
                 if (RestoreChoice == RestoreSelection.Merge)
                 {
-                    Progressbar.UpdateProgressBar.MessageBody = $"Connecting to databases...";
+                    Progressbar.UpdateProgressBar.MessageBody = $"Connecting to database...";
+                    var RestoreFile = RestoreFolder + "/" + TileBrowseSource + ".mbtiles";
                     var Restore_DB = new SQLiteConnection(RestoreFile, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
                     var tiles = Restore_DB.Table<tiles>();
                     Serilog.Log.Debug($"Tiles to import from backup: " + tiles.Count().ToString());
-                    double ProgressBarIncrement = ((double)100 / tiles.Count());
+                    ProgressBarIncrement = ((double)100 / tiles.Count());
                     Serilog.Log.Debug($"ProgressBarIncrement '{ProgressBarIncrement}'");
 
                     lock (MbTileCache.sqlConn)
