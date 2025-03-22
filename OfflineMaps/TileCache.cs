@@ -21,15 +21,22 @@ namespace hajk
     {
         static MbTileCache? mbTileCache;
 
-        public static ITileSource? GetOSMBasemap(string cacheFilename)
+        public static ITileSource? GetOSMBasemap()
         {
+            if (!Directory.Exists(Fragment_Preferences.MapFolder))
+            {
+                try
+                {
+                    Directory.CreateDirectory(Fragment_Preferences.MapFolder);
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Fatal(ex, $"GetOSMBasemap - Failed to Create MapFolder Folder");
+                }
+            }
+
             try
             {
-                if (mbTileCache == null)
-                {
-                    mbTileCache = new MbTileCache(cacheFilename, "png");
-                }
-
                 HttpTileSource src;
                 string TileBrowseSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source), Fragment_Preferences.TileBrowseSource);
 
@@ -39,7 +46,12 @@ namespace hajk
                     Serilog.Log.Error("No MapSource defined");
                     return null;
                 }
-                
+
+                if (mbTileCache == null)
+                {
+                    mbTileCache = new MbTileCache(Fragment_Preferences.MapFolder + "/" + MapSource.Name + ".mbtiles", "png");
+                }
+
                 if (TileBrowseSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
                 {
                     src = new(new GlobalSphericalMercator(Fragment_Preferences.MinZoom, Fragment_Preferences.MaxZoom),
