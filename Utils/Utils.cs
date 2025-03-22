@@ -78,7 +78,7 @@ namespace Utils
                     Serilog.Log.Debug($"Extracting embedded world map");
                     using (var writeStream = new FileStream(dbFile, FileMode.OpenOrCreate, FileAccess.Write))
                     {
-                        activity?.Assets?.Open(Fragment_Preferences.CacheDB).CopyTo(writeStream);
+                        activity?.Assets?.Open("OpenStreetMap.mbtiles").CopyTo(writeStream);
                     }
                 }
                 else
