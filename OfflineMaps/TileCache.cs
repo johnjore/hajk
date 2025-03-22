@@ -40,16 +40,16 @@ namespace hajk
                 HttpTileSource src;
                 string TileBrowseSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source), Fragment_Preferences.TileBrowseSource);
 
+                if (mbTileCache == null)
+                {
+                    mbTileCache = new MbTileCache(Fragment_Preferences.MapFolder + "/" + TileBrowseSource + ".mbtiles", "png");
+                }
+
                 var MapSource = Fragment_Preferences.MapSources.Where(x => x.Name.Equals(TileBrowseSource, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                 if (MapSource == null) 
                 {
                     Serilog.Log.Error("No MapSource defined");
                     return null;
-                }
-
-                if (mbTileCache == null)
-                {
-                    mbTileCache = new MbTileCache(Fragment_Preferences.MapFolder + "/" + MapSource.Name + ".mbtiles", "png");
                 }
 
                 if (TileBrowseSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))

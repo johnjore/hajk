@@ -48,7 +48,6 @@ namespace hajk
         public const string COGGeoTiffServer = "https://elevation-tiles-prod.s3.amazonaws.com/geotiff/"; //Cloud Optimized GeoTiff Server
         public const string POIDB = "POI.db3";                          //Database to store all POI (WayPoints)
         public const string RouteDB = "Routes.db3";                     //Database to store all routes
-        public const string CacheDB = "CacheDB.mbtiles";                //Database to store offline tiles
         public const string SavedSettings = "SavedSettings.json";       //Saved Application Settings / Preferences
         public const string logFile = "walkabout_.txt";                 //Log file
         public const string GeoTiffFolder = "GeoTiff";                  //Folder for all GeoTiff Files
@@ -57,6 +56,7 @@ namespace hajk
         public readonly static string LiveData = rootPath + "/" + "LiveData";   //Live Data
         public readonly static string? DownloadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
         public readonly static string Backups = DownloadFolder + "/" + "Backups";     //Backup Data
+        public readonly static string MapFolder = rootPath + "/" + "MapTiles";        //Folder to store offline tiles (one file per MapSource)
         public const int MinZoom = 0;                                   //MinZoom level to use
         public const int MaxZoom = 16;                                  //MaxZoom level to use
         public const int LocationTimer = 1000;                          //How often new LocationData is provided
