@@ -56,7 +56,7 @@ namespace hajk
         public readonly static string LiveData = rootPath + "/" + "LiveData";   //Live Data
         public readonly static string? DownloadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
         public readonly static string Backups = DownloadFolder + "/" + "Backups";     //Backup Data
-        public readonly static string MapFolder = rootPath + "/" + "MapTiles";        //Folder to store offline tiles (one file per MapSource)
+        public readonly static string MapFolder = LiveData + "/" + "MapTiles";        //Folder to store offline tiles (one file per MapSource)
         public const int MinZoom = 0;                                   //MinZoom level to use
         public const int MaxZoom = 16;                                  //MaxZoom level to use
         public const int LocationTimer = 1000;                          //How often new LocationData is provided
