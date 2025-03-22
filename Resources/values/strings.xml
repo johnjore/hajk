@@ -103,7 +103,7 @@
   
   <!-- Map Tile provider Start -->
     <string name="MapTileSources">"Map Tile Sources"</string>
-    <string name="OSM_Browse_Source">"Tile Browsing Source"</string>
+    <string name="OSM_Browse_Source">"Tile Source"</string>
 
     <!-- Mapbox -->
     <string name="MapboxTokenTitle">Mapbox Token</string>
