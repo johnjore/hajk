@@ -314,7 +314,7 @@ namespace hajk
         {
             try
             {
-                var tileSource = TileCache.GetOSMBasemap(Fragment_Preferences.LiveData + "/" + Fragment_Preferences.CacheDB);
+                var tileSource = TileCache.GetOSMBasemap();
                 if (tileSource == null)
                 {
                     Serilog.Log.Fatal("TileSource is null");
