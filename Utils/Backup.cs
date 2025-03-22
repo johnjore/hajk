@@ -51,7 +51,7 @@ namespace hajk
             //Size of live data
             long RouteDBMB = (new FileInfo(Fragment_Preferences.LiveData + "/" + Fragment_Preferences.RouteDB).Length) / 1024 / 1024;
             long POIDBKB = (new FileInfo(Fragment_Preferences.LiveData + "/" + Fragment_Preferences.POIDB).Length) / 1024;
-            long MapSizeMB = (new FileInfo(Fragment_Preferences.LiveData + "/" + Fragment_Preferences.CacheDB).Length) / 1024 / 1024;
+            long MapSizeMB = Utils.Misc.DirectorySizeBytes(new DirectoryInfo(Fragment_Preferences.MapFolder)) / 1024 / 1024;
             long GeoTiffMB = Utils.Misc.DirectorySizeBytes(new DirectoryInfo(Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder)) / 1024 / 1024;
 
             //Warning: Do NOT Change order, unless updated in multiple places!
@@ -284,7 +284,6 @@ namespace hajk
                     DrawTrackOnGui = Preferences.Get("DrawTrackOnGui", Fragment_Preferences.DrawTrackOnGui_b),
                     freq = int.Parse(Preferences.Get("freq", Fragment_Preferences.freq_s.ToString())),
                     MapLockNorth = Preferences.Get("MapLockNorth", Fragment_Preferences.DisableMapRotate_b),
-                    OSM_BulkDownload_Source = Preferences.Get("Tile Bulk Download Source", Fragment_Preferences.TileBulkDownloadSource),
                     OSM_Browse_Source = Preferences.Get("OSM_Browse_Source", Fragment_Preferences.TileBrowseSource),
                     CustomServerURL = Preferences.Get("CustomServerURL ", ""),
                     CustomToken = Preferences.Get("CustomToken", ""),
@@ -369,12 +368,39 @@ namespace hajk
             try
             {
                 Serilog.Log.Information("Backing up Map Tiles");
-                string Destination_DB = Path.Combine(BackupFolder, Fragment_Preferences.CacheDB);
+
+                string Source_Folder = Fragment_Preferences.MapFolder;
+                string Destination_Folder = BackupFolder + "/" + Path.GetFileName(Fragment_Preferences.MapFolder);
+                _ = Directory.CreateDirectory(Destination_Folder);
+
+                //Current contents
+                Serilog.Log.Debug("Current files in MapTiles Source Folder:");
+                foreach (string fileName in Directory.GetFiles(Source_Folder))
+                    Serilog.Log.Debug(fileName);
+
+                string TileBrowseSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source), Fragment_Preferences.TileBrowseSource);
+
+                //Copy each file, except the active mbtiles file (its open, sharing violation, or inconcistent)
+                foreach (string fileName in Directory.GetFiles(Source_Folder))
+                {
+                    if (fileName.Contains(TileBrowseSource) == false)
+                    {
+                        File.Copy(fileName, Destination_Folder + "/" + Path.GetFileName(fileName), true);
+                    }
+                }
+
+                //Backup active mbtiles
+                string Destination_DB = Path.Combine(Destination_Folder, TileBrowseSource + ".mbtiles");
                 TileCache.MbTileCache.sqlConn.Backup(Destination_DB);
+
+                //Backup contents
+                Serilog.Log.Debug("Current files in MapTiles Destination Folder:");
+                foreach (string fileName in Directory.GetFiles(Destination_Folder))
+                    Serilog.Log.Debug(fileName);
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "Failed to create backup of CacheDB Database");
+                Serilog.Log.Error(ex, "Failed to create backup of CacheDB Databases");
                 return false;
             }
 

@@ -48,7 +48,6 @@ namespace hajk
         public const string COGGeoTiffServer = "https://elevation-tiles-prod.s3.amazonaws.com/geotiff/"; //Cloud Optimized GeoTiff Server
         public const string POIDB = "POI.db3";                          //Database to store all POI (WayPoints)
         public const string RouteDB = "Routes.db3";                     //Database to store all routes
-        public const string CacheDB = "CacheDB.mbtiles";                //Database to store offline tiles
         public const string SavedSettings = "SavedSettings.json";       //Saved Application Settings / Preferences
         public const string logFile = "walkabout_.txt";                 //Log file
         public const string GeoTiffFolder = "GeoTiff";                  //Folder for all GeoTiff Files
@@ -57,6 +56,7 @@ namespace hajk
         public readonly static string LiveData = rootPath + "/" + "LiveData";   //Live Data
         public readonly static string? DownloadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
         public readonly static string Backups = DownloadFolder + "/" + "Backups";     //Backup Data
+        public readonly static string MapFolder = LiveData + "/" + "MapTiles";        //Folder to store offline tiles (one file per MapSource)
         public const int MinZoom = 0;                                   //MinZoom level to use
         public const int MaxZoom = 16;                                  //MaxZoom level to use
         public const int LocationTimer = 1000;                          //How often new LocationData is provided
@@ -78,8 +78,7 @@ namespace hajk
         public const string ACTION_MAIN_ACTIVITY = "walkabout.action.MAIN_ACTIVITY";
 
         //Tile / MapSources
-        public const string TileBulkDownloadSource = "OpenStreetMap";   //Default Tile Server for Bulk Dowloads
-        public const string TileBrowseSource = "OpenStreetMap";         //Default Tile Server for Browsing
+        public const string TileBrowseSource = "OpenStreetMap";         //Default Tile Server
 
         public static List<MapSource> MapSources = [
             new MapSource("OpenStreetMap", @"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", ""),
@@ -105,8 +104,7 @@ namespace hajk
             SetPreferencesFromResource(Resource.Xml.Preferences, rootKey);
 
             //Populate the ListPreference's
-            CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source)), false);
-            CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source)), true);
+            CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source)));
 
             //Set Summary to "Not Set" or "Hidden" for sensitive fields
             SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.StadiaToken)));
@@ -123,24 +121,14 @@ namespace hajk
             PreferenceManager.GetDefaultSharedPreferences(Platform.AppContext)?.RegisterOnSharedPreferenceChangeListener(this);
         }
 
-        private static void CreateArrayList(ListPreference? lp, bool FilterOpenStreetMap)
+        private static void CreateArrayList(ListPreference? lp)
         {
             if (lp == null)
             {
                 return;
             }
 
-            string[] entries = [];
-            if (FilterOpenStreetMap)
-            {
-                //Remove OpenStreetMap entry, it can't be used for bulk downloads
-                entries = MapSources.Where(x => x.Name != "OpenStreetMap").Select(x => x.Name).ToArray();
-            }
-            else
-            {
-                entries = MapSources.Select(x => x.Name).ToArray();
-            }
-
+            string[] entries = MapSources.Select(x => x.Name).ToArray();
             lp.SetEntries(entries);
             lp.SetEntryValues(entries);
             lp.SetDefaultValue(MapSources[0].Name);

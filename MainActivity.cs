@@ -66,6 +66,12 @@ namespace hajk
                 File.Copy(fileName, Destination_Folder + "/" + Path.GetFileName(fileName));
             }*/
 
+            //Delete all map files
+            /*foreach (string fileName in Directory.GetFiles(Fragment_Preferences.MapFolder))
+            {
+                File.Delete(fileName);
+            }            
+            */
             //Preferences.Set("freq", Fragment_Preferences.freq_s.ToString());
             //Preferences.Set("OffTrackDistanceWarning_m", Fragment_Preferences.OffTrackDistanceWarning_m.ToString());
             //Preferences.Set("OffTrackRouteSnooze_m", Fragment_Preferences.OffRouteSnooze_m.ToString());
@@ -75,7 +81,7 @@ namespace hajk
 #if DEBUG
             if (string.IsNullOrEmpty(Resources?.GetString(Resource.String.Sentry_APIKey)))
             {
-                Serilog.Log.Information("Sentry DSN entry is missing and in debug mode");
+               Serilog.Log.Information("Sentry DSN entry is missing and in debug mode");
             }
 #endif
 
@@ -124,7 +130,7 @@ namespace hajk
             try
             {
                 //Extract initial map, if not there
-                Utils.Misc.ExtractInitialMap(this, Fragment_Preferences.LiveData + "/" + Fragment_Preferences.CacheDB);
+                Utils.Misc.ExtractInitialMap(this, Fragment_Preferences.LiveData + "/" + "OpenStreetMap.mbtiles");
 
                 //GUI
                 SetContentView(Resource.Layout.activity_main);

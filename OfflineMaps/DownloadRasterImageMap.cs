@@ -120,7 +120,7 @@ namespace hajk
         private static async Task<int> DownloadTiles(AwesomeTiles.TileRange range, int zoom, SQLiteConnection conn, int id, int intmissingTiles, int inttotalTiles)
         {
             string OSMServer = string.Empty;
-            string TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
+            string TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source), Fragment_Preferences.TileBrowseSource);
             int FailedDownloadsCounter = 0;
 
             var MapSource = Fragment_Preferences.MapSources.Where(x => x.Name.Equals(TileBulkDownloadSource, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
@@ -314,7 +314,7 @@ namespace hajk
         {
             try
             {
-                var tileSource = TileCache.GetOSMBasemap(Fragment_Preferences.LiveData + "/" + Fragment_Preferences.CacheDB);
+                var tileSource = TileCache.GetOSMBasemap();
                 if (tileSource == null)
                 {
                     Serilog.Log.Fatal("TileSource is null");
