@@ -78,8 +78,7 @@ namespace hajk
         public const string ACTION_MAIN_ACTIVITY = "walkabout.action.MAIN_ACTIVITY";
 
         //Tile / MapSources
-        public const string TileBulkDownloadSource = "OpenStreetMap";   //Default Tile Server for Bulk Dowloads
-        public const string TileBrowseSource = "OpenStreetMap";         //Default Tile Server for Browsing
+        public const string TileBrowseSource = "OpenStreetMap";         //Default Tile Server
 
         public static List<MapSource> MapSources = [
             new MapSource("OpenStreetMap", @"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", ""),
@@ -106,7 +105,6 @@ namespace hajk
 
             //Populate the ListPreference's
             CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source)), false);
-            CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source)), true);
 
             //Set Summary to "Not Set" or "Hidden" for sensitive fields
             SetSummary((EditTextPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.StadiaToken)));

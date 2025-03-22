@@ -100,11 +100,10 @@
   <string name="SaveGPSasPOI">"Save GPS Coordinates as POI"</string>
   <string name="BulkDownload">"Bulk download tiles"</string>
   <string name="BulkDownloadOptions">"Choose Download Options"</string>
-
+  
   <!-- Map Tile provider Start -->
     <string name="MapTileSources">"Map Tile Sources"</string>
     <string name="OSM_Browse_Source">"Tile Browsing Source"</string>
-    <string name="OSM_BulkDownload_Source">"Tile Bulk Download Source"</string>
 
     <!-- Mapbox -->
     <string name="MapboxTokenTitle">Mapbox Token</string>

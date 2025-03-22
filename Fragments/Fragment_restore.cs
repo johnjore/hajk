@@ -276,7 +276,6 @@ namespace hajk.Fragments
                 Preferences.Set("DrawTrackOnGui", prefSettings.DrawTrackOnGui);
                 Preferences.Set("freq", prefSettings.freq.ToString());
                 Preferences.Set("MapLockNorth", prefSettings.MapLockNorth);
-                Preferences.Set("Tile Bulk Download Source", prefSettings.OSM_BulkDownload_Source);
                 Preferences.Set("OSM_Browse_Source", prefSettings.OSM_Browse_Source);
                 Preferences.Set("CustomServerURL ", prefSettings.CustomServerURL);
                 Preferences.Set("CustomToken", prefSettings.CustomToken);

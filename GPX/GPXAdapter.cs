@@ -577,8 +577,8 @@ namespace hajk.Adapter
             Log.Information(Resource.String.download_and_save_offline_map + " '" + vh.Name?.Text + "' / '" + vh.Id + "'");
 
             //If using OSM, cancel out here
-            string? TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_BulkDownload_Source), Fragment_Preferences.TileBulkDownloadSource);
-            if (TileBulkDownloadSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
+            string? TileBrowseSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source), Fragment_Preferences.TileBrowseSource);
+            if (TileBrowseSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
             {
                 Log.Warning("Can't use OSM as a bulkdownload server");
                 Toast.MakeText(parent.Context, "Can't use OpenStreetMap Server for bulk downloading.", ToastLength.Long).Show();

@@ -284,7 +284,6 @@ namespace hajk
                     DrawTrackOnGui = Preferences.Get("DrawTrackOnGui", Fragment_Preferences.DrawTrackOnGui_b),
                     freq = int.Parse(Preferences.Get("freq", Fragment_Preferences.freq_s.ToString())),
                     MapLockNorth = Preferences.Get("MapLockNorth", Fragment_Preferences.DisableMapRotate_b),
-                    OSM_BulkDownload_Source = Preferences.Get("Tile Bulk Download Source", Fragment_Preferences.TileBulkDownloadSource),
                     OSM_Browse_Source = Preferences.Get("OSM_Browse_Source", Fragment_Preferences.TileBrowseSource),
                     CustomServerURL = Preferences.Get("CustomServerURL ", ""),
                     CustomToken = Preferences.Get("CustomToken", ""),
