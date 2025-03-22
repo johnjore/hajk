@@ -66,6 +66,12 @@ namespace hajk
                 File.Copy(fileName, Destination_Folder + "/" + Path.GetFileName(fileName));
             }*/
 
+            //Delete all map files
+            /*foreach (string fileName in Directory.GetFiles(Fragment_Preferences.MapFolder))
+            {
+                File.Delete(fileName);
+            }            
+            */
             //Preferences.Set("freq", Fragment_Preferences.freq_s.ToString());
             //Preferences.Set("OffTrackDistanceWarning_m", Fragment_Preferences.OffTrackDistanceWarning_m.ToString());
             //Preferences.Set("OffTrackRouteSnooze_m", Fragment_Preferences.OffRouteSnooze_m.ToString());
