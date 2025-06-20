@@ -19,15 +19,20 @@ stages:
           version: '9.x'
           installationPath: '$(Agent.ToolsDirectory)/dotnet'
   
+#      - task: CmdLine@2
+#        displayName: 'Install Maui Workload'
+#        inputs:
+#          script : '$(Agent.ToolsDirectory)/dotnet/dotnet" workload install maui-android'
+        
+      - script: |
+          "$(Agent.ToolsDirectory)/dotnet/dotnet" workload restore
+        displayName: 'Restore .NET workload dependencies'
+
       - task: NuGetCommand@2
         displayName: 'NuGet restore'
         inputs:
           restoreSolution: '**/*.sln'
-  
-      - script: |
-          "$(Agent.ToolsDirectory)/dotnet/dotnet" workload restore
-        displayName: 'Restore .NET workload dependencies'
-  
+
       - task: android-manifest-version@1
         inputs:
           sourcePath: './AndroidManifest.xml'
