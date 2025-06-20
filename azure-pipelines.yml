@@ -1,64 +1,71 @@
-name: Build  .NET MAUI Android app
+name: Build .NET MAUI Android app - walkabout
 
 trigger:
 - master
 
-pool:
-  vmImage: 'windows-latest'
-
-variables:
-  buildConfiguration: 'Release'
-  outputDirectory: '$(build.binariesDirectory)/$(buildConfiguration)'
-  dotnet_version: '9.0'
-
-steps:
-- task: NuGetToolInstaller@1
-
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '**/*.sln'
-
-- task: android-manifest-version@1
-  inputs:
-    sourcePath: './AndroidManifest.xml'
-    versionCodeOption: 'timestamp'
-    printFile: true
-
-- task: UseDotNet@2
-  displayName: 'Install .NET sdk'
-  inputs:
-    packageType: sdk
-    version: '9.x'
-    installationPath: '$(Agent.ToolsDirectory)/dotnet'
+stages:
+- stage: Build
+  jobs:
+    - job: Build_Android
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+      - checkout: self
     
-- task: CmdLine@2
-  displayName: 'Install Maui Workload'
-  inputs:
-    script: 'dotnet workload install maui-android'
+      - task: UseDotNet@2
+        displayName: 'Install .NET SDK'
+        inputs:
+          packageType: 'sdk'
+          version: '9.x'
+          installationPath: '$(Agent.ToolsDirectory)/dotnet'
+  
+      - task: NuGetCommand@2
+        displayName: 'NuGet restore'
+        inputs:
+          restoreSolution: '**/*.sln'
+  
+       - script: |
+           "$(Agent.ToolsDirectory)/dotnet/dotnet" workload restore
+         displayName: 'Restore .NET workload dependencies'
+  
+      - task: android-manifest-version@1
+        inputs:
+          sourcePath: './AndroidManifest.xml'
+          versionCodeOption: 'timestamp'
+          printFile: true
+  
+      - script: |
+          "$(Agent.ToolsDirectory)/dotnet/dotnet" build '**/hajk.csproj' `
+            -c Release `
+            -f net9.0-android `
+            -property:AndroidSdkBuildToolsVersion=35.0.0
+        displayName: 'Build .NET 9 Android'
+  
+      - script: |
+          "$(Agent.ToolsDirectory)/dotnet/dotnet" publish '**/hajk.csproj' `
+            -c Release `
+            -f net9.0-android `
+            -o $(Build.ArtifactStagingDirectory)/android
+        displayName: 'Publish Android APK/AAB'
 
-#- task: XamarinAndroid@1
-#  inputs:
-#    projectFile: '**/hajk.csproj'
-#    outputDirectory: '$(outputDirectory)'
-#    configuration: '$(buildConfiguration)'
-#    msbuildVersionOption: 'latest'
-#    jdkOption: 'JDKVersion'
-#    jdkVersionOption: '1.11'
-
-- task: CmdLine@2
-  displayName: 'Build project'
-  inputs:
-    script: |
-      dotnet publish $(app-path-project) -f $(app-target-framework-android) -c Release /p:ApplicationId=$(app-id-android) /p:ApplicationDisplayVersion=$(MAJOR).$(MINOR).$(PATCH).$(PRE_RELEASE) /p:ApplicationVersion=$(MAJOR)$(MINOR)$(PATCH)$(PRE_RELEASE) /p:AndroidSigningKeyPass=$(key-password) /p:AndroidSigningStorePass=$(keystore-password) /p:AndroidSigningKeyStore=$(System.DefaultWorkingDirectory)\\$(keystore-filename) /p:AndroidSigningKeyAlias=$(keystore-alias) /p:AndroidKeyStore=true
-    
-#- task: AndroidSigning@3
-#  inputs:
-#      apkFiles: '$(outputDirectory)\*.apk'
-#      apksignerKeystoreFile: 'hajk.keystore'
-#      apksignerKeystorePassword: '$(Keystore_Password)'
-#      apksignerKeystoreAlias: 'Kala'
-#      apksignerKeyPassword: '$(Keystore_Password)'
-
-- task: PublishBuildArtifacts@1
-  inputs:
-      pathtoPublish: '$(outputDirectory)'
+      - task: DownloadSecureFile@1
+        displayName: 'Download keystore'
+        name: downloadKeystore
+        inputs:
+          secureFile: 'hajk.keystore'
+     
+      - task: AndroidSigning@3
+        displayName: 'Sign APK'
+        inputs:
+          apkFiles: '$(Build.ArtifactStagingDirectory)/android/*.apk'
+          apksignerKeystoreFile: '$(downloadKeystore.secureFilePath)'
+          apksignerKeystorePassword: '$(Keystore_Password)'
+          apksignerKeystoreAlias: 'Kala'
+          apksignerKeyPassword: '$(Keystore_Password)'
+  
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Android artifacts'
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)/android'
+          ArtifactName: 'android'
+          publishLocation: 'Container'
