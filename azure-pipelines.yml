@@ -24,9 +24,9 @@ stages:
         inputs:
           restoreSolution: '**/*.sln'
   
-       - script: |
-           "$(Agent.ToolsDirectory)/dotnet/dotnet" workload restore
-         displayName: 'Restore .NET workload dependencies'
+      - script: |
+          "$(Agent.ToolsDirectory)/dotnet/dotnet" workload restore
+        displayName: 'Restore .NET workload dependencies'
   
       - task: android-manifest-version@1
         inputs:
