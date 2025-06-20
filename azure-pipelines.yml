@@ -1,5 +1,3 @@
-name: Build .NET MAUI Android app - walkabout
-
 trigger:
 - master
 
