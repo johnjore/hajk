@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net9.0-android35.0;net9.0-android</TargetFrameworks>
+    <TargetFramework>net9.0-android35.0</TargetFramework>
     <UseMauiEssentials>true</UseMauiEssentials>
     <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
