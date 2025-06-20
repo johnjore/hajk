@@ -48,17 +48,11 @@ stages:
             -o $(Build.ArtifactStagingDirectory)/android
         displayName: 'Publish Android APK/AAB'
 
-      - task: DownloadSecureFile@1
-        displayName: 'Download keystore'
-        name: downloadKeystore
-        inputs:
-          secureFile: 'hajk.keystore'
-     
       - task: AndroidSigning@3
         displayName: 'Sign APK'
         inputs:
           apkFiles: '$(Build.ArtifactStagingDirectory)/android/*.apk'
-          apksignerKeystoreFile: '$(downloadKeystore.secureFilePath)'
+          apksignerKeystoreFile: 'hajk.keystore'
           apksignerKeystorePassword: '$(Keystore_Password)'
           apksignerKeystoreAlias: 'Kala'
           apksignerKeyPassword: '$(Keystore_Password)'
