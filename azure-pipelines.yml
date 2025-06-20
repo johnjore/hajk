@@ -16,7 +16,7 @@ stages:
         displayName: 'Install .NET SDK'
         inputs:
           packageType: 'sdk'
-          version: '9.0.301'
+          version: '9.*'
           installationPath: '$(Agent.ToolsDirectory)/dotnet'
   
       - script: |
@@ -35,20 +35,11 @@ stages:
           printFile: true
 
       - script: |
-          echo "Listing all .csproj files:"
-          dir /s /b *.csproj
-        displayName: 'Find all .csproj files'
-
-      - script: |
-            type obj\project.assets.json
-        displayName: 'Debug project.assets.json'
-
-      - script: |
           "$(Agent.ToolsDirectory)/dotnet/dotnet" build "D:\a\1\s\hajk.csproj" -c Release -f net9.0-android35.0 -property:AndroidSdkBuildToolsVersion=35.0.0
         displayName: 'Build .NET 9 Android'
   
       - script: |
-          "$(Agent.ToolsDirectory)/dotnet/dotnet" publish 'hajk.csproj' -c Release -f net9.0-android -o $(Build.ArtifactStagingDirectory)/android
+          "$(Agent.ToolsDirectory)/dotnet/dotnet" publish 'hajk.csproj' -c Release -f net9.0-android35.0 -o $(Build.ArtifactStagingDirectory)/android
         displayName: 'Publish Android APK/AAB'
 
       - task: AndroidSigning@3
