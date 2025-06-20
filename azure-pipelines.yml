@@ -17,13 +17,6 @@ stages:
           dir /s /b *.csproj
         displayName: 'Find all .csproj files'
     
-      - task: UseDotNet@2
-        displayName: 'Install .NET SDK'
-        inputs:
-          packageType: 'sdk'
-          version: '9.x'
-          installationPath: '$(Agent.ToolsDirectory)/dotnet'
-  
       - script: |
           "$(Agent.ToolsDirectory)/dotnet/dotnet" workload restore
         displayName: 'Restore .NET workload dependencies'
@@ -38,9 +31,16 @@ stages:
           sourcePath: './AndroidManifest.xml'
           versionCodeOption: 'timestamp'
           printFile: true
-  
+
+      - task: UseDotNet@2
+        displayName: 'Install .NET SDK'
+        inputs:
+          packageType: 'sdk'
+          version: '9.x'
+          installationPath: '$(Agent.ToolsDirectory)/dotnet'
+
       - script: |
-          "$(Agent.ToolsDirectory)/dotnet/dotnet" build 'hajk.csproj' -c Release -f net9.0-android -property:AndroidSdkBuildToolsVersion=35.0.0
+          "$(Agent.ToolsDirectory)/dotnet/dotnet" build D:\a\1\s\hajk.csproj -c Release -f net9.0-android -property:AndroidSdkBuildToolsVersion=35.0.0
         displayName: 'Build .NET 9 Android'
   
       - script: |
