@@ -16,7 +16,7 @@ stages:
         displayName: 'Install .NET SDK'
         inputs:
           packageType: 'sdk'
-          version: '9.*'
+          version: '9.x'
           installationPath: '$(Agent.ToolsDirectory)/dotnet'
   
       - script: |
