@@ -29,6 +29,7 @@ stages:
           restoreSolution: '**/*.sln'
 
       - task: android-manifest-version@1
+        displayName: 'Update version number'
         inputs:
           sourcePath: './AndroidManifest.xml'
           versionCodeOption: 'timestamp'
@@ -39,7 +40,7 @@ stages:
         displayName: 'Build .NET 9 Android'
   
       - script: |
-          "$(Agent.ToolsDirectory)/dotnet/dotnet" publish 'hajk.csproj' -c Release -f net9.0-android35.0 -o $(Build.ArtifactStagingDirectory)/android
+          "$(Agent.ToolsDirectory)/dotnet/dotnet" publish "D:\a\1\s\hajk.csproj" -c Release -f net9.0-android35.0 -o $(Build.ArtifactStagingDirectory)/android
         displayName: 'Publish Android APK/AAB'
 
       - task: AndroidSigning@3
