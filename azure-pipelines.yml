@@ -12,53 +12,53 @@ stages:
       steps:
       - checkout: self
 
-      -task: UseDotNet@2Add commentMore actions
-        displayName: 'Install .NET SDK'
-        inputs:
-          packageType: 'sdk'
-          version: '9.x'
-          installationPath: '$(Agent.ToolsDirectory)/dotnet'
+    - task: UseDotNet@2
+      displayName: 'Install .NET SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '9.x'
+        installationPath: '$(Agent.ToolsDirectory)/dotnet'
           
-      - script: |
-          "$(Agent.ToolsDirectory)/dotnet/dotnet" workload restore
+    - script: |
+        "$(Agent.ToolsDirectory)/dotnet/dotnet" workload restore
         displayName: 'Restore .NET workload dependencies'
 
-      - task: NuGetCommand@2
-        displayName: 'NuGet restore'
-        inputs:
-          restoreSolution: '**/*.sln'
+    - task: NuGetCommand@2
+      displayName: 'NuGet restore'
+      inputs:
+        restoreSolution: '**/*.sln'
 
-      - task: android-manifest-version@1
-        inputs:
-          sourcePath: './AndroidManifest.xml'
-          versionCodeOption: 'timestamp'
-          printFile: true
+    - task: android-manifest-version@1
+      inputs:
+        sourcePath: './AndroidManifest.xml'
+        versionCodeOption: 'timestamp'
+        printFile: true
 
-      - script: |
-          echo "Listing all .csproj files:"
-          dir /s /b *.csproj
-        displayName: 'Find all .csproj files'
+    - script: |
+        echo "Listing all .csproj files:"
+        dir /s /b *.csproj
+      displayName: 'Find all .csproj files'
 
-      - script: |
-          "$(Agent.ToolsDirectory)/dotnet/dotnet" build D:\a\1\s\hajk.csproj -c Release -f net9.0-android -property:AndroidSdkBuildToolsVersion=35.0.0
-        displayName: 'Build .NET 9 Android'
+    - script: |
+        "$(Agent.ToolsDirectory)/dotnet/dotnet" build D:\a\1\s\hajk.csproj -c Release -f net9.0-android -property:AndroidSdkBuildToolsVersion=35.0.0
+      displayName: 'Build .NET 9 Android'
   
-      - script: |
-          "$(Agent.ToolsDirectory)/dotnet/dotnet" publish 'hajk.csproj' -c Release -f net9.0-android -o $(Build.ArtifactStagingDirectory)/android
-        displayName: 'Publish Android APK/AAB'
+    - script: |
+        "$(Agent.ToolsDirectory)/dotnet/dotnet" publish 'hajk.csproj' -c Release -f net9.0-android -o $(Build.ArtifactStagingDirectory)/android
+      displayName: 'Publish Android APK/AAB'
 
-      - task: AndroidSigning@3
-        displayName: 'Sign APK'
-        inputs:
-          apkFiles: '$(Build.ArtifactStagingDirectory)/android/*.apk'
-          apksignerKeystoreFile: 'hajk.keystore'
-          apksignerKeystorePassword: '$(Keystore_Password)'
-          apksignerKeystoreAlias: 'Kala'
-          apksignerKeyPassword: '$(Keystore_Password)'
+    - task: AndroidSigning@3
+      displayName: 'Sign APK'
+      inputs:
+        apkFiles: '$(Build.ArtifactStagingDirectory)/android/*.apk'
+        apksignerKeystoreFile: 'hajk.keystore'
+        apksignerKeystorePassword: '$(Keystore_Password)'
+        apksignerKeystoreAlias: 'Kala'
+        apksignerKeyPassword: '$(Keystore_Password)'
   
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Android artifacts'
-        inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)/android'
-          ArtifactName: 'android'
-          publishLocation: 'Container'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Android artifacts'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/android'
+        ArtifactName: 'android'
+        publishLocation: 'Container'
