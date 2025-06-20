@@ -35,11 +35,11 @@ stages:
           printFile: true
   
       - script: |
-          "$(Agent.ToolsDirectory)/dotnet/dotnet" build '**/hajk.csproj' -c Release -f net9.0-android -property:AndroidSdkBuildToolsVersion=35.0.0
+          "$(Agent.ToolsDirectory)/dotnet/dotnet" build './hajk.csproj' -c Release -f net9.0-android -property:AndroidSdkBuildToolsVersion=35.0.0
         displayName: 'Build .NET 9 Android'
   
       - script: |
-          "$(Agent.ToolsDirectory)/dotnet/dotnet" publish '**/hajk.csproj' -c Release -f net9.0-android -o $(Build.ArtifactStagingDirectory)/android
+          "$(Agent.ToolsDirectory)/dotnet/dotnet" publish './hajk.csproj' -c Release -f net9.0-android -o $(Build.ArtifactStagingDirectory)/android
         displayName: 'Publish Android APK/AAB'
 
       - task: AndroidSigning@3
