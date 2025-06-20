@@ -11,6 +11,11 @@ stages:
         vmImage: 'windows-latest'
       steps:
       - checkout: self
+
+      - script: |
+          echo "Listing all .csproj files:"
+          dir /s /b *.csproj
+        displayName: 'Find all .csproj files'
     
       - task: UseDotNet@2
         displayName: 'Install .NET SDK'
