@@ -93,8 +93,8 @@ namespace hajk
         public const string DefaultUTMZone = "54H";                     //Default UTM Zone
 
         //Naismith's
-        public const decimal naismith_ascent = 10;                      //1min per 10m
-        public const decimal naismith_descent = 50;                     //1min per 50m
+        public const decimal naismith_ascent = 10;                      //1min per 10m or 8.33m? /**/
+        public const decimal naismith_descent = 50;                     //1min per 50m or 16.67m? /**/
         public const decimal naismith_speed_kmh = 3.5M;                 //Walking speed in km/h
         public const decimal naismith_min_per_2hour = 15.0M;            //15min break every 2h
 
