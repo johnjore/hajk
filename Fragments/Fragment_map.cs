@@ -90,7 +90,7 @@ namespace hajk.Fragments
                     }
                 }
 
-                Serilog.Log.Information($"Add scalebar");
+                Serilog.Log.Information($"Add scalebar - X");
                 map.Widgets.Add(new ScaleBarWidget(map)
                 {
                     MaxWidth = 300,
@@ -101,10 +101,10 @@ namespace hajk.Fragments
                     Halo = new Mapsui.Styles.Color(0, 0, 0, 0),
                     HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Left,
                     VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Bottom,
-                    TextAlignment = Alignment.Left,
+                    TextAlignment = Alignment.Center,
                     ScaleBarMode = ScaleBarMode.Both,
                     UnitConverter = MetricUnitConverter.Instance,
-                    SecondaryUnitConverter = NauticalUnitConverter.Instance,
+                    SecondaryUnitConverter = ImperialUnitConverter.Instance,
                     MarginX = 10,
                     MarginY = 20,
                 });
