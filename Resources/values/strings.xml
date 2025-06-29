@@ -96,6 +96,7 @@
   <string name="BackupOptions">"Choose Backup Options"</string>
   <string name="KeepNBackups">"Backups to Retain"</string>
   <string name="EnableBackupAtStartup">"Backup on first launch of the day"</string>
+  <string name="SavePreference">"Save"</string>
   <string name="AddCurrentLocationAsPOI">"Save Current Location as POI</string>
   <string name="SaveGPSasPOI">"Save GPS Coordinates as POI"</string>
   <string name="BulkDownload">"Bulk download tiles"</string>

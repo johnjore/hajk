@@ -82,7 +82,7 @@ namespace hajk
             });
 
             //Create the backup
-            builder.SetPositiveButton(Resource.String.Ok, (senderDialog, args) =>
+            builder.SetPositiveButton(Resource.String.Backup, (senderDialog, args) =>
             {
                 //Update/save preferences
                 Preferences.Set("BackupPreferences", checkedItems[0]);
@@ -115,6 +115,10 @@ namespace hajk
             });
 
             builder.SetNegativeButton(Resource.String.Cancel, (senderDialog, args) =>
+            {
+            });
+
+            builder.SetNeutralButton(Resource.String.SavePreference, (senderDialog, args) =>
             {
                 //Update/save preferences
                 Preferences.Set("BackupPreferences", checkedItems[0]);
