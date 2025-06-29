@@ -181,15 +181,12 @@ namespace Utils
 
         public static Mapsui.MPoint CalculateNofM(GPXUtils.Position p1, GPXUtils.Position p2, float p1p2_Ddistance, double interval)
         {
-            double xMin = Math.Min(p1.Latitude, p2.Latitude);
-            double xMax = Math.Max(p1.Latitude, p2.Latitude);
-            double yMin = Math.Min(p1.Longitude, p2.Longitude);
-            double yMax = Math.Max(p1.Longitude, p2.Longitude);
+            double fraction = interval / p1p2_Ddistance;
 
             return new Mapsui.MPoint()
             {
-                X = xMin + (interval / p1p2_Ddistance * (xMax - xMin)),
-                Y = yMin + (interval / p1p2_Ddistance * (yMax - yMin))
+                X = p1.Latitude  + (fraction * (p2.Latitude  - p1.Latitude )),
+                Y = p1.Longitude + (fraction * (p2.Longitude - p1.Longitude))
             };
         }
 

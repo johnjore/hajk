@@ -148,6 +148,7 @@ namespace hajk.Adapter
             var ph = new PositionHandler();
 
             //Routes
+            /**/ //What are we doing for routes 1 to n ?!?
             if (gpx.Routes != null && gpx.Routes.Count > 0)
             {
                 //Fist item to plot is first item at pos 0
@@ -184,7 +185,8 @@ namespace hajk.Adapter
             }
 
             //Tracks
-            if (gpx.Tracks.Count > 0)
+            /**/ //What are we doing for tracks 1 to n ?!?
+            if (gpx.Tracks != null && gpx.Tracks.Count > 0)
             {
                 //Fist item to plot is first item at pos 0
                 if (gpx.Tracks[0] == null || gpx.Tracks[0].trkseg[0] == null || gpx.Tracks[0].trkseg[0].trkpt[0] == null)
