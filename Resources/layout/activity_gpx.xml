@@ -102,6 +102,17 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginLeft="@dimen/layout_marginLeft" />
 
+             <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#333333"
+                android:text="Shenandoah's Hiking Difficulty"
+                android:id="@+id/ShenandoahsHikingDifficulty"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="@dimen/layout_marginLeft" />
+
             </LinearLayout>
 
             <TextView

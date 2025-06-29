@@ -124,5 +124,12 @@
     <string name="CustomTokenTitle">Custom Token</string>
     <string name="CustomToken">CustomToken</string>
   <!-- Map Tile provider End -->
-  
+
+  <!--Shenandoah's Hiking Difficulty Scale-->
+  <string name="ShenandoahEasy">Easy</string>
+  <string name="ShenandoahModerate">Moderate</string>
+  <string name="ShenandoahModerateStrenous">Moderately Strenous</string>
+  <string name="ShenandoahStrenuous">Strenuous</string>
+  <string name="ShenandoahVeryStrenuous">Very Strenuous</string>
+
 </resources>

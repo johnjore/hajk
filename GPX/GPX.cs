@@ -71,6 +71,7 @@ namespace hajk
         public TextView? Ascent { get; set; }
         public TextView? Descent { get; set; }
         public TextView? NaismithTravelTime { get; set; }
+        public TextView? ShenandoahsHikingDifficulty { get; set; }
         public TextView? Img_more { get; set; }
         public ImageView? TrackRouteMap { get; set; }
         public PlotView? TrackRouteElevation { get; set; }
@@ -83,6 +84,7 @@ namespace hajk
             Ascent = itemview?.FindViewById<TextView>(Resource.Id.Ascent);
             Descent = itemview?.FindViewById<TextView>(Resource.Id.Descent);
             NaismithTravelTime = itemview?.FindViewById<TextView>(Resource.Id.NaismithTravelTime);
+            ShenandoahsHikingDifficulty = itemview?.FindViewById<TextView>(Resource.Id.ShenandoahsHikingDifficulty);
             Img_more = itemview?.FindViewById<TextView>(Resource.Id.textViewOptions);
             TrackRouteMap = itemview?.FindViewById<ImageView>(Resource.Id.TrackRouteMap);
             TrackRouteElevation = itemview?.FindViewById<PlotView>(Resource.Id.TrackRouteElevation);
