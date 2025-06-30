@@ -380,7 +380,7 @@ namespace hajk
                         lat = (decimal)i.Latitude,
                         lon = (decimal)i.Longitude,
                         ele = (decimal)i.Elevation,
-                        eleSpecified = true,
+                        eleSpecified = i.ElevationSpecified,
                     };
 
                     route.rtept.Add(wptType);
@@ -405,7 +405,7 @@ namespace hajk
                 {
                     await Task.Run(async () =>
                     {
-                        await AddGPXToDatabase(r.Id);                        
+                        await AddGPXToDatabase(r.Id);
                     });
                 }
 
@@ -474,7 +474,7 @@ namespace hajk
                         lat = (decimal)i.Latitude,
                         lon = (decimal)i.Longitude,
                         ele = (decimal)i.Elevation,
-                        eleSpecified = true,
+                        eleSpecified = i.ElevationSpecified,
                     };
 
                     track.trkseg[0].trkpt.Add(wptType);
@@ -642,7 +642,7 @@ namespace hajk
                         for (int j = 1; j < Chunks; j++)
                         {
                             var p3 = Utils.Misc.CalculateNofM(p1, p2, distance_m, (double)((double)distance_m / (double)Chunks * (double)j));
-                            ListLatLonEle.Add(new Position(p3.X, p3.Y, 0, false, null));
+                            ListLatLonEle.Add(new Position(p3.X, p3.Y, -99999, false, null));
                             Serilog.Log.Debug($"{p3.X}, {p3.Y}");
                         }
                     }

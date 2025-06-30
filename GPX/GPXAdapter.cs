@@ -164,22 +164,27 @@ namespace hajk.Adapter
                 //Start at index 1 so we can calculate distance from index 0 as new position on x axis
                 for (int i = 1; i < gpx.Routes[0].rtept.Count; i++)
                 {
-                    //Calculate Distance to previous point and add as a datapoint
+                    //Calculate Distance to previous point
                     var p1 = new GPXUtils.Position((float)gpx.Routes[0].rtept[i - 1].lat, (float)gpx.Routes[0].rtept[i - 1].lon, 0, false, null);
                     var p2 = new GPXUtils.Position((float)gpx.Routes[0].rtept[i    ].lat, (float)gpx.Routes[0].rtept[i    ].lon, 0, false, null);
                     distance_km += (double)ph.CalculateDistance(p1, p2, DistanceType.Kilometers);
-                    series1.Points.Add(new DataPoint(distance_km, (double)gpx.Routes[0].rtept[i].ele));
 
-                    //Find Max
-                    if (gpx.Routes[0].rtept[i].ele > max)
+                    //Only add valid elevation data
+                    if (gpx.Routes[0].rtept[i].eleSpecified == true)
                     {
-                        max = gpx.Routes[0].rtept[i].ele;
-                    }
+                        series1.Points.Add(new DataPoint(distance_km, (double)gpx.Routes[0].rtept[i].ele));
 
-                    //Find Min
-                    if (gpx.Routes[0].rtept[i].ele < min)
-                    {
-                        min = gpx.Routes[0].rtept[i].ele;
+                        //Find Max
+                        if (gpx.Routes[0].rtept[i].ele > max)
+                        {
+                            max = gpx.Routes[0].rtept[i].ele;
+                        }
+
+                        //Find Min
+                        if (gpx.Routes[0].rtept[i].ele < min)
+                        {
+                            min = gpx.Routes[0].rtept[i].ele;
+                        }
                     }
                 }
             }
@@ -210,18 +215,23 @@ namespace hajk.Adapter
                             var p1 = new GPXUtils.Position((float)trkseg.trkpt[i - 1].lat, (float)trkseg.trkpt[i - 1].lon, 0, false, null);
                             var p2 = new GPXUtils.Position((float)trkseg.trkpt[i    ].lat, (float)trkseg.trkpt[i    ].lon, 0, false, null);
                             distance_km += (double)ph.CalculateDistance(p1, p2, DistanceType.Kilometers);
-                            series1.Points.Add(new DataPoint(distance_km, (double)trkseg.trkpt[i].ele));
 
-                            //Finx Max
-                            if (trkseg.trkpt[i].ele > max)
+                            //Only add valid elevation data
+                            if (trkseg.trkpt[i].eleSpecified == true)
                             {
-                                max = trkseg.trkpt[i].ele;
-                            }
+                                series1.Points.Add(new DataPoint(distance_km, (double)trkseg.trkpt[i].ele));
 
-                            //Find Min
-                            if (trkseg.trkpt[i].ele < min)
-                            {
-                                min = trkseg.trkpt[i].ele;
+                                //Finx Max
+                                if (trkseg.trkpt[i].ele > max)
+                                {
+                                    max = trkseg.trkpt[i].ele;
+                                }
+
+                                //Find Min
+                                if (trkseg.trkpt[i].ele < min)
+                                {
+                                    min = trkseg.trkpt[i].ele;
+                                }
                             }
                         }
                     }

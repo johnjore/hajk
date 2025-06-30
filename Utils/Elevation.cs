@@ -106,6 +106,7 @@ namespace hajk
         /// <summary>
         /// Lookup elevation data from a List of Position and return same list with Elevation field populated
         /// </summary>
+        /*
         public static async Task<List<Position>?>? LookupElevationData(List<Position>? ListLatLon)
         {
             //Any data to process?
@@ -158,9 +159,22 @@ namespace hajk
 
                         try
                         {
-                            e.Elevation = geoTiff.GetElevationAtLatLon(x, y);
-                            e.ElevationSpecified = true;
-                            //Serilog.Log.Debug($"Elevation at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                            var tmpElevationData = geoTiff.GetElevationAtLatLon(x, y);
+
+                            if (tmpElevationData > -100)
+                            {
+                                e.Elevation = tmpElevationData;
+                                e.ElevationSpecified = true;
+
+                                //Serilog.Log.Debug($"Elevation at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                            }
+                            else
+                            {
+                                e.Elevation = 0;
+                                e.ElevationSpecified = false;
+                                Serilog.Log.Error($"Elevation data is lower than -100m for x:{x} and y:{y} in {FileName}");
+                                //Serilog.Log.Debug($"Elevation at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -184,6 +198,7 @@ namespace hajk
 
             return ListLatLon;
         }
+        */
 
         /// <summary>
         /// Lookup elevation data from a route and return same route with Elevation field populated
@@ -235,15 +250,28 @@ namespace hajk
                     {
                         var (y, x) = SphericalMercator.FromLonLat((double)e.lon, (double)e.lat);
                         try
-                        {                        
-                            e.ele = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
-                            e.eleSpecified = true;
+                        {
+                            var tmpElevationData = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
+
+                            if (tmpElevationData > -100)
+                            {
+                                e.ele = tmpElevationData;
+                                e.eleSpecified = true;
+                                //Serilog.Log.Debug($"Elevation at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                            }
+                            else
+                            {
+                                e.ele = -99999;
+                                e.eleSpecified = false;
+                                Serilog.Log.Debug($"Elevation data is lower than -100m for x:{x} and y:{y} in {FileName}");
+                                //Serilog.Log.Debug($"Elevation at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                            }
                             //Serilog.Log.Debug($"Elevation at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters in FileName '{FileName}'");
                         }
                         catch (Exception ex)
                         {
                             Serilog.Log.Error(ex, $"Failed to lookup ElevationData for x:{x}, y{y} in {FileName}");
-                            e.ele = 0;
+                            e.ele = -99999;
                             e.eleSpecified = false;
                         }
                         finally
@@ -320,9 +348,22 @@ namespace hajk
 
                         try
                         {
-                            e.ele = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
-                            e.eleSpecified = true;
-                            //Serilog.Log.Debug($"Elevaton at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters");
+                            var tmpElevationData = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
+
+                            if (tmpElevationData > -100)
+                            {
+                                e.ele = tmpElevationData;
+                                e.eleSpecified = true;
+                                //Serilog.Log.Debug($"Elevation at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                            }
+                            else
+                            {
+                                e.ele = 0;
+                                e.eleSpecified = false;
+                                Serilog.Log.Error($"Elevation data is lower than -100m for x:{x} and y:{y} in {FileName}");
+                                //Serilog.Log.Debug($"Elevation at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                            }
+                            //Serilog.Log.Debug($"Elevation at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters in FileName '{FileName}'");
                         }
                         catch (Exception ex)
                         {
