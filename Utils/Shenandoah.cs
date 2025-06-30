@@ -3,6 +3,7 @@ using Android.Content;
 using Android.Graphics.Text;
 using Android.Locations;
 using Android.Widget;
+using GPXUtils;
 using Microcharts;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ namespace hajk
 
             try
             {
-                decimal shenandoahscale = (decimal)Math.Sqrt((double)((decimal)ascent_m * Fragment_Preferences.m_to_feet * 2 * (decimal)distance_km * Fragment_Preferences.km_to_miles));
+                decimal shenandoahscale = (decimal)Math.Sqrt((double)((decimal)DistanceConverter.ConvertMetersToFeet(ascent_m) *  2 * (decimal)DistanceConverter.ConvertKilometersToMiles(distance_km)));
 
                 if (shenandoahscale <=  50)
                     return (shenandoahscale, Platform.CurrentActivity.GetString(Resource.String.ShenandoahEasy));

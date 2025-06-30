@@ -98,11 +98,6 @@ namespace hajk
         public const decimal naismith_speed_kmh = 3.5M;                 //Walking speed in km/h
         public const decimal naismith_min_per_2hour = 15.0M;            //15min break every 2h
 
-        //Metric to Imperial Convertions
-        public const decimal km_to_miles = 0.621371M;                   //Multiply km with this constant to get miles
-        public const decimal m_to_feet = 3.28084M;                      //Multiply m with this constant to get feet
-
-
         public override void OnCreatePreferences(Bundle? savedInstanceState, string? rootKey)
         {
             //Load Preference layout

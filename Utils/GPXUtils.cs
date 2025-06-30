@@ -172,6 +172,11 @@ namespace GPXUtils
         {
             return kilometers * 0.621371192;
         }
+
+        public static double ConvertMetersToFeet(double meters)
+        {
+            return meters * 3.280839895;
+        }
     }
 
     public enum DistanceType
