@@ -1,28 +1,18 @@
 ﻿using GPXUtils;
 using hajk.Data;
 using hajk.Fragments;
+using hajk.GPX;
 using hajk.Models;
+using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
-using Mapsui.Nts.Extensions;
 using Mapsui.Nts;
+using Mapsui.Nts.Extensions;
 using Mapsui.Projections;
 using Mapsui.Styles;
-using Mapsui;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using SharpGPX;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using System;
-using hajk.GPX;
-using Org.Apache.Http.Conn.Routing;
 
 namespace hajk
 {
@@ -379,20 +369,44 @@ namespace hajk
                 feature["id"] = POI.Id;
 
                 //Icon
-                string svg = "hajk.Images.Black-dot.png";
+                string icon = "hajk.Images.Black-dot.png";
                 switch (POI.Symbol)
                 {
                     case "Drinking Water":
-                        svg = "hajk.Images.Drinking-water.png";
+                        icon = "hajk.Images.Drinking-water.png";
                         break;
                     case "Campground":
-                        svg = "hajk.Images.Tent.png";
+                        icon = "hajk.Images.Tent.png";
                         break;
                     case "Rogaining":
-                        svg = "hajk.Images.RoundFlag.png";
+                        icon = "hajk.Images.RoundFlag.png";
                         break;
                     case "Man Overboard":
-                        svg = "hajk.Images.RoundFlag.png";
+                        icon = "hajk.Images.RoundFlag.png";
+                        break;
+                    case "Lodge":
+                        icon = "hajk.Images.Cabin.png";
+                        break;
+                    case "Flag, Blue":
+                        icon = "hajk.Images.FlagBlue.png";
+                        break;
+                    case "Waypoint":
+                        icon = "hajk.Images.FlagCheck.png";
+                        break;
+                    case "Flag":
+                        icon = "hajk.Images.Flag.png";
+                        break;
+                    case "Dog Unknown":
+                        icon = "hajk.Images.Dog.png";
+                        break;
+                    case "Parking Area":
+                        icon = "hajk.Images.Parking.png";
+                        break;
+                    case "Picnic Area":
+                        icon = "hajk.Images.PicnicArea.png";
+                        break;
+                    case "Car":
+                        icon = "hajk.Images.Car.png";
                         break;
                 }
 
@@ -401,7 +415,7 @@ namespace hajk
                 {
                     SymbolScale = 1.0f,
                     RotateWithMap = true,
-                    BitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource(svg),
+                    BitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource(icon),
                     MaxVisible = 30.0f,
                     MinVisible = 0.0f,
                 });
