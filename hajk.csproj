@@ -20,7 +20,14 @@
   <ItemGroup>
     <None Remove="Images\Arrow-up.svg" />
     <None Remove="Images\Black-dot.svg" />
+    <None Remove="Images\Car.png" />
+    <None Remove="Images\Dog.png" />
     <None Remove="Images\Drinking-water.svg" />
+    <None Remove="Images\Flag.png" />
+    <None Remove="Images\FlagBlue.png" />
+    <None Remove="Images\FlagCheck.png" />
+    <None Remove="Images\Parking.png" />
+    <None Remove="Images\PicnicArea.png" />
     <None Remove="Images\RoundFlag.svg" />
     <None Remove="Images\Tent.svg" />
     <None Remove="Resources\drawable\maps.png" />
@@ -59,6 +66,14 @@
     <None Remove="Resources\values\values.xml" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Images\Cabin.png" />
+    <EmbeddedResource Include="Images\Car.png" />
+    <EmbeddedResource Include="Images\Dog.png" />
+    <EmbeddedResource Include="Images\Flag.png" />
+    <EmbeddedResource Include="Images\FlagBlue.png" />
+    <EmbeddedResource Include="Images\FlagCheck.png" />
+    <EmbeddedResource Include="Images\Parking.png" />
+    <EmbeddedResource Include="Images\PicnicArea.png" />
     <EmbeddedResource Include="Images\RoundFlag.png" />
   </ItemGroup>
   <ItemGroup>
