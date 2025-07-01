@@ -20,6 +20,7 @@ namespace hajk.Data
                 string dbPath = Path.Combine(Fragment_Preferences.LiveData, Fragment_Preferences.RouteDB);
                 database = new SQLiteAsyncConnection(dbPath);
                 database.CreateTableAsync<GPXDataRouteTrack>().Wait();
+                database.CreateIndexAsync("GPXType_index", "GPXDataRouteTrack", "GPXType").Wait();
             }
             catch (Exception ex)
             {
