@@ -87,11 +87,11 @@
     <PackageReference Include="Mapsui.Extensions" Version="4.1.9" />
     <PackageReference Include="Mapsui.Nts" Version="4.1.9" />
     <PackageReference Include="Microcharts.Android" Version="1.0.0-preview1" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.80" />
-    <PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.80" />
-    <PackageReference Include="Sentry" Version="5.11.0" />
-    <PackageReference Include="Sentry.Maui" Version="5.11.0" />
-    <PackageReference Include="Sentry.Serilog" Version="5.11.0" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.81" />
+    <PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.81" />
+    <PackageReference Include="Sentry" Version="5.11.2" />
+    <PackageReference Include="Sentry.Maui" Version="5.11.2" />
+    <PackageReference Include="Sentry.Serilog" Version="5.11.2" />
     <PackageReference Include="Serilog" Version="4.3.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Serilog.Sinks.Xamarin" Version="1.0.0" />
@@ -104,14 +104,14 @@
     <PackageReference Include="System.Text.Json" Version="9.0.6" />
     <PackageReference Include="tilebelt" Version="2.0.1" />
     <PackageReference Include="Tnn.OxyPlot.Xamarin.Android" Version="2.1.2" />
-    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.0.7" />
+    <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.1" />
     <PackageReference Include="Xamarin.AndroidX.Browser" Version="1.8.0.10" />
     <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.35" />
-    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.6.2" />
+    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.8" />
     <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.UI" Version="1.0.0.34" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Common" Version="2.9.0" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.9.0" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="2.9.0" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Common" Version="2.9.1" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.9.1" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="2.9.1" />
     <PackageReference Include="Xamarin.AndroidX.Preference" Version="1.2.1.14" />
     <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.4.0.2" />
     <PackageReference Include="Xamarin.Google.Android.Material" Version="1.12.0.4" />
