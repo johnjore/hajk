@@ -28,6 +28,7 @@ namespace hajk
         public const string Layer_Track = "Track";
 
         //GeoTiff
+        public const string COGGeoTiffServer = "https://s3.amazonaws.com/elevation-tiles-prod/v2/geotiff/"; //V2 of Cloud Optimized GeoTiff Server
         public readonly static int Elevation_Tile_Zoom = 14;            //Best AWS bucket has
         public readonly static double ElevationDistanceLookup = 90.0;   //Add additional waypoints every n meters
 
@@ -45,7 +46,6 @@ namespace hajk
         public readonly static bool EnableBackupAtStartup = true;       //Enable backup when starting app (once per day)
 
         //Runtime only
-        public const string COGGeoTiffServer = "https://elevation-tiles-prod.s3.amazonaws.com/geotiff/"; //Cloud Optimized GeoTiff Server
         public const string POIDB = "POI.db3";                          //Database to store all POI (WayPoints)
         public const string RouteDB = "Routes.db3";                     //Database to store all routes
         public const string SavedSettings = "SavedSettings.json";       //Saved Application Settings / Preferences
