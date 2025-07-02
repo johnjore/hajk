@@ -106,9 +106,6 @@
     <PackageReference Include="Tnn.OxyPlot.Xamarin.Android" Version="2.1.2" />
     <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.35" />
     <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.6.2" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Common" Version="2.9.0" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.9.0" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="2.9.0" />
     <PackageReference Include="Xamarin.AndroidX.Preference" Version="1.2.1.14" />
     <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.4.0.2" />
     <PackageReference Include="Xamarin.Google.Android.Material" Version="1.12.0.4" />
