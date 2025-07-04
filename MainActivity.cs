@@ -525,6 +525,7 @@ namespace hajk
             }
             else if (id == Resource.Id.nav_routes)
             {
+                /**///Fragment_gpx.GPXDisplay is not saved correctly for handling saving the scrollbar locations
                 if (Fragment_map.mapControl?.Visibility == ViewStates.Invisible)
                 {
                     NavigationView? nav = this?.FindViewById<NavigationView>(Resource.Id.nav_view);
