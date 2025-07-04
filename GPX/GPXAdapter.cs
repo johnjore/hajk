@@ -93,20 +93,19 @@ namespace hajk.Adapter
                 }
 
                 //Naismith Travel Time
-                (int travel_hours, int travel_min) = Naismith.CalculateTime(mGpxData[position].Distance, Fragment_Preferences.naismith_speed_kmh, mGpxData[position].Ascent, mGpxData[position].Descent);
-                if (vh.NaismithTravelTime != null && travel_hours > -1 && travel_min > -1)
+                if (mGpxData[position].NaismithTravelTime != null)
                 {
-                    vh.NaismithTravelTime.Text = $"Naismith: {string.Format("{0:D2}", travel_hours)}:{string.Format("{0:D2}", travel_min)}";
+                    vh.NaismithTravelTime.Text = $"Naismith: {mGpxData[position].NaismithTravelTime}";
                 }
 
                 //Shenandoah's Hiking Difficulty
-                (decimal ShenandoahsHikingDifficultyScale, string ShenandoahsHikingDifficultyRating) = ShenandoahsHikingDifficulty.CalculateScale(mGpxData[position].Distance, mGpxData[position].Ascent);
+                float ShenandoahsHikingDifficultyScale = mGpxData[position].ShenandoahsScale;
+                string ShenandoahsHikingDifficultyRating = ShenandoahsHikingDifficulty.CalculateRating(ShenandoahsHikingDifficultyScale);
                 ShenandoahsHikingDifficulty.UpdateTextField(vh?.ShenandoahsHikingDifficulty, ShenandoahsHikingDifficultyScale, ShenandoahsHikingDifficultyRating);
 
                 //We now need the full record of the item for the remaining items
                 var routetrackInfo = RouteDatabase.GetRouteAsync(mGpxData[position].Id).Result;
                 vh?.TrackRouteMap.SetImageResource(0);   //Clear it, as it's reused
-
                 if (routetrackInfo != null)
                 {
                     //Map Thumbprint of route / track
@@ -695,15 +694,17 @@ namespace hajk.Adapter
                 Fragment_gpx.mAdapter?.NotifyItemChanged(menuitem);
             }
 
-            //Naismith Travel Time
+            //Naismith's Travel Time
             (int travel_hours, int travel_min) = Naismith.CalculateTime(route_to_download.Distance, Fragment_Preferences.naismith_speed_kmh, route_to_download.Ascent, route_to_download.Descent);
+            route_to_download.NaismithTravelTime = $"{string.Format("{0:D2}", travel_hours)}:{string.Format("{0:D2}", travel_min)}";
             if (vh.NaismithTravelTime != null && travel_hours > -1 && travel_min > -1)
             {
-                vh.NaismithTravelTime.Text = $"Naismith: {string.Format("{0:D2}", travel_hours)}:{string.Format("{0:D2}", travel_min)}";
+                vh.NaismithTravelTime.Text = $"Naismith: {route_to_download.NaismithTravelTime}";
             }
 
             //Shenandoah's Hiking Difficulty
-            (decimal ShenandoahsHikingDifficultyScale, string ShenandoahsHikingDifficultyRating) = ShenandoahsHikingDifficulty.CalculateScale(route_to_download.Distance, route_to_download.Ascent);
+            float ShenandoahsHikingDifficultyScale = route_to_download.ShenandoahsScale;
+            string ShenandoahsHikingDifficultyRating = ShenandoahsHikingDifficulty.CalculateRating(ShenandoahsHikingDifficultyScale);
             ShenandoahsHikingDifficulty.UpdateTextField(vh?.ShenandoahsHikingDifficulty, ShenandoahsHikingDifficultyScale, ShenandoahsHikingDifficultyRating);
 
             //Create / Update thumbsize map

@@ -17,40 +17,53 @@ namespace hajk
 {
     internal class ShenandoahsHikingDifficulty
     {
-        public static (decimal, string) CalculateScale(float distance_km, int ascent_m)
+        public static float CalculateScale(float distance_km, int ascent_m)
         {
-            if (Platform.CurrentActivity == null)
-            {
-                return (-1, string.Empty);
-            }
-
             try
             {
-                decimal shenandoahscale = (decimal)Math.Sqrt((double)((decimal)DistanceConverter.ConvertMetersToFeet(ascent_m) *  2 * (decimal)DistanceConverter.ConvertKilometersToMiles(distance_km)));
-
-                if (shenandoahscale <=  50)
-                    return (shenandoahscale, Platform.CurrentActivity.GetString(Resource.String.ShenandoahEasy));
-
-                if (shenandoahscale <= 100)
-                    return (shenandoahscale, Platform.CurrentActivity.GetString(Resource.String.ShenandoahModerate));
-
-                if (shenandoahscale <= 150)
-                    return (shenandoahscale, Platform.CurrentActivity.GetString(Resource.String.ShenandoahModerateStrenous));
-
-                if (shenandoahscale <= 200)
-                    return (shenandoahscale, Platform.CurrentActivity.GetString(Resource.String.ShenandoahStrenuous));
-
-                return (shenandoahscale, Platform.CurrentActivity.GetString(Resource.String.ShenandoahVeryStrenuous));
+                float shenandoahscale = (float)Math.Sqrt((double)((decimal)DistanceConverter.ConvertMetersToFeet(ascent_m) *  2 * (decimal)DistanceConverter.ConvertKilometersToMiles(distance_km)));
+                return shenandoahscale;
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "Failed to calculate shenandoah's scale / rating");
+                Serilog.Log.Error(ex, "Failed to calculate shenandoah's scale");
             }
 
-            return (-1, string.Empty);
+            return (-1);
         }
 
-        public static void UpdateTextField(TextView? field, decimal ShenandoahsHikingDifficultyScale, string ShenandoahsHikingDifficultyRating)
+        public static string CalculateRating(float shenandoahscale)
+        {
+            try
+            {
+                if (Platform.CurrentActivity == null)
+                {
+                    return ("N/A");
+                }
+
+                if (shenandoahscale <= 50)
+                    return (Platform.CurrentActivity.GetString(Resource.String.ShenandoahEasy));
+
+                if (shenandoahscale <= 100)
+                    return (Platform.CurrentActivity.GetString(Resource.String.ShenandoahModerate));
+
+                if (shenandoahscale <= 150)
+                    return (Platform.CurrentActivity.GetString(Resource.String.ShenandoahModerateStrenous));
+
+                if (shenandoahscale <= 200)
+                    return (Platform.CurrentActivity.GetString(Resource.String.ShenandoahStrenuous));
+
+                return (Platform.CurrentActivity.GetString(Resource.String.ShenandoahVeryStrenuous));
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Failed to calculate shenandoah's rating");
+            }
+
+            return "N/A";
+        }
+
+        public static void UpdateTextField(TextView? field, float ShenandoahsHikingDifficultyScale, string ShenandoahsHikingDifficultyRating)
         {
             if (field != null && ShenandoahsHikingDifficultyScale > -1)
             {
