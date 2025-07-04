@@ -49,6 +49,8 @@ namespace hajk.Fragments
                 Android.Views.View? view = inflater.Inflate(Resource.Layout.fragment_gpx, container, false);
                 //view?.SetBackgroundColor(Android.Graphics.Color.White);
 
+                bool isInitialSelection = true; //Dont fire the spinner during initialization
+
                 //Spinner - Sort Ascending or Decending
                 Spinner? mSpinnerOrder = view?.FindViewById<Spinner>(Resource.Id.spinnerSortedBy);
                 if (mSpinnerOrder != null && view != null)
@@ -60,6 +62,12 @@ namespace hajk.Fragments
 
                     mSpinnerOrder.ItemSelected += (s, e) =>
                     {
+                        if (isInitialSelection)
+                        {
+                            //isInitialSelection = false; //Dont set to false here. 2nd Spinner does this
+                            return;
+                        }
+
                         Preferences.Set("GPXSortingOrder", e.Position);
                         mAdapter?.UpdateItems(GPXDisplay);
                     };
@@ -76,6 +84,12 @@ namespace hajk.Fragments
 
                     mSpinnerType.ItemSelected += (s, e) =>
                     {
+                        if (isInitialSelection)
+                        {
+                            isInitialSelection = false;
+                            return;
+                        }
+
                         Preferences.Set("GPXSortingChoice", e.Position);
                         mAdapter?.UpdateItems(GPXDisplay);
                     };
