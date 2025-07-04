@@ -1,8 +1,8 @@
 ﻿using Android.Content;
 using Android.Views;
 using Android.Widget;
-using AndroidX.Fragment.App;
 using AndroidX.Fragment;
+using AndroidX.Fragment.App;
 using AndroidX.RecyclerView.Widget;
 using GeoTiffCOG.Struture;
 using Google.Android.Material.Navigation;
@@ -11,36 +11,37 @@ using hajk.Data;
 using hajk.Fragments;
 using hajk.GPX;
 using hajk.Models;
+using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Nts;
 using Mapsui.Projections;
 using Mapsui.Providers;
 using Mapsui.Styles;
 using Mapsui.Utilities;
-using Mapsui;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
+using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-using OxyPlot;
 using Serilog;
-using SharpGPX.GPX1_1;
 using SharpGPX;
+using SharpGPX.GPX1_1;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System;
 
 namespace hajk.Adapter
 {
     public class GpxAdapter : RecyclerView.Adapter
     {
         public event EventHandler<int> ItemClick;
-        public GpxData mGpxData;
+        public GpxData? mGpxData;
 
-        public GpxAdapter(GpxData gpxData)
+        public GpxAdapter(GpxData? gpxData)
         {
             mGpxData = gpxData;
         }
@@ -96,6 +97,10 @@ namespace hajk.Adapter
                 if (mGpxData[position].NaismithTravelTime != null)
                 {
                     vh.NaismithTravelTime.Text = $"Naismith: {mGpxData[position].NaismithTravelTime}";
+                }
+                else
+                {
+                    vh.NaismithTravelTime.Text = $"Naismith: N/A";
                 }
 
                 //Shenandoah's Hiking Difficulty
@@ -368,6 +373,13 @@ namespace hajk.Adapter
         private void OnClick(int obj)
         {
             ItemClick?.Invoke(this, obj);
+        }
+
+        public void UpdateItems(GPXType gpxtype)
+        {
+            mGpxData = new GpxData(gpxtype);
+
+            NotifyDataSetChanged();
         }
 
         /*
@@ -648,6 +660,9 @@ namespace hajk.Adapter
                         gpx_to_download.Routes.Clear();
                         gpx_to_download.Routes.Add(updated_route);
                         (route_to_download.Ascent, route_to_download.Descent) = Elevation.CalculateAscentDescent(updated_route);
+
+                        //Set Start position
+                        route_to_download.GPXStartLocation = $"{gpx_to_download.Routes[0].rtept[0].lat.ToString(CultureInfo.InvariantCulture)},{gpx_to_download.Routes[0].rtept[0].lon.ToString(CultureInfo.InvariantCulture)}";
                     }
                 }
                 else if (vh.GPXType == GPXType.Track)
@@ -663,6 +678,9 @@ namespace hajk.Adapter
 
                     //Elevation data
                     (route_to_download.Ascent, route_to_download.Descent) = Elevation.CalculateAscentDescent(gpx_to_download.Tracks[0]);
+
+                    //Set Start position
+                    route_to_download.GPXStartLocation = $"{gpx_to_download.Tracks[0].trkseg[0].trkpt[0].lat.ToString(CultureInfo.InvariantCulture)},{gpx_to_download.Tracks[0].trkseg[0].trkpt[0].lon.ToString(CultureInfo.InvariantCulture)}";
                 }
                 else
                 {
@@ -683,17 +701,6 @@ namespace hajk.Adapter
                 }
             }
 
-            //Update with elevation data
-            route_to_download.GPX = gpx_to_download.ToXml();
-            RouteDatabase.SaveRouteAsync(route_to_download).Wait();
-            if (vh.Ascent != null && vh.Descent != null)
-            {
-                vh.Ascent.Text = $"Ascent: {route_to_download.Ascent}m";
-                vh.Descent.Text = $"Descent: {route_to_download.Descent}m";
-
-                Fragment_gpx.mAdapter?.NotifyItemChanged(menuitem);
-            }
-
             //Naismith's Travel Time
             (int travel_hours, int travel_min) = Naismith.CalculateTime(route_to_download.Distance, Fragment_Preferences.naismith_speed_kmh, route_to_download.Ascent, route_to_download.Descent);
             route_to_download.NaismithTravelTime = $"{string.Format("{0:D2}", travel_hours)}:{string.Format("{0:D2}", travel_min)}";
@@ -703,9 +710,22 @@ namespace hajk.Adapter
             }
 
             //Shenandoah's Hiking Difficulty
-            float ShenandoahsHikingDifficultyScale = route_to_download.ShenandoahsScale;
-            string ShenandoahsHikingDifficultyRating = ShenandoahsHikingDifficulty.CalculateRating(ShenandoahsHikingDifficultyScale);
-            ShenandoahsHikingDifficulty.UpdateTextField(vh?.ShenandoahsHikingDifficulty, ShenandoahsHikingDifficultyScale, ShenandoahsHikingDifficultyRating);
+            route_to_download.ShenandoahsScale = ShenandoahsHikingDifficulty.CalculateScale(route_to_download.Distance, route_to_download.Ascent);
+            string ShenandoahsHikingDifficultyRating = ShenandoahsHikingDifficulty.CalculateRating(route_to_download.ShenandoahsScale);
+            ShenandoahsHikingDifficulty.UpdateTextField(vh?.ShenandoahsHikingDifficulty, route_to_download.ShenandoahsScale, ShenandoahsHikingDifficultyRating);
+
+            //Update record with additional data
+            route_to_download.GPX = gpx_to_download.ToXml();
+            RouteDatabase.SaveRouteAsync(route_to_download).Wait();
+
+            //Update GUI
+            if (vh.Ascent != null && vh.Descent != null)
+            {
+                vh.Ascent.Text = $"Ascent: {route_to_download.Ascent}m";
+                vh.Descent.Text = $"Descent: {route_to_download.Descent}m";
+
+                Fragment_gpx.mAdapter?.NotifyItemChanged(menuitem);
+            }
 
             //Create / Update thumbsize map
             Toast.MakeText(Platform.AppContext, "Creating new overview image", ToastLength.Short)?.Show();
@@ -726,6 +746,8 @@ namespace hajk.Adapter
             }
 
             Toast.MakeText(Platform.AppContext, "Finished downloads", ToastLength.Short)?.Show();
+
+            Fragment_gpx.mAdapter.UpdateItems(route_to_download.GPXType);
         }
     }
 }

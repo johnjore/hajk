@@ -278,6 +278,30 @@ namespace GPXUtils
             return CalculateDistance(position1, position2, distanceType);
         }
 
+        public double CalculateDistance(string? latlon, Android.Locations.Location location2, DistanceType distanceType)
+        {
+            if (latlon == null || latlon.Length < 3)
+            {
+                Serilog.Log.Warning($"Failed to calculate distance as latlon is not a valid value '{latlon}'");
+                return -1;
+            }
+
+            try
+            {
+                var parts = latlon.Split(',');
+                var position1 = new Position(double.Parse(parts[0]), double.Parse(parts[1]), 0, false, null);
+
+                var position2 = new Position(location2.Latitude, location2.Longitude, 0, false, null);
+
+                return CalculateDistance(position1, position2, distanceType);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Failed to calculate distance by parsing latlon: '{latlon}'");
+                return 9999999;
+            }
+        }
+
         public double CalculateRhumbBearing(Position position1, Position position2)
         {
             var lat1 = angleConverter.ConvertDegreesToRadians(position1.Latitude);

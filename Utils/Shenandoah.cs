@@ -65,9 +65,16 @@ namespace hajk
 
         public static void UpdateTextField(TextView? field, float ShenandoahsHikingDifficultyScale, string ShenandoahsHikingDifficultyRating)
         {
-            if (field != null && ShenandoahsHikingDifficultyScale > -1)
+            if (field != null)
             {
-                field.Text = $"Shenandoah: {ShenandoahsHikingDifficultyScale:0} / {ShenandoahsHikingDifficultyRating}";
+                if (ShenandoahsHikingDifficultyScale <= 0)
+                {
+                    field.Text = $"Shenandoah: N/A";
+                }
+                else if (ShenandoahsHikingDifficultyScale > 0)
+                {
+                    field.Text = $"Shenandoah: {ShenandoahsHikingDifficultyScale:0} / {ShenandoahsHikingDifficultyRating}";
+                }
             }
             else
             {
