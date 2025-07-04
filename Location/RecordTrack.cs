@@ -1,43 +1,47 @@
 ﻿using Android.App;
 using Android.Content;
+using Android.Content.PM;
+using Android.Content.Res;
 using Android.Locations;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Text;
-using SharpGPX;
-using SharpGPX.GPX1_1;
-using SharpGPX.GPX1_1.Topografix;
-using Serilog;
-using hajk.Data;
-using hajk.Models;
-using hajk.Fragments;
+using AndroidX.Lifecycle;
+using Google.Android.Material.Navigation;
 using GPXUtils;
+using hajk.Data;
+using hajk.Fragments;
+using hajk.Models;
+using Java.Nio.FileNio.Attributes;
 using Mapsui;
 using Mapsui.Extensions;
+using Mapsui.Layers;
 using Mapsui.Nts;
 using Mapsui.Nts.Extensions;
-using Mapsui.Layers;
 using Mapsui.Projections;
 using Mapsui.Providers;
 using Mapsui.Rendering.Skia;
 using Mapsui.Styles;
 using Mapsui.Tiling;
-using NetTopologySuite.Geometries;
-using Microsoft.Maui.Storage;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Devices.Sensors;
-using Android.Content.PM;
-using Android.Content.Res;
-using Google.Android.Material.Navigation;
+using Microsoft.Maui.Storage;
+using NetTopologySuite.Geometries;
+using Serilog;
+using SharpGPX;
+using SharpGPX.GPX1_0;
+using SharpGPX.GPX1_1;
+using SharpGPX.GPX1_1.Topografix;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace hajk
 {
@@ -352,6 +356,7 @@ namespace hajk
                 return;
             }
 
+            //Return if not 0, 5, 10, 15, 20, ... 55 seconds and we have atleast 2 waypoints
             if ((DateTime.Now.Second % 5 != 0) && (trackGpx.Waypoints.Count >= 2))
             {
                 return;
@@ -402,6 +407,20 @@ namespace hajk
 
                 trackGpx.Waypoints.Add(waypoint);
                 Log.Debug($"Recording has '{trackGpx.Waypoints.Count}' waypoints");
+
+                //Save current GPX to disk as temp file, every 100 waypoints
+                if (trackGpx.Waypoints.Count % 100 == 0)
+                {
+                    try
+                    {
+                        Serilog.Log.Information("Saving CheckPoint file");
+                        trackGpx.ToFile(Fragment_Preferences.CheckpointGPX);
+                    }
+                    catch (Exception ex)
+                    {
+                        Serilog.Log.Error(ex, $"Failed to save checkpoint file, {Fragment_Preferences.CheckpointGPX}");
+                    }
+                }
 
                 if (Preferences.Get("DrawTrackOnGui", Fragment_Preferences.DrawTrackOnGui_b))
                 {
@@ -515,6 +534,29 @@ namespace hajk
             {
                 Log.Fatal(ex, $"RecordTrack - ¨ShowRecordedTrack()");
             }
+        }
+
+        public static void RestoreCheckPoint()
+        {
+            if (File.Exists(Fragment_Preferences.CheckpointGPX) == false)
+                return;
+
+            Task.Run(async () =>
+            {
+                Show_Dialog msg1 = new(Platform.CurrentActivity);
+                if (await msg1.ShowDialog($"Recording", $"Load checkpoint file?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.NO)
+                {
+                    Serilog.Log.Verbose("Deleting checkpoint file");
+                    File.Delete(Fragment_Preferences.CheckpointGPX);
+                }
+                else
+                {
+                    string contents = File.ReadAllText(Fragment_Preferences.CheckpointGPX);
+                    trackGpx = GpxClass.FromXml(contents);
+
+                    StartTrackTimer();
+                }
+            });
         }
     }
 }
