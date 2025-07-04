@@ -26,5 +26,7 @@
         public string? ThunderforestToken { get; set; }
         public string? CustomServerURL { get; set; }
         public string? CustomToken { get; set; }
+        public int GPXSortingOrder { get; set; }
+        public int GPXSortingChoice { get; set; }
     }
 }

@@ -306,6 +306,10 @@ namespace hajk
                     BackupElevationData = Preferences.Get("BackupElevationData", true),
                     KeepNBackups = int.Parse(Preferences.Get("KeepNBackups", Fragment_Preferences.KeepNBackups.ToString())),
                     EnableBackupAtStartup = Preferences.Get("BackupElevationData", Fragment_Preferences.EnableBackupAtStartup),
+
+                    //GPX Routes / Track Sorting Preferences
+                    GPXSortingChoice = int.Parse(Preferences.Get("GPXSortingChoice", Fragment_Preferences.GPXSortingChoice.ToString())),
+                    GPXSortingOrder = int.Parse(Preferences.Get("GPXSortingOrder", Fragment_Preferences.GPXSortingOrder.ToString())),
                 };
 
                 AppContext.SetSwitch("System.Reflection.NullabilityInfoContext.IsSupported", true);

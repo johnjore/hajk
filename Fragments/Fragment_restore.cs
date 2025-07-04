@@ -295,6 +295,10 @@ namespace hajk.Fragments
                 Preferences.Set("KeepNBackups", prefSettings.KeepNBackups.ToString());
                 Preferences.Set("BackupElevationData", prefSettings.EnableBackupAtStartup);
 
+                //GPX Routes / Track Sorting Preferences
+                Preferences.Set("GPXSortingOrder", prefSettings.GPXSortingOrder.ToString());
+                Preferences.Set("GPXSortingChoice", prefSettings.GPXSortingChoice.ToString());
+
                 //Remove Settings file
                 /**///File.Delete(RestoreFolder + "/" + Fragment_Preferences.SavedSettings);
             }
