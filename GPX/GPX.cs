@@ -1,30 +1,30 @@
 ﻿using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView;
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using hajk.Models;
 using hajk.Data;
+using hajk.Models;
 using OxyPlot.Xamarin.Android;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace hajk
 {
     public class GpxData
     {
-        private readonly List<GPXDataRouteTrack> gpx;
+        private readonly List<GPXDataRouteTrack>? gpx;
 
         //Returns list of all items in list
         public GpxData(GPXType gpxtype)
         {
             List<GPXDataRouteTrack>? result = gpxtype switch
             {
-                GPXType.Route => RouteDatabase.GetRoutesAsync().Result,
-                GPXType.Track => RouteDatabase.GetTracksAsync().Result,
+                GPXType.Route => RouteDatabase.GetSelectedDataAsync(GPXType.Route).Result,
+                GPXType.Track => RouteDatabase.GetSelectedDataAsync(GPXType.Track).Result,
                 _ => null,
             };
 
-            result.Reverse();
+            result?.Reverse();
             gpx = result;
         }
 

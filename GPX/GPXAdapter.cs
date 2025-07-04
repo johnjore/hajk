@@ -63,7 +63,7 @@ namespace hajk.Adapter
                 vh.GPXType = mGpxData[position].GPXType;
                 vh.Name.Text = mGpxData[position].Name;
                 vh.Distance.Text = "Length: " + (mGpxData[position].Distance).ToString("N1") + "km";
-
+                
                 //Ascent / Descent fields
                 vh.Ascent.Text = "Ascent: ";
                 vh.Descent.Text = "Descent: ";
@@ -103,22 +103,34 @@ namespace hajk.Adapter
                 string ShenandoahsHikingDifficultyRating = ShenandoahsHikingDifficulty.CalculateRating(ShenandoahsHikingDifficultyScale);
                 ShenandoahsHikingDifficulty.UpdateTextField(vh?.ShenandoahsHikingDifficulty, ShenandoahsHikingDifficultyScale, ShenandoahsHikingDifficultyRating);
 
-                //Map Thumbprint of route / track
+                //We now need the full record of the item for the remaining items
+                var routetrackInfo = RouteDatabase.GetRouteAsync(mGpxData[position].Id).Result;
                 vh?.TrackRouteMap.SetImageResource(0);   //Clear it, as it's reused
-                string ImageBase64String = mGpxData[position].ImageBase64String;
-                if (ImageBase64String != null)
+                if (routetrackInfo != null)
                 {
-                    var bitmap = Utils.Misc.ConvertStringToBitmap(ImageBase64String);
-                    if (bitmap != null)
+                    //Map Thumbprint of route / track
+                    if (routetrackInfo.ImageBase64String != null && routetrackInfo.ImageBase64String.Length > 0)
                     {
-                        vh.TrackRouteMap.SetImageBitmap(bitmap);
+                        string ImageBase64String = routetrackInfo.ImageBase64String;
+                        if (ImageBase64String != null)
+                        {
+                            var bitmap = Utils.Misc.ConvertStringToBitmap(ImageBase64String);
+                            if (bitmap != null)
+                            {
+                                vh?.TrackRouteMap.SetImageBitmap(bitmap);
+                            }
+                        }
                     }
-                }
 
-                //Elevation plot
-                var elevationModel = CreatePlotModel(GpxClass.FromXml(mGpxData[position].GPX));
-                if (elevationModel != null) {
-                    vh.TrackRouteElevation.Model = elevationModel;
+                    //Elevation plot
+                    if (routetrackInfo.GPX != null && routetrackInfo.GPX.Length > 0)
+                    {
+                        var elevationModel = CreatePlotModel(GpxClass.FromXml(routetrackInfo.GPX));
+                        if (elevationModel != null)
+                        {
+                            vh.TrackRouteElevation.Model = elevationModel;
+                        }
+                    }
                 }
             }
             catch (Exception ex)

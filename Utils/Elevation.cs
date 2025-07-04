@@ -263,10 +263,8 @@ namespace hajk
                             {
                                 e.ele = -99999;
                                 e.eleSpecified = false;
-                                Serilog.Log.Debug($"Elevation data is lower than -100m for x:{x} and y:{y} in {FileName}");
-                                //Serilog.Log.Debug($"Elevation at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
+                                Serilog.Log.Error($"Elevation data is lower than -100m, {tmpElevationData}, for x:{x} and y:{y} in {FileName}");
                             }
-                            //Serilog.Log.Debug($"Elevation at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters in FileName '{FileName}'");
                         }
                         catch (Exception ex)
                         {
@@ -363,7 +361,6 @@ namespace hajk
                                 Serilog.Log.Error($"Elevation data is lower than -100m for x:{x} and y:{y} in {FileName}");
                                 //Serilog.Log.Debug($"Elevation at lat:{e.Latitude:N4}, lon:{e.Longitude:N4} is '{e.Elevation}' meters");
                             }
-                            //Serilog.Log.Debug($"Elevation at lat:{e.lat:N4}, lon:{e.lon:N4} is '{e.ele}' meters in FileName '{FileName}'");
                         }
                         catch (Exception ex)
                         {
