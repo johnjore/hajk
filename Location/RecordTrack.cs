@@ -351,50 +351,52 @@ namespace hajk
 
         public static void GetGPSLocationEvent(Android.Locations.Location location)
         {
-            if (location == null)
-            {
-                return;
-            }
-
-            //Return if not 0, 5, 10, 15, 20, ... 55 seconds and we have atleast 2 waypoints
-            if ((DateTime.Now.Second % 5 != 0) && (trackGpx.Waypoints.Count >= 2))
-            {
-                return;
-            }
-
-            //Log.Information($"Updated GPS Location - Lat: {location.Latitude:N5}, Lon: {location.Longitude:N5}, Speed: {location.Speed:N5}, Altitude: {location.Altitude:N2}, DateStamp: {location.Timestamp}");
-
-            //Don't use data older than 10 seconds
-            DateTime gpsUTCDateTime = DateTimeOffset.FromUnixTimeMilliseconds(location.Time).DateTime;
-            if (gpsUTCDateTime < DateTime.UtcNow.AddSeconds(-10))
-            {
-                Log.Debug($"Discarding Location Information - Too old: {gpsUTCDateTime}");
-                return;
-            }
-
-            //Don't use if insufficient accuracy
-            if (location.Accuracy < 0)
-            {
-                Log.Debug($"Discarding Location Information  - Insuficient accuracy: {location.Accuracy:N2}");
-                return;
-            }
-
-            //Don't use if insufficient accuracy
-            if (location.Accuracy > 50)
-            {
-                Log.Debug($"Discarding Location Information  - Insuficient accuracy: {location.Accuracy:N2}");
-                return;
-            }
-
-            //Don't use if speed is greater than 10m / s
-            if (location.Speed > 10)
-            {
-                Log.Debug($"Discarding Location Information  - Speed too great for walking: {location.Speed:N2}");
-                return;
-            }
-
             try
             {
+                if (location == null)
+                {
+                    return;
+                }
+
+                //Return if not 0, 5, 10, 15, 20, ... 55 seconds and we have atleast 2 waypoints
+                if ((DateTime.Now.Second % 5 != 0) && (trackGpx.Waypoints.Count >= 2))
+                {
+                    return;
+                }
+
+                //Log.Information($"Updated GPS Location - Lat: {location.Latitude:N5}, Lon: {location.Longitude:N5}, Speed: {location.Speed:N5}, Altitude: {location.Altitude:N2}, DateStamp: {location.Timestamp}");
+
+                //Don't use data older than 10 seconds
+                DateTime gpsUTCDateTime = DateTimeOffset.FromUnixTimeMilliseconds(location.Time).DateTime;
+                if (gpsUTCDateTime < DateTime.UtcNow.AddSeconds(-10))
+                {
+                    Log.Debug($"Discarding Location Information - Too old: {gpsUTCDateTime}");
+                    return;
+                }
+
+                //Don't use if insufficient accuracy
+                if (location.Accuracy < 0)
+                {
+                    Log.Debug($"Discarding Location Information  - Insuficient accuracy: {location.Accuracy:N2}");
+                    return;
+                }
+
+                //Don't use if insufficient accuracy
+                if (location.Accuracy > 50)
+                {
+                    Log.Debug($"Discarding Location Information  - Insuficient accuracy: {location.Accuracy:N2}");
+                    return;
+                }
+
+                //Don't use if speed is greater than 10m / s
+                if (location.Speed > 10)
+                {
+                    Log.Debug($"Discarding Location Information  - Speed too great for walking: {location.Speed:N2}");
+                    return;
+                }
+                                
+                
+
                 wptType waypoint = new()
                 {
                     lat = (decimal)location.Latitude,
@@ -404,6 +406,25 @@ namespace hajk
                     timeSpecified = true,
                     eleSpecified = true,
                 };
+
+                //Don't use if distance covered is more than possible in the timeframe provided
+                var previous_waypoint = trackGpx.Waypoints.LastOrDefault();
+                if (previous_waypoint != null)
+                {
+                    var p = new PositionHandler();
+                    var p1 = new GPXUtils.Position((float)previous_waypoint.lat, (float)previous_waypoint.lon, 0, false, null);
+                    var p2 = new GPXUtils.Position((float)waypoint.lat, (float)waypoint.lon, 0, false, null);
+
+                    var mapDistance_m = (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
+                    TimeSpan timeLapse = waypoint.time - previous_waypoint.time;
+                    var speed = mapDistance_m / timeLapse.Seconds;
+
+                    if (speed > 10)
+                    {
+                        Log.Debug($"Discarding Location Information  - Speed too great for walking: {speed:N2} (Distance: {mapDistance_m}m, Timespan: {timeLapse.Seconds} seconds)");
+                        return;
+                    }
+                }
 
                 trackGpx.Waypoints.Add(waypoint);
                 Log.Debug($"Recording has '{trackGpx.Waypoints.Count}' waypoints");
