@@ -1,31 +1,299 @@
-﻿using Android.Views;
+﻿using Android.Health.Connect.DataTypes;
+using Android.Views;
 using Android.Widget;
 using AndroidX.RecyclerView;
+using AndroidX.RecyclerView.Widget;
+using GPXUtils;
 using hajk.Data;
+using hajk.Fragments;
 using hajk.Models;
 using OxyPlot.Xamarin.Android;
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace hajk
 {
     public class GpxData
     {
-        private readonly List<GPXDataRouteTrack>? gpx;
+        public class GPXDataRouteTrackExtended : GPXDataRouteTrack
+        {
+            public double? DistanceToStart { get; set; }
+        }
+
+        private readonly List<GPXDataRouteTrackExtended>? gpx;
 
         //Returns list of all items in list
         public GpxData(GPXType gpxtype)
         {
-            List<GPXDataRouteTrack>? result = gpxtype switch
+            List<GPXDataRouteTrack>? queryResult = RouteDatabase.GetSelectedDataAsync(gpxtype).Result;
+            var GPXSortingChoice = Preferences.Get("GPXSortingChoice", Fragment_Preferences.GPXSortingChoice);
+
+            //Must match Fragment_Preferences.SortByOptions
+            switch (GPXSortingChoice)
             {
-                GPXType.Route => RouteDatabase.GetSelectedDataAsync(GPXType.Route).Result,
-                GPXType.Track => RouteDatabase.GetSelectedDataAsync(GPXType.Track).Result,
-                _ => null,
+                case 0:
+                    //Distance from here
+                    gpx = SortByLocation(queryResult);
+                    break;
+                case 1:
+                    //Date Added
+                    gpx = SortByID(queryResult);
+                    break;
+                case 2:
+                    //Alphabetically
+                    gpx = SortByName(queryResult);
+                    break;
+                case 3:
+                    //Distance of Route/Track
+                    gpx = SortByLength(queryResult);
+                    break;
+                case 4:
+                    //Shenandoah
+                    gpx = SortByDifficulty(queryResult);
+                    break;
+                case 5:
+                    //Ascent
+                    gpx = SortByAscent(queryResult);
+                    break;
+                case 6:
+                    gpx = SortByNeismithTime(queryResult);
+                    break;
+                default:
+                    //Should not happen...
+                    gpx = null;
+                    break;
             };
 
-            result?.Reverse();
-            gpx = result;
+            //Reverse order?
+            if ((SortOrder)Preferences.Get("GPXSortingOrder", (int)Fragment_Preferences.GPXSortingOrder) == SortOrder.Descending)
+            {
+                gpx?.Reverse();
+            }
+        }
+
+        private static List<GPXDataRouteTrackExtended>? SortByLocation(List<GPXDataRouteTrack> queryResult)
+        {
+            //If we dont have a current location, we can't calculate the distances
+            var _currentLocation = LocationForegroundService.GetLocation();
+            if (_currentLocation == null)
+            {
+                try
+                {
+                    var _Location = Geolocation.GetLastKnownLocationAsync().Result;
+                    if (_Location == null)
+                    {
+                        // Try to get a fresh location
+                        _Location = Geolocation.GetLocationAsync(new GeolocationRequest
+                        {
+                            DesiredAccuracy = GeolocationAccuracy.Medium,
+                            Timeout = TimeSpan.FromSeconds(5)
+                        }).Result;
+                    }
+
+                    if (_Location != null)
+                    {
+                        _currentLocation = new Android.Locations.Location("manual")
+                        {
+                            Latitude = _Location.Latitude,
+                            Longitude = _Location.Longitude
+                        };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Warning(ex, $"Error getting location");
+                }
+            }
+
+            if (_currentLocation == null)
+            {
+                return null;
+            }
+
+            //Calculate distances
+            var p = new PositionHandler();
+            List<GPXDataRouteTrackExtended>? data1 = queryResult
+                .OrderBy(item => item.ShenandoahsScale)
+                .Select(item => new GPXDataRouteTrackExtended
+                {
+                    Id = item.Id,
+                    GPXType = item.GPXType,
+                    Name = item.Name,
+                    Distance = item.Distance,
+                    Ascent = item.Ascent,
+                    Descent = item.Descent,
+                    Description = item.Description,
+                    GPX = item.GPX,
+                    ImageBase64String = item.ImageBase64String,
+                    NaismithTravelTime = item.NaismithTravelTime,
+                    ShenandoahsScale = item.ShenandoahsScale,
+                    GPXStartLocation = item.GPXStartLocation,
+                    DistanceToStart = p.CalculateDistance(item.GPXStartLocation, _currentLocation, DistanceType.Meters),
+                })
+                .ToList();
+            
+            //Sort the records based on Distance from our location - Note: This is reversed, and will be undone later
+            if ((SortOrder)Preferences.Get("GPXSortingOrder", (int)Fragment_Preferences.GPXSortingOrder) == SortOrder.Descending)
+            {
+                return (data1.OrderBy(item => item.DistanceToStart).ToList());
+            }
+            else
+            {
+                return (data1.OrderByDescending(item => item.DistanceToStart).ToList());
+            }
+        }
+
+        private static List<GPXDataRouteTrackExtended>? SortByDifficulty(List<GPXDataRouteTrack> queryResult)
+        {
+            //Sort based on when added to DB (the ID increases with each record)
+            return queryResult
+                .OrderBy(item => item.ShenandoahsScale)
+                .Select(item => new GPXDataRouteTrackExtended
+                {
+                    Id = item.Id,
+                    GPXType = item.GPXType,
+                    Name = item.Name,
+                    Distance = item.Distance,
+                    Ascent = item.Ascent,
+                    Descent = item.Descent,
+                    Description = item.Description,
+                    GPX = item.GPX,
+                    ImageBase64String = item.ImageBase64String,
+                    NaismithTravelTime = item.NaismithTravelTime,
+                    ShenandoahsScale = item.ShenandoahsScale,
+                    GPXStartLocation = item.GPXStartLocation,
+                    DistanceToStart = 0,
+                })
+                .ToList();
+        }
+
+        private static List<GPXDataRouteTrackExtended>? SortByLength(List<GPXDataRouteTrack> queryResult)
+        {
+            return queryResult
+                .OrderBy(item => item.Distance)
+                .Select(item => new GPXDataRouteTrackExtended
+                {
+                    Id = item.Id,
+                    GPXType = item.GPXType,
+                    Name = item.Name,
+                    Distance = item.Distance,
+                    Ascent = item.Ascent,
+                    Descent = item.Descent,
+                    Description = item.Description,
+                    GPX = item.GPX,
+                    ImageBase64String = item.ImageBase64String,
+                    NaismithTravelTime = item.NaismithTravelTime,
+                    ShenandoahsScale = item.ShenandoahsScale,
+                    GPXStartLocation = item.GPXStartLocation,
+                    DistanceToStart = 0,
+                })
+                .ToList();
+        }
+
+        private static List<GPXDataRouteTrackExtended>? SortByName(List<GPXDataRouteTrack> queryResult)
+        {
+            return queryResult
+                .OrderBy(item => item.Name)
+                .Select(item => new GPXDataRouteTrackExtended
+                {
+                    Id = item.Id,
+                    GPXType = item.GPXType,
+                    Name = item.Name,
+                    Distance = item.Distance,
+                    Ascent = item.Ascent,
+                    Descent = item.Descent,
+                    Description = item.Description,
+                    GPX = item.GPX,
+                    ImageBase64String = item.ImageBase64String,
+                    NaismithTravelTime = item.NaismithTravelTime,
+                    ShenandoahsScale = item.ShenandoahsScale,
+                    GPXStartLocation = item.GPXStartLocation,
+                    DistanceToStart = 0,
+                })
+                .ToList();
+        }
+
+        private static List<GPXDataRouteTrackExtended>? SortByID(List<GPXDataRouteTrack> queryResult)
+        {
+            //Sort based on when added to DB (the ID increases with each record)
+            return queryResult
+                        .OrderByDescending(item => item.Id)
+                        .Select(item => new GPXDataRouteTrackExtended
+                        {
+                            Id = item.Id,
+                            GPXType = item.GPXType,
+                            Name = item.Name,
+                            Distance = item.Distance,
+                            Ascent = item.Ascent,
+                            Descent = item.Descent,
+                            Description = item.Description,
+                            GPX = item.GPX,
+                            ImageBase64String = item.ImageBase64String,
+                            NaismithTravelTime = item.NaismithTravelTime,
+                            ShenandoahsScale = item.ShenandoahsScale,
+                            GPXStartLocation = item.GPXStartLocation,
+                            DistanceToStart = 0,
+                        })
+                        .ToList();
+        }
+
+        private static List<GPXDataRouteTrackExtended>? SortByAscent(List<GPXDataRouteTrack> queryResult)
+        {
+            return queryResult
+                .OrderBy(item => item.Ascent)
+                .Select(item => new GPXDataRouteTrackExtended
+                {
+                    Id = item.Id,
+                    GPXType = item.GPXType,
+                    Name = item.Name,
+                    Distance = item.Distance,
+                    Ascent = item.Ascent,
+                    Descent = item.Descent,
+                    Description = item.Description,
+                    GPX = item.GPX,
+                    ImageBase64String = item.ImageBase64String,
+                    NaismithTravelTime = item.NaismithTravelTime,
+                    ShenandoahsScale = item.ShenandoahsScale,
+                    GPXStartLocation = item.GPXStartLocation,
+                    DistanceToStart = 0,
+                })
+                .ToList();
+        }
+
+        private static List<GPXDataRouteTrackExtended>? SortByNeismithTime(List<GPXDataRouteTrack> queryResult)
+        {
+            return queryResult
+                .OrderBy(item => ParseNaismith(item.NaismithTravelTime))
+                .Select(item => new GPXDataRouteTrackExtended
+                {
+                    Id = item.Id,
+                    GPXType = item.GPXType,
+                    Name = item.Name,
+                    Distance = item.Distance,
+                    Ascent = item.Ascent,
+                    Descent = item.Descent,
+                    Description = item.Description,
+                    GPX = item.GPX,
+                    ImageBase64String = item.ImageBase64String,
+                    NaismithTravelTime = item.NaismithTravelTime,
+                    ShenandoahsScale = item.ShenandoahsScale,
+                    GPXStartLocation = item.GPXStartLocation,
+                    DistanceToStart = 0,
+                })
+                .ToList();
+        }
+
+        public static TimeSpan ParseNaismith(string time)
+        {
+            if (string.IsNullOrWhiteSpace(time))
+                return TimeSpan.MaxValue; // Sort null/blank to end
+
+            if (TimeSpan.TryParse(time, out var result))
+                return result;
+
+            return TimeSpan.MaxValue;
         }
 
         //Returns # of items in list
@@ -49,15 +317,31 @@ namespace hajk
         //Add route at the beginning of the list
         internal int Insert(GPXDataRouteTrack route)
         {
-            gpx.Insert(0, route);
-            return gpx.Count;
-        }
+            var p = new PositionHandler();
 
-        //Add route at the end of the list
-        internal int Add_(GPXDataRouteTrack route)
-        {
-            gpx.Add(route);
+            //For displaying purposes, convert class to include DistanceToStart
+            var r = new GPXDataRouteTrackExtended
+            {
+                Id = route.Id,
+                GPXType = route.GPXType,
+                Name = route.Name,
+                Distance = route.Distance,
+                Ascent = route.Ascent,
+                Descent = route.Descent,
+                Description = route.Description,
+                GPX = route.GPX,
+                ImageBase64String = route.ImageBase64String,
+                NaismithTravelTime = route.NaismithTravelTime,
+                ShenandoahsScale = route.ShenandoahsScale,
+                GPXStartLocation = route.GPXStartLocation,
+                DistanceToStart = p.CalculateDistance(route.GPXStartLocation, LocationForegroundService.GetLocation(), DistanceType.Meters)
+            };
+
+            gpx?.Insert(0, r);
+            Fragment_gpx.mAdapter.UpdateItems(route.GPXType);
+
             return gpx.Count;
+
         }
     }
 

@@ -56,13 +56,13 @@ namespace hajk.Data
 
         public static Task<List<GPXDataRouteTrack>>? GetSelectedDataAsync(GPXType gpxtype)
         {
-            //Get all field, except get GPX or Image (takes too long)
+            //Get all field, except GPX or Image (takes too long)
             switch (gpxtype)
             {
                 case GPXType.Route:
-                    return database?.QueryAsync<GPXDataRouteTrack>("SELECT Id, GPXType, Name, Distance, Ascent, Descent, Description FROM GPXDataRouteTrack WHERE GPXType = 0", GPXType.Route);
+                    return database?.QueryAsync<GPXDataRouteTrack>("SELECT Id, GPXType, Name, Distance, Ascent, Descent, Description, NaismithTravelTime, ShenandoahsScale, GPXStartLocation FROM GPXDataRouteTrack WHERE GPXType = 0", GPXType.Route);
                 case GPXType.Track:
-                    return database?.QueryAsync<GPXDataRouteTrack>("SELECT Id, GPXType, Name, Distance, Ascent, Descent, Description FROM GPXDataRouteTrack WHERE GPXType = 1", GPXType.Track);
+                    return database?.QueryAsync<GPXDataRouteTrack>("SELECT Id, GPXType, Name, Distance, Ascent, Descent, Description, NaismithTravelTime, ShenandoahsScale, GPXStartLocation FROM GPXDataRouteTrack WHERE GPXType = 1", GPXType.Track);
                 default:
                     return null;
             }

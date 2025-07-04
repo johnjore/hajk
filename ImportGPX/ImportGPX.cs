@@ -7,16 +7,17 @@ using GPXUtils;
 using hajk.Data;
 using hajk.Fragments;
 using hajk.Models;
+using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Projections;
 using Mapsui.Rendering.Skia;
-using Mapsui;
+using SharpGPX;
+using SharpGPX.GPX1_1;
 using SharpGPX.GPX1_1.Garmin;
 using SharpGPX.GPX1_1.Topografix;
-using SharpGPX.GPX1_1;
-using SharpGPX;
-using System.Xml;
 using System;
+using System.Globalization;
+using System.Xml;
 
 namespace hajk
 {
@@ -397,6 +398,7 @@ namespace hajk
                     Descent = 0,
                     Description = route.desc,
                     GPX = newGPX.ToXml(),
+                    GPXStartLocation = $"{LatLon[0].Latitude.ToString(CultureInfo.InvariantCulture)},{LatLon[0].Longitude.ToString(CultureInfo.InvariantCulture)}",
                 };
                 r.Id = RouteDatabase.SaveRoute(r);
 
@@ -491,6 +493,7 @@ namespace hajk
                     Descent = 0,
                     Description = track.desc,
                     GPX = newGPX.ToXml(),
+                    GPXStartLocation = $"{LatLon[0].Latitude.ToString(CultureInfo.InvariantCulture)},{LatLon[0].Longitude.ToString(CultureInfo.InvariantCulture)}",
                 };
                 r.Id = RouteDatabase.SaveRoute(r);
 

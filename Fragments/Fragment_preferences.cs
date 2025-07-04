@@ -3,13 +3,14 @@ using Android.Content;
 using Android.OS;
 using Android.Views;
 using AndroidX.Preference;
-using System.Globalization;
-using Serilog;
+using Google.Android.Material.FloatingActionButton;
 using hajk.Fragments;
+using hajk.Models;
 using hajk.Models.MapSource;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Storage;
-using Google.Android.Material.FloatingActionButton;
+using Serilog;
+using System.Globalization;
 
 
 namespace hajk
@@ -44,6 +45,21 @@ namespace hajk
         public readonly static bool DisableMapRotate_b = false;         //Disable Map Rotate. Lock North up
         public readonly static int KeepNBackups = 10;                   //Backup copies to keep
         public readonly static bool EnableBackupAtStartup = true;       //Enable backup when starting app (once per day)
+
+        //GPX Routes / Tracks Sorting Values
+        public readonly static SortOrder GPXSortingOrder = SortOrder.Ascending; //Sort list in ascending or descending order
+        public readonly static string[] SortByOrder = [                //GPX Sorting Options - Do NOT change the order
+            "Ascending",
+            "Descending"];
+        public readonly static int GPXSortingChoice = 0;                //Default sorting option for GPX routes/tracks
+        public readonly static string[] SortByOptions = [               //GPX Sorting Options - Do NOT change the order
+            "Distance from here",
+            "Date Added",
+            "Name",
+            "Length of Route/Track",
+            "Shenandoah's Rating",
+            "Ascent",
+            "Neismiths Travel Time"];
 
         //Runtime only
         public const string POIDB = "POI.db3";                          //Database to store all POI (WayPoints)
