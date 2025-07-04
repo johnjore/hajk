@@ -14,6 +14,8 @@ namespace hajk.Models
         public string? Description { get; set; }
         public string? GPX { get; set; }
         public string? ImageBase64String { get; set; }
+        public string? NaismithTravelTime { get; set; }         //Added June 30 2025 - GPXAdapter is slow scrolling due to excess calculations
+        public float ShenandoahsScale { get; set; }             //Added June 30 2025 - GPXAdapter is slow scrolling due to excess calculations
     }
 
     public enum GPXType : uint

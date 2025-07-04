@@ -822,6 +822,11 @@ namespace hajk
             
             //Naismith Travel Time
             (int travel_hours, int travel_min) = Naismith.CalculateTime(route_to_download.Distance, Fragment_Preferences.naismith_speed_kmh, route_to_download.Ascent, route_to_download.Descent);
+            route_to_download.NaismithTravelTime = $"{string.Format("{0:D2}", travel_hours)}:{ string.Format("{0:D2}", travel_min)}";
+
+            //Shenandoahs's Hiking Difficulty
+            float ShenandoahsHikingDifficultyScale = ShenandoahsHikingDifficulty.CalculateScale(route_to_download.Distance, route_to_download.Ascent);
+            route_to_download.ShenandoahsScale = ShenandoahsHikingDifficultyScale;
 
             //Create Looper if needed for Toast messages
             if (Looper.MyLooper() == null)
@@ -900,8 +905,18 @@ namespace hajk
                     }
                 });
 
-                //Update with elevation data
+                //Naismith Travel Time
+                (int travel_hours, int travel_min) = Naismith.CalculateTime(route.Distance, Fragment_Preferences.naismith_speed_kmh, route.Ascent, route.Descent);
+                route.NaismithTravelTime = $"{string.Format("{0:D2}", travel_hours)}:{string.Format("{0:D2}", travel_min)}";
+
+                //Shenandoahs's Hiking Difficulty
+                float ShenandoahsHikingDifficultyScale = ShenandoahsHikingDifficulty.CalculateScale(route.Distance, route.Ascent);
+                route.ShenandoahsScale = ShenandoahsHikingDifficultyScale;
+
+                //GPX
                 route.GPX = gpx.ToXml();
+
+                //Update with new data
                 RouteDatabase.SaveRouteAsync(route).Wait();
 
                 //Create / Update thumbsize map
@@ -909,6 +924,7 @@ namespace hajk
                 {
                     Looper.Prepare();
                 }
+
                 Toast.MakeText(Platform.AppContext, "Creating new overview image", ToastLength.Short)?.Show();
                 string? ImageBase64String = DisplayMapItems.CreateThumbnail(route.GPXType, gpx);
                 if (ImageBase64String != null)
