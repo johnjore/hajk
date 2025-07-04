@@ -1,13 +1,44 @@
-
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+	android:background="@android:color/holo_blue_light" >
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:scrollbars="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+	<LinearLayout
+		android:id="@+id/spinnerContainer"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="horizontal"
+		android:background="@android:color/white"
+		android:padding="8dp"
+		android:layout_margin="8dp" >
+		
+		<Spinner
+			android:id="@+id/spinnerSortedBy"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:padding="0dp" />
 
+		<Spinner
+		   android:id="@+id/spinnerSelection"
+		   android:layout_width="0dp"
+		   android:layout_height="wrap_content"
+		   android:layout_weight="1"
+		   android:gravity="right"
+		   android:paddingEnd="24dp"
+		   android:padding="0dp" />
+		
+	</LinearLayout>
+
+	<androidx.recyclerview.widget.RecyclerView
+			android:id="@+id/recyclerView"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_below="@id/spinnerContainer"
+			android:layout_alignParentBottom="true"
+			android:layout_marginTop="0dp"
+			android:scrollbars="vertical" />
+	
 </RelativeLayout>
