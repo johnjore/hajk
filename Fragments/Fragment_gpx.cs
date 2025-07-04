@@ -36,10 +36,31 @@ namespace hajk.Fragments
         private static GpxData? mGpxData;
         public static GpxAdapter? mAdapter;
         public static Models.GPXType GPXDisplay = Models.GPXType.Route;
+        private static IParcelable _recyclerViewState;
+        private static Dictionary<Models.GPXType, IParcelable> _scrollStates = new();        
 
         public override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+        }
+
+        public override void OnPause()
+        {
+            base.OnPause();
+
+            //Save scrollstate
+            _scrollStates[Fragment_gpx.GPXDisplay] = mLayoutManager?.OnSaveInstanceState();
+        }
+
+        public override void OnResume()
+        {
+            base.OnResume();
+
+            //Restore scrollstate
+            if (_scrollStates.TryGetValue(Fragment_gpx.GPXDisplay, out var savedState) && savedState != null)
+            {
+                mLayoutManager?.OnRestoreInstanceState(savedState);
+            }
         }
 
         public override Android.Views.View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
