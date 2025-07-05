@@ -109,6 +109,7 @@ namespace hajk
 
             if (_currentLocation == null)
             {
+                Serilog.Log.Error($"No location data to calculate distance from here");
                 return null;
             }
 
@@ -135,7 +136,7 @@ namespace hajk
                 .ToList();
             
             //Sort the records based on Distance from our location - Note: This is reversed, and will be undone later
-            if ((SortOrder)Preferences.Get("GPXSortingOrder", (int)Fragment_Preferences.GPXSortingOrder) == SortOrder.Descending)
+            if ((SortOrder)Preferences.Get("GPXSortingOrder", (int)Fragment_Preferences.GPXSortingOrder) == SortOrder.Ascending)
             {
                 return (data1.OrderBy(item => item.DistanceToStart).ToList());
             }

@@ -521,7 +521,7 @@ namespace hajk.Adapter
             route_to_reverse.Description += " - reversed";
             route_to_reverse.Id = 0;
             route_to_reverse.GPX = gpx_to_reverse.ToXml();
-            RouteDatabase.SaveRouteAsync(route_to_reverse).Wait();
+            RouteDatabase.SaveRoute(route_to_reverse);
 
             //Update RecycleView with new entry
             _ = Fragment_gpx.mAdapter.mGpxData.Insert(route_to_reverse);
@@ -716,7 +716,6 @@ namespace hajk.Adapter
 
             //Update record with additional data
             route_to_download.GPX = gpx_to_download.ToXml();
-            RouteDatabase.SaveRouteAsync(route_to_download).Wait();
 
             //Update GUI
             if (vh.Ascent != null && vh.Descent != null)
@@ -733,7 +732,6 @@ namespace hajk.Adapter
             if (ImageBase64String != null)
             {
                 route_to_download.ImageBase64String = ImageBase64String;
-                RouteDatabase.SaveRouteAsync(route_to_download).Wait();
                 
                 var bitmap = Utils.Misc.ConvertStringToBitmap(ImageBase64String);
                 if (bitmap != null)
@@ -744,6 +742,9 @@ namespace hajk.Adapter
 
                 Fragment_gpx.mAdapter?.NotifyItemChanged(menuitem);
             }
+
+            //Save to the database
+            RouteDatabase.SaveRoute(route_to_download);
 
             Toast.MakeText(Platform.AppContext, "Finished downloads", ToastLength.Short)?.Show();
 
