@@ -108,6 +108,10 @@ namespace hajk.Adapter
                 string ShenandoahsHikingDifficultyRating = ShenandoahsHikingDifficulty.CalculateRating(ShenandoahsHikingDifficultyScale);
                 ShenandoahsHikingDifficulty.UpdateTextField(vh?.ShenandoahsHikingDifficulty, ShenandoahsHikingDifficultyScale, ShenandoahsHikingDifficultyRating);
 
+                //Set default view for map and elevation
+                vh.TrackRouteMap.Visibility = ViewStates.Visible;
+                vh.TrackRouteElevation.Visibility = ViewStates.Gone;
+
                 //We now need the full record of the item for the remaining items
                 var routetrackInfo = RouteDatabase.GetRouteAsync(mGpxData[position].Id).Result;
                 vh?.TrackRouteMap.SetImageResource(0);   //Clear it, as it's reused
