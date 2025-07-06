@@ -31,7 +31,7 @@ namespace hajk.Fragments
     {
         public static MapControl? mapControl = null;
         public static Mapsui.Map map = new();
-        public static Position? MapPosition = null;        /**///Pass this as an argument instead of global variable
+        private static Position? MapPressed = null;
         private static long MovingPOI = -1;               //For MapInfo, if >=0, next tap is new location for POI #
 
         public override void OnCreate(Bundle? savedInstanceState)
@@ -167,6 +167,9 @@ namespace hajk.Fragments
                 if (args.MapInfo == null)
                     return;
 
+                if (args.MapInfo.WorldPosition == null)
+                    return;
+
                 //Create POI?
                 if (args.MapInfo?.Feature == null && args.NumTaps >= 2 && args.MapInfo?.WorldPosition != null)
                 {
@@ -198,9 +201,6 @@ namespace hajk.Fragments
                     });
                 }
 
-                if (args.MapInfo == null)
-                    return;
-
                 //Moving POI
                 if (MovingPOI >= 0 && args.MapInfo.WorldPosition != null)
                 {
@@ -215,15 +215,16 @@ namespace hajk.Fragments
                     MovingPOI = -1;
                 }
 
-
                 if (args.MapInfo.Layer?.Name == null)
                     return;
 
                 if (args.MapInfo.Layer.Tag == null)
                     return;
 
-                if (args.MapInfo.WorldPosition == null)
-                    return;
+                //Update MapPressed
+                var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+                MapPressed = new Position(b.lat, b.lon, 0, false, null);
+                Serilog.Log.Debug($"Route Object. GPS Position: " + b.ToString());
 
                 //Simplify
                 var layer = args.MapInfo.Layer;
@@ -277,10 +278,6 @@ namespace hajk.Fragments
                 //Route?
                 if (layer.Tag.ToString() == Fragment_Preferences.Layer_Route)
                 {
-                    var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-                    MapPosition = new Position(b.lon, b.lat, 0, false, null);
-                    Serilog.Log.Debug($"Route Object. GPS Position: " + b.ToString());
-
                     var activity = (FragmentActivity?)Platform.CurrentActivity;
 
                     //Remove the old fragment, before creating a new one. Maybe replace this with update, instead of delete and create... /**/
@@ -328,5 +325,11 @@ namespace hajk.Fragments
             result.Remove(result.Length - 2, 2);
             return result.ToString();
         };
+
+        public static Position? GetMapPressedCoordinates()
+        {
+            return MapPressed;
+        }
+
     }
 }

@@ -1,4 +1,12 @@
-﻿using System;
+﻿using Android.OS;
+using Android.Widget;
+using GeoTiffCOG;
+using GPXUtils;
+using hajk.Models;
+using Mapsui.Projections;
+using SharpGPX;
+using SharpGPX.GPX1_1;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,13 +15,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using SharpGPX;
-using SharpGPX.GPX1_1;
-using Mapsui.Projections;
-using GeoTiffCOG;
-using GPXUtils;
-using Android.Widget;
-using Android.OS;
 
 namespace hajk
 {
@@ -389,6 +390,36 @@ namespace hajk
             }
 
             return track;
+        }
+
+        public static decimal LookupElevationData(Position position)
+        {
+            try
+            {
+                //Get elevation tile to use
+                AwesomeTiles.Tile? tile = GPXUtils.GPXUtils.GetTileRange(Fragment_Preferences.Elevation_Tile_Zoom, position)?.FirstOrDefault();
+                var COGfileName = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/" + $"{Fragment_Preferences.Elevation_Tile_Zoom}-{tile?.X}-{tile?.Y}.tif";
+
+                //Do we have the tile?
+                if (File.Exists(COGfileName) == false)
+                {
+                    //Get the tile?
+                    var url = Fragment_Preferences.COGGeoTiffServer + $"{tile?.Zoom}/{tile?.X}/{tile?.Y}.tif";
+                    var data = DownloadImageAsync(url);
+                    WriteCOGGeoTiff(COGfileName, data);
+                }
+     
+                //Lookup elevation at that location
+                var geoTiff = new GeoTiff(COGfileName);
+                var (y, x) = SphericalMercator.FromLonLat((double)position.Longitude, (double)position.Latitude);
+                var elevation = Convert.ToDecimal(geoTiff.GetElevationAtLatLon(x, y));
+                return elevation;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Failed to get elevation data for position {position}");
+                return -2;
+            }
         }
 
 

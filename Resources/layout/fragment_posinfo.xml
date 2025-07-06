@@ -16,27 +16,29 @@
             android:textAppearance="?android:attr/textAppearance"
             android:textColor="#333333"
             android:text=""
-            android:id="@+id/DurationTime"
+            android:id="@+id/CurrentElevationGPS_m"
             android:layout_marginLeft="@dimen/layout_marginLeft" />
 
-        <TextView
+		<TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearance"
             android:textColor="#333333"
             android:text=""
-            android:id="@+id/CurrentElevation_m"
+            android:id="@+id/CurrentElevationMap_m"
             android:layout_marginLeft="@dimen/layout_marginLeft" />
 
-        <TextView
+		<TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearance"
             android:textColor="#333333"
             android:text=""
             android:id="@+id/ElevationMap_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft" />
+            android:layout_marginLeft="@dimen/layout_marginLeft" 
+			android:layout_marginBottom="16dp" />
 
+		
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -44,45 +46,50 @@
             android:textColor="#333333"
             android:text=""
             android:id="@+id/DistanceStraightLine_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft" />
+            android:layout_marginLeft="@dimen/layout_marginLeft" 
+			android:layout_marginBottom="16dp" />
 
-        <TextView
+
+		<TextView
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:textAppearance="?android:attr/textAppearance"
+	        android:textColor="#333333"
+	        android:text=""
+	        android:id="@+id/DistanceGPSLocationMapLocation_m"
+	        android:layout_marginLeft="@dimen/layout_marginLeft" />
+		
+		<TextView
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:textAppearance="?android:attr/textAppearance"
+	        android:textColor="#333333"
+	        android:text=""
+	        android:id="@+id/AscentGPSLocationMapLocation_m"
+	        android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+		<TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearance"
             android:textColor="#333333"
             android:text=""
-            android:id="@+id/DistanceStraightLineFromStart_m"        
-            android:layout_marginLeft="@dimen/layout_marginLeft" />
+            android:id="@+id/DescentGPSLocationMapLocation_m"
+            android:layout_marginLeft="@dimen/layout_marginLeft"
+			android:layout_marginBottom="16dp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearance"
-            android:textColor="#333333"
-            android:text=""
-            android:id="@+id/DistanceStraightLineFromStartGPS_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearance"
-            android:textColor="#333333"
-            android:text=""
-            android:id="@+id/TrackDistanceFromStart_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft" />
+		<TextView
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:textAppearance="?android:attr/textAppearance"
+	        android:textColor="#333333"
+	        android:text=""
+	        android:id="@+id/RecordedWaypoints"
+	        android:layout_marginLeft="@dimen/layout_marginLeft" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearance"
-            android:textColor="#333333"
-            android:text=""
-            android:id="@+id/DistanceGPSLocationMapLocation_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft" />
-
-        <TextView
+		
+		<TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearance"
@@ -99,26 +106,28 @@
             android:text=""
             android:id="@+id/DescentFromStart_m"
             android:layout_marginLeft="@dimen/layout_marginLeft" />
+		
+		<TextView
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:textAppearance="?android:attr/textAppearance"
+	        android:textColor="#333333"
+	        android:text=""
+	        android:id="@+id/TrackDistanceFromStart_m"
+	        android:layout_marginLeft="@dimen/layout_marginLeft" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearance"
-            android:textColor="#333333"
-            android:text=""
-            android:id="@+id/AscentGPSLocationMapLocation_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft" />
-       
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearance"
-            android:textColor="#333333"
-            android:text=""
-            android:id="@+id/DescentGPSLocationMapLocation_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft" />
-
-        <microcharts.droid.ChartView
+		<TextView
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:textAppearance="?android:attr/textAppearance"
+	        android:textColor="#333333"
+	        android:text=""
+	        android:id="@+id/DurationTime"
+	        android:layout_marginLeft="@dimen/layout_marginLeft"
+			android:layout_marginBottom="16dp" />
+		
+		
+		<Microcharts.Droid.ChartView
             android:layout_marginTop="20dp"
             android:layout_marginBottom="10dp"
             android:id="@+id/chartElevation"

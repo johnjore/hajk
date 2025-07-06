@@ -95,8 +95,9 @@ namespace hajk
                 )
                 .WriteTo.File(
                     _Path, 
-                    rollingInterval: RollingInterval.Day, 
+                    rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 2, 
+                    fileSizeLimitBytes: 2*1024*1024,
                     outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}{NewLine}"
                 )
                 .WriteTo.Sentry(options =>
@@ -630,7 +631,11 @@ namespace hajk
                         var allFiles = Directory.GetFiles(Fragment_Preferences.rootPath, "walkabout*", SearchOption.AllDirectories);
                         foreach (var file in allFiles)
                         {
-                            Serilog.Log.Debug(file);
+                            long length = new System.IO.FileInfo(file).Length;
+                            Serilog.Log.Debug($"Name: {file}, Size: {length} bytes");
+                            if (length >= 20 * 1024 * 1024)
+                                Serilog.Log.Error("Attachments too large for sentry!");
+                            
                             scope.AddAttachment(file);
                         }                
                     });
