@@ -411,17 +411,16 @@ namespace hajk
                 var previous_waypoint = trackGpx.Waypoints.LastOrDefault();
                 if (previous_waypoint != null)
                 {
-                    var p = new PositionHandler();
                     var p1 = new GPXUtils.Position((float)previous_waypoint.lat, (float)previous_waypoint.lon, 0, false, null);
                     var p2 = new GPXUtils.Position((float)waypoint.lat, (float)waypoint.lon, 0, false, null);
 
-                    var mapDistance_m = (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
+                    float mapDistance_m = (float)new PositionHandler().CalculateDistance(p1, p2, DistanceType.Meters);
                     TimeSpan timeLapse = waypoint.time - previous_waypoint.time;
-                    var speed = mapDistance_m / timeLapse.Seconds;
+                    var speed = mapDistance_m / timeLapse.TotalSeconds;
 
                     if (speed > 10)
                     {
-                        Log.Debug($"Discarding Location Information  - Speed too great for walking: {speed:N2} (Distance: {mapDistance_m}m, Timespan: {timeLapse.Seconds} seconds)");
+                        Log.Debug($"Discarding Location Information  - Speed too great for walking: {speed:N2} (Distance: {mapDistance_m}m, Timespan: {timeLapse.TotalSeconds} seconds)");
                         return;
                     }
                 }

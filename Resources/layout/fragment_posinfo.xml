@@ -36,8 +36,7 @@
 	        android:text=""
 	        android:id="@+id/RecordedWaypointsAndTime"
 	        android:layout_marginLeft="@dimen/layout_marginLeft" />
-
-		
+        		
 		<TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -46,6 +45,15 @@
             android:text=""
             android:id="@+id/Completed"
             android:layout_marginLeft="@dimen/layout_marginLeft" />
+
+        <OxyPlot.Xamarin.Android.PlotView
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:id="@+id/oxyPlotWalkDone"
+            android:scaleType="fitCenter"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:visibility="gone" />
 
 		<Microcharts.Droid.ChartView
             android:layout_marginTop="5dp"

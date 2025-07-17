@@ -1,6 +1,7 @@
 ﻿using Android.Content;
 using Android.Content.Res;
 using Android.Graphics;
+using Android.Media;
 using Android.Net.Vcn;
 using Android.OS;
 using Android.Runtime;
@@ -23,10 +24,16 @@ using Mapsui.Projections;
 using Microcharts;
 using Microcharts.Droid;
 using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
+using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+using OxyPlot.Xamarin.Android;
 using Serilog;
 using SharpCompress.Compressors.RLE90;
 using SharpGPX;
+using SharpGPX.GPX1_0;
 using SharpGPX.GPX1_1;
 using SkiaSharp;
 using System;
@@ -34,9 +41,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Android.Security.Identity.CredentialDataResult;
 using static Android.Telephony.CarrierConfigManager;
 
 namespace hajk.Fragments
@@ -212,7 +221,36 @@ namespace hajk.Fragments
 
                 ConfigureGraph(view, GpsLocation, MapPosition);
 
-                ConfigureGraphDone(view);
+                //ConfigureGraphDone(view);
+
+                //What walking have we done so far?
+                PlotView? plotView = view.FindViewById<PlotView>(Resource.Id.oxyPlotWalkDone);
+                if (plotView != null)
+                {
+                    (LineSeries lineSeries, double min, double max) = CreateSeries(RecordTrack.trackGpx?.Waypoints);
+                    plotView.Model = new PlotModel
+                    {
+                        Series = { lineSeries },
+                        Axes =
+                        {
+                            new LinearAxis
+                            {
+                                Position = AxisPosition.Bottom,
+                                FormatAsFractions = false,
+                                Unit = "km"
+                            },
+                            new LinearAxis
+                            {
+                                Position = AxisPosition.Left,
+                                Minimum = min * 0.9,
+                                Maximum = max * 1.1,
+                                Unit = "m"
+                            }
+                        }
+                    };
+
+                    plotView.Visibility = ViewStates.Visible;
+                }
 
                 return view;
             }
@@ -415,6 +453,53 @@ namespace hajk.Fragments
             {
                 Serilog.Log.Fatal(ex, "posinfo - Crashed while creating elevation graph");
             }
+        }
+        
+        private (LineSeries?, double, double) CreateSeries(wptTypeCollection? waypoints)
+        {
+            if (waypoints == null || waypoints?.Count < 1)
+                return (null, 0 ,0);
+
+            double distance_km = 0.0;
+            double ele = (double)RecordTrack.trackGpx.Waypoints[0].ele;
+            double min = ele, max = ele;
+
+            //Create the series with first datapoint
+            var plotSeries = new LineSeries
+            {
+                MarkerType = MarkerType.None,
+                MarkerSize = 1,
+                MarkerStroke = OxyColors.White,
+                Points = { new DataPoint(0, ele) },
+            };
+                                    
+            var _waypoints = RecordTrack.trackGpx.Waypoints;
+            var ph = new PositionHandler();
+
+            for (int i = 1; i < RecordTrack.trackGpx.Waypoints.Count; i++)
+            {
+                var prev = waypoints[i - 1];
+                var curr = waypoints[i];
+
+                //Calculate Distance to previous point
+                var p1 = new GPXUtils.Position((float)prev.lat, (float)prev.lon, 0, false, null);
+                var p2 = new GPXUtils.Position((float)curr.lat, (float)curr.lon, 0, false, null);
+                var newdistance_km = (double)ph.CalculateDistance(p1, p2, DistanceType.Kilometers);
+                distance_km += newdistance_km;
+
+                if (!curr.eleSpecified || newdistance_km <= 0)
+                    continue;
+
+                //Only add to plot if valid elevation data, and we've moved from previous point
+                ele = (double)curr.ele;
+                plotSeries.Points.Add(new DataPoint(distance_km, ele));
+
+                //New min / max
+                if (ele > max) max = ele;
+                if (ele < min) min = ele;
+            }
+
+            return (plotSeries, min, max);
         }
     }
 }

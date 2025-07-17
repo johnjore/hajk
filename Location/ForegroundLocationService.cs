@@ -102,7 +102,9 @@ namespace hajk
                         currentLocation = new Android.Locations.Location("manual")
                         {
                             Latitude = _Location.Latitude,
-                            Longitude = _Location.Longitude
+                            Longitude = _Location.Longitude,
+                            Time = _Location.Timestamp.ToUnixTimeMilliseconds(),
+                            Accuracy = (float)_Location.Accuracy,
                         };
                     }
                 }
