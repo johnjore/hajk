@@ -82,6 +82,36 @@ namespace hajk
 
         public static Android.Locations.Location? GetLocation()
         {
+            try
+            {
+                if (currentLocation == null)
+                {
+                    var _Location = Geolocation.GetLastKnownLocationAsync().Result;
+                    if (_Location == null)
+                    {
+                        // Try to get a fresh location
+                        _Location = Geolocation.GetLocationAsync(new GeolocationRequest
+                        {
+                            DesiredAccuracy = GeolocationAccuracy.Medium,
+                            Timeout = TimeSpan.FromSeconds(5)
+                        }).Result;
+                    }
+
+                    if (_Location != null && currentLocation == null)
+                    {
+                        currentLocation = new Android.Locations.Location("manual")
+                        {
+                            Latitude = _Location.Latitude,
+                            Longitude = _Location.Longitude
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, $"Error getting location");
+            }
+
             return currentLocation;
         }
 
