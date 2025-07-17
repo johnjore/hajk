@@ -370,90 +370,6 @@ namespace hajk.Fragments
             }
         }
 
-        private void ConfigureGraphDone(Android.Views.View view)
-        {
-            try
-            {
-                var chartView = view.FindViewById<ChartView>(Resource.Id.chartElevationDone);
-                chartView.Visibility = ViewStates.Gone;
-
-                if (MainActivity.ActiveRoute == null)
-                    return;
-
-                var route = MainActivity.ActiveRoute.Routes.First();
-                if (route == null)
-                    return;
-
-                if (route.rtept.Count == 0)
-                    return;
-
-                if (RecordTrack.trackGpx.Waypoints.Count == 0)
-                    return;
-
-                List<ChartEntry> entries = new List<ChartEntry>();
-
-                //Entries
-                for (int i = 0; i < RecordTrack.trackGpx.Waypoints.Count; i++)
-                {
-                    var entry = new ChartEntry((float)RecordTrack.trackGpx.Waypoints[i].ele)
-                    {
-                        Color = SKColor.Parse("#00ff00"), //Green
-                    };
-
-                    //Start
-                    if (i == 0)
-                    {
-                        entry.Label = "0";
-                        entry.TextColor = SKColor.Parse("#000000"); //Black
-                    }
-
-                    //End
-                    if (i == RecordTrack.trackGpx.Waypoints.Count - 1)
-                    {
-                        var (mapRoute, mapDistance_m, ListLatLonEle) = Import.ParseGPXtoRoute(route);
-                        entry.Label = (mapDistance_m / 1000).ToString("N1");
-                        entry.TextColor = SKColor.Parse("#000000"); //Purple
-                    }
-
-                    entries.Add(entry);
-                }
-
-                //Chart configuration
-                const string text = "0";
-                var typeface = SKFontManager.Default.MatchCharacter(text[0]);
-                var a = SKFontManager.Default;
-
-                var chart = new LineChart
-                {
-                    LineMode = LineMode.Straight,
-                    LineSize = 5,
-                    PointMode = PointMode.None,
-                    AnimationDuration = TimeSpan.FromSeconds(0),
-                    LabelOrientation = Microcharts.Orientation.Vertical, //Change to Horizontal when support for X axis is done
-                    LabelTextSize = 40.0f,
-                    LabelColor = SKColor.Parse("#000000"),
-                    Margin = 10,
-                    ShowYAxisLines = true,
-                    ShowYAxisText = true,
-                    YAxisTextPaint = new SKPaint()
-                    {
-                        Typeface = SKTypeface.Default,
-                        TextSize = 32.0f,
-                        TextAlign = SKTextAlign.Left,
-                    },
-                    Entries = entries
-                };
-
-                //Set the Chart
-                chartView.Chart = chart;
-                chartView.Visibility = ViewStates.Visible;
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, "posinfo - Crashed while creating elevation graph");
-            }
-        }
-        
         private (LineSeries? lineSeries, double MinX, double MaxX) CreateSeries(wptTypeCollection? waypoints)
         {
             if (waypoints == null || waypoints?.Count < 1)
@@ -472,7 +388,6 @@ namespace hajk.Fragments
                 Points = { new DataPoint(0, ele) },
             };
                                     
-            var _waypoints = RecordTrack.trackGpx.Waypoints;
             var ph = new PositionHandler();
 
             for (int i = 1; i < RecordTrack.trackGpx.Waypoints.Count; i++)
