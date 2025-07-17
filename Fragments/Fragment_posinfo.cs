@@ -70,7 +70,7 @@ namespace hajk.Fragments
                 Android.Locations.Location? GpsLocation = LocationForegroundService.GetLocation();
 
                 //Debug - Remove me
-                if (GpsLocation == null) { GpsLocation = new Android.Locations.Location("manual"){Latitude = -37.80818, Longitude = 144.88439, Altitude = 99, };}
+                //if (GpsLocation == null) { GpsLocation = new Android.Locations.Location("manual"){Latitude = -37.80818, Longitude = 144.88439, Altitude = 99, };}
 
                 if (GpsLocation == null)
                 {
