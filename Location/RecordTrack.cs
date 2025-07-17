@@ -158,6 +158,10 @@ namespace hajk
                     ImageBase64String = ImageBase64String,
                 };
                 await RouteDatabase.SaveRouteAsync(r);
+
+                //Remove checkpoint file
+                Serilog.Log.Verbose("Deleting checkpoint file");
+                File.Delete(Fragment_Preferences.CheckpointGPX);
             }
             catch (Exception ex)
             {
