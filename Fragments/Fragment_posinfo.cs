@@ -70,63 +70,47 @@ namespace hajk.Fragments
                 Android.Locations.Location? GpsLocation = LocationForegroundService.GetLocation();
 
                 //Debug - Remove me
-                //if (GpsLocation == null) { GpsLocation = new Android.Locations.Location("manual"){Latitude = -37.80818, Longitude = 144.88439, Altitude = 99, };}
+                if (GpsLocation == null) { GpsLocation = new Android.Locations.Location("manual"){Latitude = -37.80818, Longitude = 144.88439, Altitude = 99, };}
 
                 if (GpsLocation == null)
+                {
+                    view.FindViewById<TextView>(Resource.Id.CurrentElevation_m).Text = "No GPS Position";
                     return view;
+                }
 
                 //Locations in Position format for where we are, and were we pointed at the map
                 GPXUtils.Position? GpsPosition = new GPXUtils.Position(GpsLocation.Latitude, GpsLocation.Longitude, 0, false, null);
                 GPXUtils.Position? MapPosition = Fragment_map.GetMapPressedCoordinates();
 
-
-                //Current Elevation (Altitude) - GPS
-                string b = "Current Elevation (GPS): ";
+                //Elevation (Altitude)
                 try
                 {
+                    //From GPS
+                    string GPSAltitude = "N/A";
                     if (GpsLocation.HasAltitude)
                     {
-                        view.FindViewById<TextView>(Resource.Id.CurrentElevationGPS_m).Text = b + Math.Round((double)GpsLocation.Altitude).ToString("N0") + "m";
+                        GPSAltitude = Math.Round((double)GpsLocation.Altitude).ToString("N0") + "m";
                     }
-                    else
-                    {
-                        view.FindViewById<TextView>(Resource.Id.CurrentElevationGPS_m).Text = b + "N/A";
-                    }
+
+                    //From GeoTiff
+                    decimal mapElevation = Elevation.LookupElevationData(GpsPosition);
+                    string MapAltitude = (mapElevation >= 0) ? mapElevation.ToString("N0") + "m" : "N/A";
+
+                    //From pointed finger
+                    decimal PointElevation = Elevation.LookupElevationData(MapPosition);
+                    string PointAltitude = (PointElevation >= 0) ? PointElevation.ToString("N0") + "m" : "N/A";
+                    
+                    //Update GUI
+                    view.FindViewById<TextView>(Resource.Id.CurrentElevation_m).Text = $"{char.ConvertFromUtf32(0x1f5fb)} - {char.ConvertFromUtf32(0x1f4cd)} (GPS/Map): {GPSAltitude} / {MapAltitude} - {char.ConvertFromUtf32(0x1f4cc)}: {PointAltitude}";
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'CurrentElevationGPS_m'");
-                    view.FindViewById<TextView>(Resource.Id.CurrentElevationGPS_m).Text = b + "N/A";
+                    Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'CurrentElevation_m'");
                 }
 
-                //Lookup Elevation at MapPosition (Altitude) - Map
-                b = "Current Elevation (Map): ";
-                try
-                {
-                    var mapElevation = Elevation.LookupElevationData(GpsPosition);
-                    view.FindViewById<TextView>(Resource.Id.CurrentElevationMap_m).Text = b + mapElevation.ToString("N0") + "m";
-                }
-                catch (Exception ex)
-                {
-                    view.FindViewById<TextView>(Resource.Id.CurrentElevationMap_m).Text = b + "N/A";
-                    Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'CurrentElevationMap_m'");
-                }
-
-                //Lookup Elevation at MapPosition (Altitude)
-                b = "Elevation at selected point: ";
-                try
-                {
-                    var mapElevation = Elevation.LookupElevationData(MapPosition);
-                    view.FindViewById<TextView>(Resource.Id.ElevationMap_m).Text = b + mapElevation.ToString("N0") + "m";
-                }
-                catch (Exception ex)
-                {
-                    view.FindViewById<TextView>(Resource.Id.ElevationMap_m).Text = b + "N/A";
-                    Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'ElevationMap_m'");
-                }
-
+                /*
                 //Distance Straight Line from GPSLocation to MapPosition
-                b = "Distance - Direct - to selected point: ";
+                string b = "Distance - Direct - to selected point: ";
                 try
                 {
                     var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, GpsLocation, DistanceType.Meters));
@@ -137,48 +121,49 @@ namespace hajk.Fragments
                 {
                     view.FindViewById<TextView>(Resource.Id.DistanceStraightLine_m).Text = b + "N/A";
                     Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'DistanceStraightLine_m'");
-                }
+                }*/
 
-                //Ascent, Descent and Distance Along Route From GPSLocation to MapPosition
+                //Distance, Ascent and Descent following Route From current GPSLocation to MapPosition
                 try
                 {
-                    view.FindViewById<TextView>(Resource.Id.AscentGPSLocationMapLocation_m).Text = "Ascent From here to Map: Not Following a Route!";
-                    view.FindViewById<TextView>(Resource.Id.DescentGPSLocationMapLocation_m).Text = "Descent From here to Map: Not Following a Route!";
-                    view.FindViewById<TextView>(Resource.Id.DistanceGPSLocationMapLocation_m).Text = "Distance From here to Map: Not Following a Route!";
+                    view.FindViewById<TextView>(Resource.Id.MapPosition).Text = "Not Following a Route!";
 
                     if (MainActivity.ActiveRoute != null)
                     {
                         rteType route = MainActivity.ActiveRoute.Routes.First();
-
-
 
                         /**/
                         //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
                         //MapPoint should already know the item pressed?
                         //Optimizing map, removes a lot of points - But does this really matter?
                         (var m1, var route_index_end) = MapInformation.FindClosestWayPoint(route, MapPosition);
-
+                        Serilog.Log.Information($"m1: {m1} - route_index_end: {route_index_end}");
+                        
                         //WayPoint we are closest to?
                         (var p1, var route_index_start) = MapInformation.FindClosestWayPoint(route, GpsPosition);
+                        Serilog.Log.Information($"m1: {p1} - route_index_start: {route_index_start}");
 
                         //Get how much Ascent, Descent and Distance along the track to the MapPoint
                         (var AscentGPSLocationMapLocation_m, var DescentGPSLocationMapLocation_m, var DistanceGPSLocationMapLocation_m)= GPXUtils.GPXUtils.CalculateElevationDistanceData(route.rtept, route_index_start, route_index_end);
+                        Serilog.Log.Information($"AscentGPSLocationMapLocation_m: {AscentGPSLocationMapLocation_m} - DescentGPSLocationMapLocation_m: {DescentGPSLocationMapLocation_m} - DistanceGPSLocationMapLocation_m: {DistanceGPSLocationMapLocation_m}");
 
                         //Add distance from GPSLocation to first waypoint. We might not be on-top of it. If we are, distance should be 0...
+                        Serilog.Log.Information($"DistanceGPSLocationMapLocation_m - 1: {DistanceGPSLocationMapLocation_m}");
                         DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(p1, GpsLocation, DistanceType.Meters));
+                        Serilog.Log.Information($"DistanceGPSLocationMapLocation_m - 2: {DistanceGPSLocationMapLocation_m}");
 
                         //Add distance from m1 to MapPosition
                         DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(m1, MapPosition, DistanceType.Meters));
-
+                        Serilog.Log.Information($"DistanceGPSLocationMapLocation_m - 3: {DistanceGPSLocationMapLocation_m}");
 
                         /**///What about elevation changes for m1->e1 and GPS->p1 ?
-                        //Elevation changes between route index's?
-
+                            //Elevation changes between route index's?
 
                         //Show the values
-                        view.FindViewById<TextView>(Resource.Id.DistanceGPSLocationMapLocation_m).Text = "Distance - Route - to selected point: " + Utils.Misc.KMvsM(DistanceGPSLocationMapLocation_m);
-                        view.FindViewById<TextView>(Resource.Id.AscentGPSLocationMapLocation_m).Text = "Ascent - Route - From here to selected point: " + AscentGPSLocationMapLocation_m.ToString("N0") + "m";
-                        view.FindViewById<TextView>(Resource.Id.DescentGPSLocationMapLocation_m).Text = "Descent - Route - From here to seleced point: " + DescentGPSLocationMapLocation_m.ToString("N0") + "m";
+                        var mapPositionText = $"{'\u27f7'} {Utils.Misc.KMvsM(DistanceGPSLocationMapLocation_m)} / " +
+                                              $"{'\u25B2'} {AscentGPSLocationMapLocation_m:N0}m / " +
+                                              $"{'\u25BC'} {DescentGPSLocationMapLocation_m:N0}m";
+                        view.FindViewById<TextView>(Resource.Id.MapPosition).Text = mapPositionText;
                     }
                 }
                 catch (Exception ex)
@@ -187,18 +172,20 @@ namespace hajk.Fragments
                 }
 
                 //Data from start of walk to GpsPosition
-                view.FindViewById<TextView>(Resource.Id.RecordedWaypoints).Text = $"Waypoints: {RecordTrack.trackGpx.Waypoints.Count.ToString()}";
-                view.FindViewById<TextView>(Resource.Id.DurationTime).Text = "Duration: n/a or not recording";
-                view.FindViewById<TextView>(Resource.Id.AscentFromStart_m).Text = "Ascent: n/a or not recording";
-                view.FindViewById<TextView>(Resource.Id.DescentFromStart_m).Text = "Descent: n/a or not recording";
-                view.FindViewById<TextView>(Resource.Id.TrackDistanceFromStart_m).Text = "Distance: n/a or not recording";
-                
+                view.FindViewById<TextView>(Resource.Id.RecordedWaypointsAndTime).Text = $"Waypoints: {RecordTrack.trackGpx.Waypoints.Count.ToString()} / Duration: n/a or not recording";
+                var CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} N/A / " +
+                                    $"{char.ConvertFromUtf32(0x1f53c)} N/A / " +
+                                    $"{char.ConvertFromUtf32(0x1f53d)} N/A";
+                view.FindViewById<TextView>(Resource.Id.Completed).Text = CompletedText;
+
+                //If recording
                 if ((Preferences.Get("RecordingTrack", false) == true) && (RecordTrack.trackGpx.Waypoints.Count > 0))
                 {
-                    //Timespan since first recording
                     try
                     {
-                        view.FindViewById<TextView>(Resource.Id.DurationTime).Text = "Time since start of recording: " + (DateTime.Now - RecordTrack.trackGpx.Waypoints.First().time).ToString(@"hh\:mm\:ss");
+                        var RecordedWaypointAndTime = $"Waypoints: {RecordTrack.trackGpx.Waypoints.Count.ToString()} / " +
+                            "Duration: " + (DateTime.Now - RecordTrack.trackGpx.Waypoints.First().time).ToString(@"hh\:mm\:ss");
+                        view.FindViewById<TextView>(Resource.Id.RecordedWaypointsAndTime).Text = RecordedWaypointAndTime;
                     }
                     catch (Exception ex)
                     {
@@ -208,23 +195,24 @@ namespace hajk.Fragments
                     //Calculate Ascent / Descent from Start to Current Position
                     try
                     {
-                        (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) = GPXUtils.GPXUtils.CalculateElevationDistanceData(RecordTrack.trackGpx.Waypoints, 0, RecordTrack.trackGpx.Waypoints.Count);
+                        (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) = GPXUtils.GPXUtils.CalculateElevationDistanceData(RecordTrack.trackGpx.Waypoints, 0, RecordTrack.trackGpx.Waypoints.Count-1);
                         string v = Utils.Misc.KMvsM(TrackDistanceFromStart_m);
                         Serilog.Log.Debug($"TrackDistanceFromStart_m: '{TrackDistanceFromStart_m.ToString()}', v: '{v}', TrackAscentFromStart_m: '{TrackAscentFromStart_m.ToString()}', TrackDescentFromStart_m: '{TrackDescentFromStart_m}'");
 
-
-                        view.FindViewById<TextView>(Resource.Id.AscentFromStart_m).Text = "Walked - Ascent: " + TrackAscentFromStart_m.ToString("N0") + "m";
-                        view.FindViewById<TextView>(Resource.Id.DescentFromStart_m).Text = "Walked - Descent: " + TrackDescentFromStart_m.ToString("N0") + "m";
-                        view.FindViewById<TextView>(Resource.Id.TrackDistanceFromStart_m).Text = "Walked - Distance: " + v;
-                        
+                        CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} {v} / " +
+                                        $"{char.ConvertFromUtf32(0x1f53c)} {TrackAscentFromStart_m:N0}m / " +
+                                        $"{char.ConvertFromUtf32(0x1f53d)} {TrackDescentFromStart_m:N0}m";
+                        view.FindViewById<TextView>(Resource.Id.Completed).Text = CompletedText;
                     }
                     catch (Exception ex)
                     {
-                        Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'Ascent / Descent'");
+                        Serilog.Log.Fatal(ex, "posinfo - Crashed calculating Completed 'Distance / Ascent / Descent'");
                     }
                 }
 
                 ConfigureGraph(view, GpsLocation, MapPosition);
+
+                ConfigureGraphDone(view);
 
                 return view;
             }
@@ -303,6 +291,90 @@ namespace hajk.Fragments
                     {
                         var t = Import.ParseGPXtoRoute(route);
                         entry.Label = (t.Item2 / 1000).ToString("N1");
+                        entry.TextColor = SKColor.Parse("#000000"); //Purple
+                    }
+
+                    entries.Add(entry);
+                }
+
+                //Chart configuration
+                const string text = "0";
+                var typeface = SKFontManager.Default.MatchCharacter(text[0]);
+                var a = SKFontManager.Default;
+
+                var chart = new LineChart
+                {
+                    LineMode = LineMode.Straight,
+                    LineSize = 5,
+                    PointMode = PointMode.None,
+                    AnimationDuration = TimeSpan.FromSeconds(0),
+                    LabelOrientation = Microcharts.Orientation.Vertical, //Change to Horizontal when support for X axis is done
+                    LabelTextSize = 40.0f,
+                    LabelColor = SKColor.Parse("#000000"),
+                    Margin = 10,
+                    ShowYAxisLines = true,
+                    ShowYAxisText = true,
+                    YAxisTextPaint = new SKPaint()
+                    {
+                        Typeface = SKTypeface.Default,
+                        TextSize = 32.0f,
+                        TextAlign = SKTextAlign.Left,
+                    },
+                    Entries = entries
+                };
+
+                //Set the Chart
+                chartView.Chart = chart;
+                chartView.Visibility = ViewStates.Visible;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Fatal(ex, "posinfo - Crashed while creating elevation graph");
+            }
+        }
+
+        private void ConfigureGraphDone(Android.Views.View view)
+        {
+            try
+            {
+                var chartView = view.FindViewById<ChartView>(Resource.Id.chartElevationDone);
+                chartView.Visibility = ViewStates.Gone;
+
+                if (MainActivity.ActiveRoute == null)
+                    return;
+
+                var route = MainActivity.ActiveRoute.Routes.First();
+                if (route == null)
+                    return;
+
+                if (route.rtept.Count == 0)
+                    return;
+
+                if (RecordTrack.trackGpx.Waypoints.Count == 0)
+                    return;
+
+                List<ChartEntry> entries = new List<ChartEntry>();
+
+                //Entries
+                for (int i = 0; i < RecordTrack.trackGpx.Waypoints.Count; i++)
+                {
+                    var entry = new ChartEntry((float)RecordTrack.trackGpx.Waypoints[i].ele)
+                    {
+                        Color = SKColor.Parse("#00ff00"), //Green
+                    };
+
+                    //Start
+                    if (i == 0)
+                    {
+                        entry.Label = "0";
+                        entry.TextColor = SKColor.Parse("#000000"); //Black
+                    }
+
+                    //End
+                    if (i == RecordTrack.trackGpx.Waypoints.Count - 1)
+                    {
+                        var (mapRoute, mapDistance_m, ListLatLonEle) = Import.ParseGPXtoRoute(route);
+                        entry.Label = (mapDistance_m / 1000).ToString("N1");
                         entry.TextColor = SKColor.Parse("#000000"); //Purple
                     }
 

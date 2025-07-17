@@ -16,76 +16,25 @@
             android:textAppearance="?android:attr/textAppearance"
             android:textColor="#333333"
             android:text=""
-            android:id="@+id/CurrentElevationGPS_m"
+            android:id="@+id/CurrentElevation_m"
             android:layout_marginLeft="@dimen/layout_marginLeft" />
 
 		<TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearance"
-            android:textColor="#333333"
-            android:text=""
-            android:id="@+id/CurrentElevationMap_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft" />
-
-		<TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearance"
-            android:textColor="#333333"
-            android:text=""
-            android:id="@+id/ElevationMap_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft" 
-			android:layout_marginBottom="16dp" />
-
-		
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearance"
-            android:textColor="#333333"
-            android:text=""
-            android:id="@+id/DistanceStraightLine_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft" 
-			android:layout_marginBottom="16dp" />
-
-
-		<TextView
 	        android:layout_width="match_parent"
 	        android:layout_height="match_parent"
 	        android:textAppearance="?android:attr/textAppearance"
 	        android:textColor="#333333"
 	        android:text=""
-	        android:id="@+id/DistanceGPSLocationMapLocation_m"
-	        android:layout_marginLeft="@dimen/layout_marginLeft" />
-		
-		<TextView
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent"
-	        android:textAppearance="?android:attr/textAppearance"
-	        android:textColor="#333333"
-	        android:text=""
-	        android:id="@+id/AscentGPSLocationMapLocation_m"
+	        android:id="@+id/MapPosition"
 	        android:layout_marginLeft="@dimen/layout_marginLeft" />
 
 		<TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearance"
-            android:textColor="#333333"
-            android:text=""
-            android:id="@+id/DescentGPSLocationMapLocation_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft"
-			android:layout_marginBottom="16dp" />
-
-
-		<TextView
 	        android:layout_width="match_parent"
 	        android:layout_height="match_parent"
 	        android:textAppearance="?android:attr/textAppearance"
 	        android:textColor="#333333"
 	        android:text=""
-	        android:id="@+id/RecordedWaypoints"
+	        android:id="@+id/RecordedWaypointsAndTime"
 	        android:layout_marginLeft="@dimen/layout_marginLeft" />
 
 		
@@ -95,41 +44,20 @@
             android:textAppearance="?android:attr/textAppearance"
             android:textColor="#333333"
             android:text=""
-            android:id="@+id/AscentFromStart_m"
+            android:id="@+id/Completed"
             android:layout_marginLeft="@dimen/layout_marginLeft" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearance"
-            android:textColor="#333333"
-            android:text=""
-            android:id="@+id/DescentFromStart_m"
-            android:layout_marginLeft="@dimen/layout_marginLeft" />
-		
-		<TextView
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent"
-	        android:textAppearance="?android:attr/textAppearance"
-	        android:textColor="#333333"
-	        android:text=""
-	        android:id="@+id/TrackDistanceFromStart_m"
-	        android:layout_marginLeft="@dimen/layout_marginLeft" />
-
-		<TextView
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent"
-	        android:textAppearance="?android:attr/textAppearance"
-	        android:textColor="#333333"
-	        android:text=""
-	        android:id="@+id/DurationTime"
-	        android:layout_marginLeft="@dimen/layout_marginLeft"
-			android:layout_marginBottom="16dp" />
-		
-		
 		<Microcharts.Droid.ChartView
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:id="@+id/chartElevationDone"
+            android:layout_width="match_parent"
+            android:layout_height="200dp" 
+            android:visibility="gone" />
+
+		<Microcharts.Droid.ChartView
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
             android:id="@+id/chartElevation"
             android:layout_width="match_parent"
             android:layout_height="200dp" 
