@@ -58,14 +58,6 @@
 		<Microcharts.Droid.ChartView
             android:layout_marginTop="5dp"
             android:layout_marginBottom="5dp"
-            android:id="@+id/chartElevationDone"
-            android:layout_width="match_parent"
-            android:layout_height="200dp" 
-            android:visibility="gone" />
-
-		<Microcharts.Droid.ChartView
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
             android:id="@+id/chartElevation"
             android:layout_width="match_parent"
             android:layout_height="200dp" 

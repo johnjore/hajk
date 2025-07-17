@@ -221,15 +221,14 @@ namespace hajk.Fragments
 
                 ConfigureGraph(view, GpsLocation, MapPosition);
 
-                //ConfigureGraphDone(view);
-
                 //What walking have we done so far?
                 PlotView? plotView = view.FindViewById<PlotView>(Resource.Id.oxyPlotWalkDone);
-                if (plotView != null)
+                var (lineSeries, MinX, MaxX) = CreateSeries(RecordTrack.trackGpx?.Waypoints);
+                if (plotView != null && lineSeries != null)
                 {
-                    (LineSeries lineSeries, double min, double max) = CreateSeries(RecordTrack.trackGpx?.Waypoints);
                     plotView.Model = new PlotModel
                     {
+                        Title = "Elevation",
                         Series = { lineSeries },
                         Axes =
                         {
@@ -242,8 +241,8 @@ namespace hajk.Fragments
                             new LinearAxis
                             {
                                 Position = AxisPosition.Left,
-                                Minimum = min * 0.9,
-                                Maximum = max * 1.1,
+                                Minimum = MinX * 0.9,
+                                Maximum = MaxX * 1.1,
                                 Unit = "m"
                             }
                         }
@@ -455,17 +454,17 @@ namespace hajk.Fragments
             }
         }
         
-        private (LineSeries?, double, double) CreateSeries(wptTypeCollection? waypoints)
+        private (LineSeries? lineSeries, double MinX, double MaxX) CreateSeries(wptTypeCollection? waypoints)
         {
             if (waypoints == null || waypoints?.Count < 1)
-                return (null, 0 ,0);
+                return (null, 0, 0);
 
             double distance_km = 0.0;
             double ele = (double)RecordTrack.trackGpx.Waypoints[0].ele;
             double min = ele, max = ele;
 
             //Create the series with first datapoint
-            var plotSeries = new LineSeries
+            var lineSeries = new LineSeries
             {
                 MarkerType = MarkerType.None,
                 MarkerSize = 1,
@@ -492,14 +491,13 @@ namespace hajk.Fragments
 
                 //Only add to plot if valid elevation data, and we've moved from previous point
                 ele = (double)curr.ele;
-                plotSeries.Points.Add(new DataPoint(distance_km, ele));
+                lineSeries.Points.Add(new DataPoint(distance_km, ele));
 
-                //New min / max
                 if (ele > max) max = ele;
                 if (ele < min) min = ele;
             }
 
-            return (plotSeries, min, max);
+            return (lineSeries: lineSeries, MinX: min, MaxX: max);
         }
     }
 }
