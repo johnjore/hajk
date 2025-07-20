@@ -47,9 +47,15 @@ namespace hajk
 {
     class RecordTrack
     {
+        //Add distance to previous waypoint, in meters, for faster processing
+        public class wptTypeExtended : wptType
+        {
+            public double? DistanceToPrevious_m { get; set; }
+            public double? RawElevation { get; set; }
+        }
+
         private static bool NotificationDialogActive = false; //Is notification dialog active or not when XTE
         public static GpxClass trackGpx = new();
-        //public static Timer? Timer_Order;
         private static Timer? Timer_WarnIfOffRoute;
         private static GenericCollectionLayer<List<IFeature>>? trackLayer;
 
@@ -99,6 +105,9 @@ namespace hajk
 
                 //Update status
                 Preferences.Set("RecordingTrack", false);
+
+                //Reset the counter
+                ElevationAnalyzer.Reset();
 
                 Show_Dialog msg1 = new(Platform.CurrentActivity);
                 if (await msg1.ShowDialog($"Track", $"Save Track ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.NO)
@@ -398,17 +407,17 @@ namespace hajk
                     Log.Debug($"Discarding Location Information  - Speed too great for walking: {location.Speed:N2}");
                     return;
                 }
-                                
-                
 
-                wptType waypoint = new()
+                wptTypeExtended waypoint = new()
                 {
                     lat = (decimal)location.Latitude,
                     lon = (decimal)location.Longitude,
-                    ele = (decimal)location.Altitude,
+                    ele = (decimal)ElevationAnalyzer.AddElevation(location.Altitude), //Smoothed
                     time = DateTime.Now,
                     timeSpecified = true,
                     eleSpecified = true,
+                    DistanceToPrevious_m = 0, //Fixed as 0 on first, updated on all other
+                    RawElevation = location.Altitude, //Raw, from GPS
                 };
 
                 //Don't use if distance covered is more than possible in the timeframe provided
@@ -419,6 +428,7 @@ namespace hajk
                     var p2 = new GPXUtils.Position((float)waypoint.lat, (float)waypoint.lon, 0, false, null);
 
                     float mapDistance_m = (float)new PositionHandler().CalculateDistance(p1, p2, DistanceType.Meters);
+                    waypoint.DistanceToPrevious_m = mapDistance_m;
                     TimeSpan timeLapse = waypoint.time - previous_waypoint.time;
                     var speed = mapDistance_m / timeLapse.TotalSeconds;
 

@@ -4,6 +4,7 @@ using Android.Graphics;
 using Android.Media;
 using Android.Net.Vcn;
 using Android.OS;
+using Android.Renderscripts;
 using Android.Runtime;
 using Android.Util;
 using Android.Views;
@@ -38,10 +39,12 @@ using SharpGPX.GPX1_1;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,6 +62,8 @@ namespace hajk.Fragments
         {
             try
             {
+                Stopwatch sw = Stopwatch.StartNew();
+
                 var activity = (FragmentActivity)Platform.CurrentActivity;
                 var view = inflater?.Inflate(Resource.Layout.fragment_posinfo, container, false);
                 view?.SetBackgroundColor(Android.Graphics.Color.White);
@@ -115,21 +120,6 @@ namespace hajk.Fragments
                     Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'CurrentElevation_m'");
                 }
 
-                /*
-                //Distance Straight Line from GPSLocation to MapPosition
-                string b = "Distance - Direct - to selected point: ";
-                try
-                {
-                    var DistanceStraightLine_m = (new PositionHandler().CalculateDistance(MapPosition, GpsLocation, DistanceType.Meters));
-                    string v = Utils.Misc.KMvsM(DistanceStraightLine_m);
-                    view.FindViewById<TextView>(Resource.Id.DistanceStraightLine_m).Text = b + v;
-                }
-                catch (Exception ex)
-                {
-                    view.FindViewById<TextView>(Resource.Id.DistanceStraightLine_m).Text = b + "N/A";
-                    Serilog.Log.Fatal(ex, "posinfo - Crashed calculating 'DistanceStraightLine_m'");
-                }*/
-
                 //Distance, Ascent and Descent following Route From current GPSLocation to MapPosition
                 try
                 {
@@ -164,7 +154,7 @@ namespace hajk.Fragments
                         Serilog.Log.Information($"DistanceGPSLocationMapLocation_m - 3: {DistanceGPSLocationMapLocation_m}");
 
                         /**///What about elevation changes for m1->e1 and GPS->p1 ?
-                            //Elevation changes between route index's?
+                        //Elevation changes between route index's?
 
                         //Show the values
                         var mapPositionText = $"{'\u27f7'} {Utils.Misc.KMvsM(DistanceGPSLocationMapLocation_m)} / " +
@@ -186,6 +176,7 @@ namespace hajk.Fragments
                 view.FindViewById<TextView>(Resource.Id.Completed).Text = CompletedText;
 
                 //If recording
+                string DistanceTravelled = "Distance, km";
                 if ((Preferences.Get("RecordingTrack", false) == true) && (RecordTrack.trackGpx.Waypoints.Count > 0))
                 {
                     try
@@ -202,14 +193,62 @@ namespace hajk.Fragments
                     //Calculate Ascent / Descent from Start to Current Position
                     try
                     {
-                        (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) = GPXUtils.GPXUtils.CalculateElevationDistanceData(RecordTrack.trackGpx.Waypoints, 0, RecordTrack.trackGpx.Waypoints.Count-1);
-                        string v = Utils.Misc.KMvsM(TrackDistanceFromStart_m);
-                        Serilog.Log.Debug($"TrackDistanceFromStart_m: '{TrackDistanceFromStart_m.ToString()}', v: '{v}', TrackAscentFromStart_m: '{TrackAscentFromStart_m.ToString()}', TrackDescentFromStart_m: '{TrackDescentFromStart_m}'");
+                        (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) = GPXUtils.GPXUtils.CalculateElevationDistanceData(RecordTrack.trackGpx.Waypoints, 0, RecordTrack.trackGpx.Waypoints.Count - 1);
+                        DistanceTravelled = (TrackDistanceFromStart_m/1000).ToString("N2") + "km";
+                        Serilog.Log.Debug($"TrackDistanceFromStart_m: '{TrackDistanceFromStart_m.ToString()}', DistanceTravelled: '{DistanceTravelled}', TrackAscentFromStart_m: '{TrackAscentFromStart_m.ToString()}', TrackDescentFromStart_m: '{TrackDescentFromStart_m}'");
 
-                        CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} {v} / " +
+                        CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} {DistanceTravelled} / " +
                                         $"{char.ConvertFromUtf32(0x1f53c)} {TrackAscentFromStart_m:N0}m / " +
                                         $"{char.ConvertFromUtf32(0x1f53d)} {TrackDescentFromStart_m:N0}m";
                         view.FindViewById<TextView>(Resource.Id.Completed).Text = CompletedText;
+
+
+                        //Graph
+                        var (lineSeries1, MinX1, MaxX1, distance1) = CreateSeries(RecordTrack.trackGpx?.Waypoints, "#4CAF50", 0.0, 0, RecordTrack.trackGpx?.Waypoints.Count-1);    //Recording, the past
+                        //var (lineSeries5, MinX5, MaxX5) = CreateSeries(MainActivity.ActiveRoute?.Routes.First().rtept, "#F44336");  //Whole Track/Route
+
+                        var route = MainActivity.ActiveRoute?.Routes.First();
+                        //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
+                        var (dummy1, map_index) = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0, false, null));
+                        //WayPoint we are closest to
+                        var (dummy2, gps_index) = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(GpsLocation.Latitude, GpsLocation.Longitude, 0, false, null));
+                        //Swap around if needed
+                        if (map_index < gps_index) (map_index, gps_index) = (gps_index, map_index);
+
+                        var (lineSeries2, MinX2, MaxX2, distance2) = CreateSeries(route?.rtept, "#F44336", 0.0, 0, gps_index);                              //From Start to GPS position
+                        var (lineSeries3, MinX3, MaxX3, distance3) = CreateSeries(route?.rtept, "#2196F3", distance2, gps_index-1, map_index);              //From GPS position to Map Position
+                        var (lineSeries4, MinX4, MaxX4, distance4) = CreateSeries(route?.rtept, "#FFC107", distance3, map_index-1, route?.rtept.Count-1);   //From Map Position to End
+
+                        PlotView? plotView = view.FindViewById<PlotView>(Resource.Id.oxyPlotWalkDone);
+                        if (plotView != null && (lineSeries1 != null || lineSeries2 != null || lineSeries3 != null || lineSeries4 != null))
+                        {
+                            plotView.Model = new PlotModel
+                            {
+                                Series = { lineSeries1, lineSeries2, lineSeries3, lineSeries4 },
+                                Axes =
+                                {
+                                    new LinearAxis
+                                    {
+                                        Position = AxisPosition.Bottom,
+                                        FormatAsFractions = false,
+                                        Unit = $"Travelled {DistanceTravelled} / {'\u25B2'} {ElevationAnalyzer.TotalAscent:N0}m / {'\u25BC'} {ElevationAnalyzer.TotalDescent:N0}m",
+                                    },
+                                    new LinearAxis
+                                    {
+                                        Position = AxisPosition.Left,
+                                        Minimum = new[] { MinX1, MinX2, MinX3, MinX4 }.Min() * 0.9,
+                                        Maximum = new[] { MaxX1, MaxX2, MaxX3, MaxX4 }.Max() * 1.1,
+                                        Unit = "Elevation, m"
+                                    }
+                                }
+                            };
+
+                            plotView.Visibility = ViewStates.Visible;
+                        }
+
+                        
+
+
                     }
                     catch (Exception ex)
                     {
@@ -217,36 +256,10 @@ namespace hajk.Fragments
                     }
                 }
 
-                ConfigureGraph(view, GpsLocation, MapPosition);
+                //ConfigureGraph(view, GpsLocation, MapPosition);
 
-                //What walking have we done so far?
-                PlotView? plotView = view.FindViewById<PlotView>(Resource.Id.oxyPlotWalkDone);
-                var (lineSeries, MinX, MaxX) = CreateSeries(RecordTrack.trackGpx?.Waypoints);
-                if (plotView != null && lineSeries != null)
-                {
-                    plotView.Model = new PlotModel
-                    {
-                        Series = { lineSeries },
-                        Axes =
-                        {
-                            new LinearAxis
-                            {
-                                Position = AxisPosition.Bottom,
-                                FormatAsFractions = false,
-                                Unit = "Distance, km"
-                            },
-                            new LinearAxis
-                            {
-                                Position = AxisPosition.Left,
-                                Minimum = MinX * 0.9,
-                                Maximum = MaxX * 1.1,
-                                Unit = "Elevation, m"
-                            }
-                        }
-                    };
-
-                    plotView.Visibility = ViewStates.Visible;
-                }
+                sw.Stop();
+                Serilog.Log.Information($"Elapsed time for OnCreateView - PosInfo : {sw.ElapsedMilliseconds} ms");
 
                 return view;
             }
@@ -367,13 +380,12 @@ namespace hajk.Fragments
             }
         }
 
-        private (LineSeries? lineSeries, double MinX, double MaxX) CreateSeries(wptTypeCollection? waypoints)
+        private (LineSeries? lineSeries, double MinX, double MaxX, double distance) CreateSeries(wptTypeCollection? waypoints, string? hexcolor, double distance_m, int start, int? end)
         {
-            if (waypoints == null || waypoints?.Count < 1)
-                return (null, 0, 0);
+            if (waypoints == null || waypoints?.Count < end)
+                return (null, 0, 0, 0);
 
-            double distance_m = 0.0;
-            double ele = (double)RecordTrack.trackGpx.Waypoints[0].ele;
+            double ele = (double)waypoints[start].ele;
             double min = ele, max = ele;
 
             //Create the series with first datapoint
@@ -382,12 +394,13 @@ namespace hajk.Fragments
                 MarkerType = MarkerType.None,
                 MarkerSize = 1,
                 MarkerStroke = OxyColors.White,
-                Points = { new DataPoint(0, ele) },
+                Color = OxyColor.Parse(hexcolor),
+                Points = { new DataPoint(distance_m/1000, ele) },
             };
-                                    
+
             var ph = new PositionHandler();
 
-            for (int i = 1; i < RecordTrack.trackGpx.Waypoints.Count; i++)
+            for (int i = start + 1; i < end; i++)
             {
                 var prev = waypoints[i - 1];
                 var curr = waypoints[i];
@@ -398,18 +411,19 @@ namespace hajk.Fragments
                 var newdistance_m = (double)ph.CalculateDistance(p1, p2, DistanceType.Meters);
                 distance_m += newdistance_m;
 
+                //Only add to plot if valid elevation data, and we've moved from previous point
                 if (!curr.eleSpecified || newdistance_m <= 0)
                     continue;
 
-                //Only add to plot if valid elevation data, and we've moved from previous point
                 ele = (double)curr.ele;
-                lineSeries.Points.Add(new DataPoint(distance_m/1000, ele));
+                lineSeries.Points.Add(new DataPoint(distance_m / 1000, ele));
 
                 if (ele > max) max = ele;
                 if (ele < min) min = ele;
+                Serilog.Log.Information(i.ToString());
             }
 
-            return (lineSeries: lineSeries, MinX: min, MaxX: max);
+            return (lineSeries: lineSeries, MinX: min, MaxX: max, distance_m);
         }
     }
 }
