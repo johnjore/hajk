@@ -45,8 +45,6 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Android.Security.Identity.CredentialDataResult;
-using static Android.Telephony.CarrierConfigManager;
 
 namespace hajk.Fragments
 {
@@ -228,7 +226,6 @@ namespace hajk.Fragments
                 {
                     plotView.Model = new PlotModel
                     {
-                        Title = "Elevation",
                         Series = { lineSeries },
                         Axes =
                         {
@@ -236,14 +233,14 @@ namespace hajk.Fragments
                             {
                                 Position = AxisPosition.Bottom,
                                 FormatAsFractions = false,
-                                Unit = "km"
+                                Unit = "Distance, km"
                             },
                             new LinearAxis
                             {
                                 Position = AxisPosition.Left,
                                 Minimum = MinX * 0.9,
                                 Maximum = MaxX * 1.1,
-                                Unit = "m"
+                                Unit = "Elevation, m"
                             }
                         }
                     };
@@ -375,7 +372,7 @@ namespace hajk.Fragments
             if (waypoints == null || waypoints?.Count < 1)
                 return (null, 0, 0);
 
-            double distance_km = 0.0;
+            double distance_m = 0.0;
             double ele = (double)RecordTrack.trackGpx.Waypoints[0].ele;
             double min = ele, max = ele;
 
@@ -398,15 +395,15 @@ namespace hajk.Fragments
                 //Calculate Distance to previous point
                 var p1 = new GPXUtils.Position((float)prev.lat, (float)prev.lon, 0, false, null);
                 var p2 = new GPXUtils.Position((float)curr.lat, (float)curr.lon, 0, false, null);
-                var newdistance_km = (double)ph.CalculateDistance(p1, p2, DistanceType.Kilometers);
-                distance_km += newdistance_km;
+                var newdistance_m = (double)ph.CalculateDistance(p1, p2, DistanceType.Meters);
+                distance_m += newdistance_m;
 
-                if (!curr.eleSpecified || newdistance_km <= 0)
+                if (!curr.eleSpecified || newdistance_m <= 0)
                     continue;
 
                 //Only add to plot if valid elevation data, and we've moved from previous point
                 ele = (double)curr.ele;
-                lineSeries.Points.Add(new DataPoint(distance_km, ele));
+                lineSeries.Points.Add(new DataPoint(distance_m/1000, ele));
 
                 if (ele > max) max = ele;
                 if (ele < min) min = ele;
