@@ -97,33 +97,33 @@
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_below="@id/GPXStats"
                 android:id="@+id/GPXStats2"
-                android:layout_marginTop="5dp"
-                android:layout_weight="1">
+                android:layout_marginTop="5dp">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="#333333"
-                android:text="Naismith's rule"
-                android:id="@+id/NaismithTravelTime"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="@dimen/layout_marginLeft" />
+                <TextView
+                    android:id="@+id/NaismithTravelTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="#333333"
+                    android:text="Naismith's rule"
+                    android:layout_gravity="center_vertical"
+                    android:maxLines="1"
+                    android:layout_marginLeft="@dimen/layout_marginLeft" />
 
-             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="#333333"
-                android:text="Shenandoah's Hiking Difficulty"
-                android:id="@+id/ShenandoahsHikingDifficulty"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="@dimen/layout_marginLeft" />
+                <TextView
+                    android:id="@+id/ShenandoahsHikingDifficulty"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="#333333"
+                    android:text="Shenandoah's Hiking Difficulty"
+                    android:layout_gravity="center_vertical"
+                    android:maxLines="1"
+                    android:layout_marginLeft="16dp" />
 
             </LinearLayout>
 
