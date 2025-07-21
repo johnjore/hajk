@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0-android35.0</TargetFramework>
     <UseMauiEssentials>true</UseMauiEssentials>
@@ -87,8 +87,8 @@
     <PackageReference Include="Mapsui.Android" Version="4.1.9" />
     <PackageReference Include="Mapsui.Extensions" Version="4.1.9" />
     <PackageReference Include="Mapsui.Nts" Version="4.1.9" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.81" />
-    <PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.81" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
+    <PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.90" />
     <PackageReference Include="Sentry" Version="5.12.0" />
     <PackageReference Include="Sentry.Maui" Version="5.12.0" />
     <PackageReference Include="Sentry.Serilog" Version="5.12.0" />
@@ -101,7 +101,7 @@
     <PackageReference Include="SkiaSharp.Svg" Version="1.60.0" />
     <PackageReference Include="SkiaSharp.Views" Version="3.119.0" />
     <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
-    <PackageReference Include="System.Text.Json" Version="9.0.6" />
+    <PackageReference Include="System.Text.Json" Version="9.0.7" />
     <PackageReference Include="tilebelt" Version="2.0.1" />
     <PackageReference Include="Tnn.OxyPlot.Xamarin.Android" Version="2.1.2" />
     <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.35" />
