@@ -11,6 +11,7 @@ using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Projections;
 using Mapsui.Rendering.Skia;
+using NetTopologySuite.Noding;
 using SharpGPX;
 using SharpGPX.GPX1_1;
 using SharpGPX.GPX1_1.Garmin;
@@ -545,8 +546,42 @@ namespace hajk
 
                 //Overlay GPX on map and zoom
                 var bounds = newGPX.GetBounds();
+
                 var (min_x, min_y) = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
                 var (max_x, max_y) = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+
+                /**///Workaround for https://github.com/Mapsui/Mapsui/issues/3048
+                int diff = 1500;
+                if (Math.Abs(min_x - max_x) < diff)
+                {
+                    double adjustment = (diff - Math.Abs(max_x - min_x)) / 2.0;
+                    if (min_x > max_x)
+                    {
+                        min_x += adjustment;
+                        max_x -= adjustment;
+                    }
+                    else
+                    {
+                        min_x -= adjustment;
+                        max_x += adjustment;
+                    }
+                }
+
+                if (Math.Abs(min_y - max_y) < diff)
+                {
+                    double adjustment = (diff - Math.Abs(max_y - min_y)) / 2.0;
+                    if (min_y > max_y)
+                    {
+                        min_y += adjustment;
+                        max_y -= adjustment;
+                    }
+                    else
+                    {
+                        min_y -= adjustment;
+                        max_y += adjustment;
+                    }
+                }
+
                 Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min_x, min_y, max_x, max_y), MBoxFit.Fit);
                 Fragment_map.mapControl?.Map.Navigator.RotateTo(0.0);
 
