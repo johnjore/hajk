@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0-android35.0</TargetFramework>
     <UseMauiEssentials>true</UseMauiEssentials>
@@ -87,7 +87,6 @@
     <PackageReference Include="Mapsui.Android" Version="4.1.9" />
     <PackageReference Include="Mapsui.Extensions" Version="4.1.9" />
     <PackageReference Include="Mapsui.Nts" Version="4.1.9" />
-    <PackageReference Include="Microcharts.Android" Version="1.0.0-preview1" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.81" />
     <PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.81" />
     <PackageReference Include="Sentry" Version="5.11.2" />

@@ -118,7 +118,7 @@ namespace GPXUtils
                 }
 
                 //Calculate distance and the gain and loss of elevation
-                for (int j = start_index; j < end_index - 1; j++)
+                for (int j = start_index; j < end_index; j++)
                 {
                     decimal j0 = Waypoints[j].ele;
                     decimal j1 = Waypoints[j + 1].ele;
@@ -131,10 +131,10 @@ namespace GPXUtils
                     {
                         ascent += j1 - j0;
                     }
-                    
-                    var p1 = new Position((float)Waypoints[j].lat, (float)Waypoints[j + 1].lon, 0, false, null);
-                    var p2 = new Position((float)Waypoints[j].lat, (float)Waypoints[j + 1].lon, 0, false, null);
+
                     var p = new PositionHandler();
+                    var p1 = new Position((float)Waypoints[j    ].lat, (float)Waypoints[j    ].lon, 0, false, null);
+                    var p2 = new Position((float)Waypoints[j + 1].lat, (float)Waypoints[j + 1].lon, 0, false, null);
                     distance += (decimal)p.CalculateDistance(p1, p2, DistanceType.Meters);
                 }
             }

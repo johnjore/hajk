@@ -49,7 +49,6 @@ namespace hajk
     {
         private static bool NotificationDialogActive = false; //Is notification dialog active or not when XTE
         public static GpxClass trackGpx = new();
-        //public static Timer? Timer_Order;
         private static Timer? Timer_WarnIfOffRoute;
         private static GenericCollectionLayer<List<IFeature>>? trackLayer;
 
@@ -100,6 +99,9 @@ namespace hajk
                 //Update status
                 Preferences.Set("RecordingTrack", false);
 
+                //Reset the counter
+                ElevationAnalyzer.Reset();
+
                 Show_Dialog msg1 = new(Platform.CurrentActivity);
                 if (await msg1.ShowDialog($"Track", $"Save Track ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.NO)
                 {
@@ -124,7 +126,7 @@ namespace hajk
                     trkseg = new trksegTypeCollection().AddItem(
                         new trksegType()
                         {
-                            trkpt = trackGpx.Waypoints
+                            trkpt = trackGpx.Waypoints,
                         })
                 });
                 track.Metadata.bounds = track.GetBounds();
@@ -158,6 +160,10 @@ namespace hajk
                     ImageBase64String = ImageBase64String,
                 };
                 await RouteDatabase.SaveRouteAsync(r);
+
+                //Remove checkpoint file
+                Serilog.Log.Verbose("Deleting checkpoint file");
+                File.Delete(Fragment_Preferences.CheckpointGPX);
             }
             catch (Exception ex)
             {
@@ -394,34 +400,33 @@ namespace hajk
                     Log.Debug($"Discarding Location Information  - Speed too great for walking: {location.Speed:N2}");
                     return;
                 }
-                                
-                
 
                 wptType waypoint = new()
                 {
                     lat = (decimal)location.Latitude,
                     lon = (decimal)location.Longitude,
-                    ele = (decimal)location.Altitude,
+                    ele = (decimal)ElevationAnalyzer.AddElevation(location.Altitude), //Smoothed
                     time = DateTime.Now,
                     timeSpecified = true,
                     eleSpecified = true,
+                    cmt = location.Altitude.ToString(), //Raw elevation from GPS
                 };
 
                 //Don't use if distance covered is more than possible in the timeframe provided
                 var previous_waypoint = trackGpx.Waypoints.LastOrDefault();
                 if (previous_waypoint != null)
                 {
-                    var p = new PositionHandler();
                     var p1 = new GPXUtils.Position((float)previous_waypoint.lat, (float)previous_waypoint.lon, 0, false, null);
                     var p2 = new GPXUtils.Position((float)waypoint.lat, (float)waypoint.lon, 0, false, null);
 
-                    var mapDistance_m = (float)p.CalculateDistance(p1, p2, DistanceType.Meters);
+                    float mapDistance_m = (float)new PositionHandler().CalculateDistance(p1, p2, DistanceType.Meters);
+                    var DistanceToPrevious_m =  mapDistance_m;
                     TimeSpan timeLapse = waypoint.time - previous_waypoint.time;
-                    var speed = mapDistance_m / timeLapse.Seconds;
+                    var speed = mapDistance_m / timeLapse.TotalSeconds;
 
                     if (speed > 10)
                     {
-                        Log.Debug($"Discarding Location Information  - Speed too great for walking: {speed:N2} (Distance: {mapDistance_m}m, Timespan: {timeLapse.Seconds} seconds)");
+                        Log.Debug($"Discarding Location Information  - Speed too great for walking: {speed:N2} (Distance: {mapDistance_m}m, Timespan: {timeLapse.TotalSeconds} seconds)");
                         return;
                     }
                 }

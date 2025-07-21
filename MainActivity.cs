@@ -95,8 +95,9 @@ namespace hajk
                 )
                 .WriteTo.File(
                     _Path, 
-                    rollingInterval: RollingInterval.Day, 
+                    rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 2, 
+                    fileSizeLimitBytes: 2*1024*1024,
                     outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}{NewLine}"
                 )
                 .WriteTo.Sentry(options =>
@@ -626,13 +627,30 @@ namespace hajk
                 alert.SetNegativeButton("Upload Log files", (sender, args) => {
                     SentrySdk.CaptureMessage("Log files", scope =>
                     {
+                        //Copy log files to Backup folder
+                        var logFolder = Path.Combine(Fragment_Preferences.Backups, DateTime.Now.ToString("yyyy-MM-dd HHmm"));
+                        if (Directory.Exists(logFolder) == false)
+                            Directory.CreateDirectory(logFolder);
+
                         Serilog.Log.Debug($"All log files in rootPath, '{Fragment_Preferences.rootPath}'");
                         var allFiles = Directory.GetFiles(Fragment_Preferences.rootPath, "walkabout*", SearchOption.AllDirectories);
                         foreach (var file in allFiles)
                         {
-                            Serilog.Log.Debug(file);
+                            long length = new System.IO.FileInfo(file).Length;
+                            Serilog.Log.Debug($"Name: {file}, Size: {length} bytes");
+                            if (length >= 20 * 1024 * 1024)
+                                Serilog.Log.Error("Attachments too large for Sentry!");
+                            
                             scope.AddAttachment(file);
-                        }                
+                            File.Copy(file, Path.Combine(logFolder, Path.GetFileName(file)), true);
+                        }
+
+                        //Include checkpoint file, if it exists
+                        if (File.Exists(Fragment_Preferences.CheckpointGPX))
+                        {
+                            scope.AddAttachment(Fragment_Preferences.CheckpointGPX);
+                            File.Copy(Fragment_Preferences.CheckpointGPX, Path.Combine(logFolder, Path.GetFileName(Fragment_Preferences.CheckpointGPX)), true);
+                        }
                     });
                 });
                 var dialog = alert.Create();
