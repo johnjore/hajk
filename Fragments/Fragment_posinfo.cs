@@ -53,9 +53,6 @@ namespace hajk.Fragments
                 //Make sure data does not change while calculating values
                 Android.Locations.Location? GpsLocation = LocationForegroundService.GetLocation();
 
-                //Debug - Remove me
-                //if (GpsLocation == null) { GpsLocation = new Android.Locations.Location("manual"){Latitude = -37.80818, Longitude = 144.88439, Altitude = 99, };}
-
                 if (GpsLocation == null)
                 {
                     view.FindViewById<TextView>(Resource.Id.CurrentElevation_m).Text = "No GPS Position";

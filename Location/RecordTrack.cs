@@ -47,13 +47,6 @@ namespace hajk
 {
     class RecordTrack
     {
-        //Add distance to previous waypoint, in meters, for faster processing
-        public class wptTypeExtended : wptType
-        {
-            public double? DistanceToPrevious_m { get; set; }
-            public double? RawElevation { get; set; }
-        }
-
         private static bool NotificationDialogActive = false; //Is notification dialog active or not when XTE
         public static GpxClass trackGpx = new();
         private static Timer? Timer_WarnIfOffRoute;
@@ -133,7 +126,7 @@ namespace hajk
                     trkseg = new trksegTypeCollection().AddItem(
                         new trksegType()
                         {
-                            trkpt = trackGpx.Waypoints
+                            trkpt = trackGpx.Waypoints,
                         })
                 });
                 track.Metadata.bounds = track.GetBounds();
@@ -408,7 +401,7 @@ namespace hajk
                     return;
                 }
 
-                wptTypeExtended waypoint = new()
+                wptType waypoint = new()
                 {
                     lat = (decimal)location.Latitude,
                     lon = (decimal)location.Longitude,
@@ -416,8 +409,7 @@ namespace hajk
                     time = DateTime.Now,
                     timeSpecified = true,
                     eleSpecified = true,
-                    DistanceToPrevious_m = 0, //Fixed as 0 on first, updated on all other
-                    RawElevation = location.Altitude, //Raw, from GPS
+                    cmt = location.Altitude.ToString(), //Raw elevation from GPS
                 };
 
                 //Don't use if distance covered is more than possible in the timeframe provided
@@ -428,7 +420,7 @@ namespace hajk
                     var p2 = new GPXUtils.Position((float)waypoint.lat, (float)waypoint.lon, 0, false, null);
 
                     float mapDistance_m = (float)new PositionHandler().CalculateDistance(p1, p2, DistanceType.Meters);
-                    waypoint.DistanceToPrevious_m = mapDistance_m;
+                    var DistanceToPrevious_m =  mapDistance_m;
                     TimeSpan timeLapse = waypoint.time - previous_waypoint.time;
                     var speed = mapDistance_m / timeLapse.TotalSeconds;
 
