@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
+using Android.Graphics;
 using Android.Graphics.Text;
 using Android.Locations;
 using Android.Widget;
@@ -72,7 +73,18 @@ namespace hajk
                 }
                 else if (ShenandoahsHikingDifficultyScale > 0)
                 {
-                    field.Text = $"Shenandoah: {ShenandoahsHikingDifficultyScale:0} / {ShenandoahsHikingDifficultyRating}";
+                    field.Text = $"{char.ConvertFromUtf32(0x1f39a)} {ShenandoahsHikingDifficultyScale:0} / {ShenandoahsHikingDifficultyRating}";
+
+                    if (ShenandoahsHikingDifficultyScale <= 50)
+                        field.SetTextColor(Android.Graphics.Color.ParseColor("#2E7D32"));
+                    else if (ShenandoahsHikingDifficultyScale <= 100)
+                        field.SetTextColor(Android.Graphics.Color.ParseColor("#689F38"));
+                    else if (ShenandoahsHikingDifficultyScale <= 150)
+                        field.SetTextColor(Android.Graphics.Color.ParseColor("#FBC02D"));
+                    else if (ShenandoahsHikingDifficultyScale <= 200)
+                        field.SetTextColor(Android.Graphics.Color.ParseColor("#EF6C00"));
+                    else
+                        field.SetTextColor(Android.Graphics.Color.ParseColor("#C62828"));
                 }
             }
             else

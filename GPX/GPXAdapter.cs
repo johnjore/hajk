@@ -96,11 +96,11 @@ namespace hajk.Adapter
                 //Naismith Travel Time
                 if (mGpxData[position].NaismithTravelTime != null)
                 {
-                    vh.NaismithTravelTime.Text = $"Naismith: {mGpxData[position].NaismithTravelTime}";
+                    vh.NaismithTravelTime.Text = $"{'\u23f1'} {mGpxData[position].NaismithTravelTime}";
                 }
                 else
                 {
-                    vh.NaismithTravelTime.Text = $"Naismith: N/A";
+                    vh.NaismithTravelTime.Text = $"{'\u23f1'} N/A";
                 }
 
                 //Shenandoah's Hiking Difficulty
