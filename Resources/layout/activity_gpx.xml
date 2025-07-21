@@ -15,31 +15,43 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp">
+			android:paddingTop="0dp"
+			android:paddingBottom="0dp"
+			android:paddingLeft="0dp"
+			android:paddingRight="2dp" >
 
-            <ImageView
+			<ImageView
+                android:id="@+id/GPXTypeLogo"
+                android:contentDescription="@string/type"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:scaleType="fitXY"
-                android:id="@+id/GPXTypeLogo"
+				android:layout_marginLeft="@dimen/layout_marginLeft"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
+                android:layout_marginBottom="0dp"				
                 android:layout_gravity="left"
-                android:contentDescription="@string/type"
-                android:layout_marginLeft="@dimen/layout_marginLeft" />
+                android:scaleType="fitXY"
+			    android:paddingTop="4dp" />
 
-            <TextView
+			<TextView
+                android:id="@+id/Name"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+				android:layout_alignTop="@id/GPXTypeLogo"
                 android:layout_toRightOf="@+id/GPXTypeLogo"
+				android:layout_marginRight="15dp"
+				android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="5dp"
+				android:paddingTop="0dp"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="#333333"
                 android:text="@string/Name"
-                android:id="@+id/Name"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="@dimen/layout_marginLeft"/>
+				android:maxLines="2"
+			    android:ellipsize="end"
+			    android:scrollHorizontally="false"
+			    android:breakStrategy="simple" />
 
-             <LinearLayout
+			<LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
