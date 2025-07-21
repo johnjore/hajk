@@ -245,10 +245,6 @@ namespace hajk.Fragments
 
                             plotView.Visibility = ViewStates.Visible;
                         }
-
-                        
-
-
                     }
                     catch (Exception ex)
                     {

@@ -45,18 +45,12 @@
             android:text=""
             android:id="@+id/Completed"
             android:layout_marginLeft="@dimen/layout_marginLeft" />
-				  
-		<Microcharts.Droid.ChartView
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
-            android:id="@+id/chartElevation"
-            android:layout_width="match_parent"
-            android:layout_height="200dp" 
-            android:visibility="gone" />
 
         <OxyPlot.Xamarin.Android.PlotView
             android:layout_marginTop="5dp"
             android:layout_marginBottom="5dp"
+			android:layout_marginStart="0dp"
+			android:layout_marginEnd="0dp"
             android:id="@+id/oxyPlotWalkDone"
             android:scaleType="fitCenter"
             android:layout_width="match_parent"
