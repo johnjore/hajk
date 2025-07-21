@@ -116,6 +116,33 @@ namespace hajk.Fragments
                     };
                 }
 
+                //Menu
+                TextView? ImgMore = view?.FindViewById<TextView>(Resource.Id.textViewGPXOptions);
+                ImgMore.Click += (o, e) =>
+                {
+                    Android.Widget.PopupMenu popup = new(view?.Context, ImgMore);
+                    popup?.Inflate(Resource.Menu.menu_rt);
+
+                    if (popup == null || popup.Menu == null)
+                    {
+                        return;
+                    }
+
+                    popup.MenuItemClick += async (s, args) =>
+                    {
+                        switch (args?.Item?.ItemId)
+                        {
+                            case var value when value == Resource.Id.BulkDownload:
+                                {
+                                    Utilities.BulkDownload.RunBulkDownload();
+                                }
+                                break;
+                        }
+                    };
+
+                    popup.Show();
+                };
+            
                 //RecycleView
                 mRecycleView = view?.FindViewById<RecyclerView>(Resource.Id.recyclerView);
                 if (mRecycleView != null && view != null)

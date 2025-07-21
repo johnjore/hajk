@@ -343,10 +343,6 @@ namespace hajk
             {
                 Export.ExportPOI("Rogaining");
             }
-            else if (id == Resource.Id.BulkDownload)
-            {
-                Utilities.BulkDownload.RunBulkDownload();
-            }
             else if (id == Resource.Id.action_clearmap)
             {
                 return Utils.Misc.ClearTrackRoutesFromMap();
