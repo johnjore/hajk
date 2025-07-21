@@ -4,7 +4,6 @@ using Android.Graphics.Text;
 using Android.Locations;
 using Android.Widget;
 using GPXUtils;
-using Microcharts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
