@@ -1,4 +1,4 @@
-﻿using hajk.Data;
+using hajk.Data;
 using hajk.Fragments;
 using hajk.Models;
 using Serilog;
