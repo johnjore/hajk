@@ -1,53 +1,99 @@
-﻿using hajk;
 using hajk.Data;
 using hajk.Fragments;
 using hajk.Models;
-using SharpGPX;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using SharpGPX;
 using System.Threading.Tasks;
 
 namespace hajk.GPX
 {
     partial class Menus
     {
-        public static void ReverseRoute(GPXViewHolder vh)
+        public static async Task ReverseRoute(GPXViewHolder vh)
         {
-            Log.Information($"Reverse route '{vh.Name.Text}'");
-
-            //Get the route
-            GPXDataRouteTrack route_to_reverse = RouteDatabase.GetRouteAsync(vh.Id).Result;
-            GpxClass gpx_to_reverse = GpxClass.FromXml(route_to_reverse.GPX);
-
-            if (route_to_reverse.GPXType == GPXType.Track)
+            if (vh?.Id == null)
             {
-                foreach (SharpGPX.GPX1_1.trkType track in gpx_to_reverse.Tracks)
+                Log.Fatal("vh.Id can't be null here");
+                return;
+            }
+                
+
+            Log.Information($"Reverse route '{vh.Name?.Text}'");
+
+            // Retrieve the route from the database
+            GPXDataRouteTrack? routeToReverse = RouteDatabase.GetRouteAsync(vh.Id)?.Result;
+            if (routeToReverse == null)
+            {
+                Log.Fatal($"routetoReverse can't be null here");
+                return;
+            }
+
+            // Get the GPX data and reverse the items based on type (track or route)
+            GpxClass gpxToReverse = GpxClass.FromXml(routeToReverse?.GPX);
+            if (routeToReverse?.GPXType == GPXType.Track)
+            {
+                foreach (var track in gpxToReverse.Tracks)
                 {
-                    foreach (SharpGPX.GPX1_1.trksegType trkseg in track.trkseg)
+                    foreach (var segment in track.trkseg)
                     {
-                        trkseg.trkpt.Reverse();
+                        segment.trkpt.Reverse();
                     }
                 }
             }
-            else
+            else // GPXType.Route
             {
-                gpx_to_reverse.Routes[0].rtept.Reverse();
+                gpxToReverse.Routes[0].rtept.Reverse();
             }
 
-            //Reverse and save as new entry
-            route_to_reverse.Name += " - reversed";
-            route_to_reverse.Description += " - reversed";
-            route_to_reverse.Id = 0;
-            route_to_reverse.GPX = gpx_to_reverse.ToXml();
-            RouteDatabase.SaveRoute(route_to_reverse);
+            // Swap ascent and descent values and update calculatations
+            if (routeToReverse?.Ascent != null && routeToReverse?.Descent != null)
+            {
+                (routeToReverse.Descent, routeToReverse.Ascent) = (routeToReverse.Ascent, routeToReverse.Descent);
 
-            //Update RecycleView with new entry
-            //_ = Fragment_gpx.mAdapter.mGpxData.Insert(route_to_reverse);
-            Adapter.GpxAdapter.mGpxData.Insert(route_to_reverse);
-            Fragment_gpx.mAdapter.NotifyDataSetChanged();
+                // Recalculate travel time using Naismith's Rule
+                (int hours, int minutes) = Naismith.CalculateTime(
+                    routeToReverse.Distance,
+                    Fragment_Preferences.naismith_speed_kmh,
+                    routeToReverse.Ascent,
+                    routeToReverse.Descent
+                );
+                routeToReverse.NaismithTravelTime = $"{hours:D2}:{minutes:D2}";
+
+                // Shenandoah
+                routeToReverse.ShenandoahsScale = ShenandoahsHikingDifficulty.CalculateScale(
+                    routeToReverse.Distance,
+                    routeToReverse.Ascent
+                );
+            }
+
+            // Generate new thumbnail
+            string? ImageBase64String = DisplayMapItems.CreateThumbnail(
+                routeToReverse?.GPXType,
+                gpxToReverse
+            );
+            if (ImageBase64String != null)
+            {
+                routeToReverse.ImageBase64String = ImageBase64String;
+            }
+
+            // Update metadata for the reversed route
+            routeToReverse.Name += " - reversed";
+            routeToReverse.Description += " - reversed";
+            routeToReverse.Id = 0; // Ensure this gets saved as a new entry
+            routeToReverse.GPX = gpxToReverse.ToXml();
+
+            // Save the new route entry
+            var dbID = RouteDatabase.SaveRoute(routeToReverse);
+
+            //Update map tiles with new reference
+            await Task.Run(async() =>
+            {
+                await Import.GetloadOfflineMap(gpxToReverse.Routes[0].GetBounds(), dbID, null);
+            });
+
+            // Update UI: add the new route to the adapter and refresh the RecyclerView
+            Adapter.GpxAdapter.mGpxData?.Insert(routeToReverse);
+            Fragment_gpx.mAdapter?.NotifyDataSetChanged();
         }
     }
 }
