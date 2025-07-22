@@ -314,7 +314,7 @@ namespace hajk
                 GPXDataPOI p = new()
                 {
                     Name = wptType.name,
-                    Description = wptType.desc,
+                    Description = Utilities.HtmlUtils.StripHtml(wptType.desc),
                     Symbol = wptType.sym,
                     Lat = wptType.lat,
                     Lon = wptType.lon
@@ -783,7 +783,6 @@ namespace hajk
 
             return LineString;
         }
-
 
         private static bool CheckFile_Walkabout(String content)
         {
