@@ -113,8 +113,7 @@
 	</PreferenceCategory>
 
   <PreferenceCategory android:title="Backup">
-
-    <EditTextPreference
+		<EditTextPreference
 			android:title="@string/KeepNBackups"
 			android:key="KeepNBackups"
 			android:inputType="numberDecimal"
@@ -126,8 +125,14 @@
 			android:title="@string/EnableBackupAtStartup"
 			android:key="EnableBackupAtStartup"
 			android:defaultValue="true"
-      app:useSimpleSummaryProvider="true" />
+			app:useSimpleSummaryProvider="true" />
+  </PreferenceCategory>
 
-  </PreferenceCategory>	
-	
+  <PreferenceCategory android:title="Experimental">
+		<SwitchPreference
+			android:title="@string/EnableWakelock"
+			android:key="EnableWakeLock"
+			android:defaultValue="true" />
+  </PreferenceCategory>
+
 </PreferenceScreen>

@@ -158,7 +158,6 @@ namespace hajk
                     Looper.Prepare();
                 }
 
-
                 //Backups
                 if (Preferences.Get("BackupPreferences", true))
                 {

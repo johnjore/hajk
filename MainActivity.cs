@@ -224,9 +224,12 @@ namespace hajk
                 }
 
                 //Wakelock - Wake-up phone when recording and in battery save mode, and screenlocked
-                PowerManager? powerManager = (PowerManager)Android.App.Application.Context.GetSystemService(Context.PowerService) as PowerManager;
-                Utilities.Alarms.wakelock = powerManager?.NewWakeLock(WakeLockFlags.Full | WakeLockFlags.AcquireCausesWakeup | WakeLockFlags.OnAfterRelease, "walkabout:Alarms");
-                Utilities.Alarms.wakelock?.SetReferenceCounted(false);
+                if (Preferences.Get("EnableWakeLock", Fragment_Preferences.EnableWakeLock))
+                {
+                    PowerManager? powerManager = (PowerManager)Android.App.Application.Context.GetSystemService(Context.PowerService) as PowerManager;
+                    Utilities.Alarms.wakelock = powerManager?.NewWakeLock(WakeLockFlags.Full | WakeLockFlags.AcquireCausesWakeup | WakeLockFlags.OnAfterRelease, "walkabout:Alarms");
+                    Utilities.Alarms.wakelock?.SetReferenceCounted(false);
+                }
 
                 //Restore recording checkpoint file?
                 RecordTrack.RestoreCheckPoint();

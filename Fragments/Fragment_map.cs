@@ -24,6 +24,7 @@ using static System.Net.Mime.MediaTypeNames;
 using hajk.Data;
 using Mapsui.Nts.Extensions;
 using hajk.Models;
+using CoordinateSharp;
 
 namespace hajk.Fragments
 {
@@ -176,7 +177,15 @@ namespace hajk.Fragments
                     Task.Run(async () =>
                     {
                         var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-                        var text = "GPS Coordinates:\n" + lat.ToString("0.000000") + ", " + lon.ToString("0.000000");
+                        var text = "Location:";
+                        
+                        //GPS
+                        text += $"\nGPS: {lat.ToString("0.000000")}, {lon.ToString("0.000000")}";
+
+                        //UTM
+                        UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lat, lon);
+                        text += ($"\nUTM: {utm?.LongZone}{utm?.LatZone} {utm?.Easting.ToString("0")} E {utm?.Northing.ToString("0")} N");
+
 
                         Show_Dialog msg = new(Platform.CurrentActivity);
                         var result = await msg.ShowDialog("Create POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
@@ -236,8 +245,15 @@ namespace hajk.Fragments
                     Serilog.Log.Debug($"POI Object");
                     long id = Convert.ToInt64(args.MapInfo?.Feature["id"]);
                     var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-                    var text = "Name:\n" + args.MapInfo?.Feature["name"] + "\n\nDescription:\n" + args.MapInfo?.Feature["description"] + "\n\nGPS Coordinates:\n";
-                    text += lat.ToString("0.000000") + ", " + lon.ToString("0.000000");
+                    var text = "Name:\n" + args.MapInfo?.Feature["name"] + "\n\nDescription:\n" + args.MapInfo?.Feature["description"] + "\n\nLocation:\n";
+
+                    //GPS
+                    text += $"GPS: {lat.ToString("0.000000")}, {lon.ToString("0.000000")}";
+
+                    //Add UTM values
+                    UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lat, lon);
+                    text += ($"\nUTM: {utm?.LongZone}{utm?.LatZone} {utm?.Easting.ToString("0")} E {utm?.Northing.ToString("0")} N");
+
                     Serilog.Log.Debug($"{text} {id}");
 
                     Task.Run(async () =>

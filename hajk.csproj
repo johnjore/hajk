@@ -83,6 +83,7 @@
     <PackageReference Include="BruTile" Version="5.0.6" />
     <PackageReference Include="BruTile.MbTiles" Version="5.0.6" />
     <PackageReference Include="CoordinateSharp" Version="3.2.1.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.2" />
     <PackageReference Include="Mapsui" Version="4.1.9" />
     <PackageReference Include="Mapsui.Android" Version="4.1.9" />
     <PackageReference Include="Mapsui.Extensions" Version="4.1.9" />
