@@ -1,10 +1,10 @@
-﻿using Java.Util.Functions;
-using Android.App;
+﻿using Android.App;
 using Android.Content;
 using Android.Locations;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using Java.Util.Functions;
 using System;
 
 namespace hajk.Utilities
@@ -22,7 +22,7 @@ namespace hajk.Utilities
 
             if (pi != null && alarmManager is AlarmManager)
             {
-                long AlarmTimeInMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() + (Fragment_Preferences.WakLockInterval * 1000);
+                long AlarmTimeInMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() + (Fragment_Preferences.WakeLockInterval * 1000);
                 alarmManager.Set(AlarmType.RtcWakeup, AlarmTimeInMilliseconds, pi);
                 
                 DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(AlarmTimeInMilliseconds);
@@ -55,7 +55,7 @@ namespace hajk.Utilities
                 Android.Locations.Location? GpsLocation = LocationForegroundService.GetLocation();
                 if (GpsLocation == null)
                 {
-                    if (wakelock?.IsHeld == false)
+                    if (wakelock?.IsHeld == false && Preferences.Get("EnableWakeLock", Fragment_Preferences.EnableWakeLock))
                     {
                         Serilog.Log.Debug("Acquireing Lock");
                         wakelock?.Acquire();
@@ -74,7 +74,7 @@ namespace hajk.Utilities
 
                     if (gpsUTCDateTime.AddSeconds(Fragment_Preferences.freq_s * 2) < DateTime.UtcNow && (Preferences.Get("RecordingTrack", false) == true))
                     {
-                        if (wakelock?.IsHeld == false)
+                        if (wakelock?.IsHeld == false && Preferences.Get("EnableWakeLock", Fragment_Preferences.EnableWakeLock))
                         {
                             Serilog.Log.Debug("Acquireing Lock");
                             wakelock?.Acquire();
@@ -117,7 +117,7 @@ public class LocationHelper
                     if (location != null)
                     {
                         Serilog.Log.Debug($"Location Updated from Alarm - {DateTime.Now:hh:mm:ss}: {location.Latitude:0.00000}, {location.Longitude:0.00000}");
-                        hajk.Utilities.Alarms.wakelock.Release();
+                        hajk.Utilities.Alarms.wakelock?.Release();
 
                         //Update location variable
                         hajk.LocationForegroundService.SetLocation(location);
