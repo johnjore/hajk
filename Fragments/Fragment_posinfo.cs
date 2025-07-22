@@ -205,6 +205,7 @@ namespace hajk.Fragments
                                     new LinearAxis
                                     {
                                         Position = AxisPosition.Left,
+                                        FormatAsFractions = false,
                                         Minimum = new[] { MinX1, MinX2, MinX3, MinX4 }.Min() * 0.9,
                                         Maximum = new[] { MaxX1, MaxX2, MaxX3, MaxX4 }.Max() * 1.1,
                                         Unit = "Elevation, m"

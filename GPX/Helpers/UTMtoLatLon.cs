@@ -5,7 +5,7 @@ using hajk.Data;
 using hajk.Models;
 
 
-namespace hajk
+namespace hajk.GPX
 {
     public class UTMtoWGS84LatLon
     {
