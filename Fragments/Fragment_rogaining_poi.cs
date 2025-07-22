@@ -93,7 +93,7 @@ namespace hajk.Fragments
                         var a = mapUTMZone?.Text?[mapUTMZone.Text.Length - 1].ToString().ToUpper();
                         var b = Convert.ToInt16(mapUTMZone?.Text?.Substring(0, mapUTMZone.Text.Length - 1));
 
-                        int result = UTMtoWGS84LatLon.UTMtoLatLon(a, b, UTM_X, UTM_Y);
+                        int result = GPX.UTMtoWGS84LatLon.UTMtoLatLon(a, b, UTM_X, UTM_Y);
                         if (result > 0)
                         {
                             Toast.MakeText(Android.App.Application.Context, "Added POI to database", ToastLength.Short)?.Show();
