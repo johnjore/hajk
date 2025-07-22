@@ -20,11 +20,13 @@ namespace hajk.GPX
 
             var plotModel = new PlotModel { };
 
-            var series1 = new LineSeries
+            var series1 = new AreaSeries
             {
                 MarkerType = MarkerType.None,
                 MarkerSize = 1,
-                MarkerStroke = OxyColors.White
+                MarkerStroke = OxyColors.White,
+                Color = OxyColor.FromArgb(255, 21, 101, 192),
+                Fill = OxyColor.FromArgb(128, 144, 202, 249),
             };
 
             //Graph max / min

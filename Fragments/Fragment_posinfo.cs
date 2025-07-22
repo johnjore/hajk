@@ -163,7 +163,7 @@ namespace hajk.Fragments
                     try
                     {
                         (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) = GPXUtils.GPXUtils.CalculateElevationDistanceData(RecordTrack.trackGpx.Waypoints, 0, RecordTrack.trackGpx.Waypoints.Count - 1);
-                        DistanceTravelled = (TrackDistanceFromStart_m/1000).ToString("N2") + "km";
+                        DistanceTravelled = (TrackDistanceFromStart_m / 1000).ToString("N2") + "km";
                         Serilog.Log.Debug($"TrackDistanceFromStart_m: '{TrackDistanceFromStart_m.ToString()}', DistanceTravelled: '{DistanceTravelled}', TrackAscentFromStart_m: '{TrackAscentFromStart_m.ToString()}', TrackDescentFromStart_m: '{TrackDescentFromStart_m}'");
 
                         CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} {DistanceTravelled} / " +
@@ -173,8 +173,8 @@ namespace hajk.Fragments
 
 
                         //Graph
-                        var (lineSeries1, MinX1, MaxX1, distance1) = CreateSeries(RecordTrack.trackGpx?.Waypoints, "#4CAF50", 0.0, 0, RecordTrack.trackGpx?.Waypoints.Count-1);    //Recording, the past
-                        //var (lineSeries5, MinX5, MaxX5) = CreateSeries(MainActivity.ActiveRoute?.Routes.First().rtept, "#F44336");  //Whole Track/Route
+                        var (series1, MinX1, MaxX1, distance1) = CreateSeries(RecordTrack.trackGpx?.Waypoints, "#4CAF50", "#00FFFFFF", 0.0, 0, RecordTrack.trackGpx?.Waypoints.Count - 1);    //Recording, the past
+                        //var (series5, MinX5, MaxX5) = CreateSeries(MainActivity.ActiveRoute?.Routes.First().rtept, "#F44336");  //Whole Track/Route
 
                         var route = MainActivity.ActiveRoute?.Routes.First();
                         //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
@@ -184,16 +184,17 @@ namespace hajk.Fragments
                         //Swap around if needed
                         if (map_index < gps_index) (map_index, gps_index) = (gps_index, map_index);
 
-                        var (lineSeries2, MinX2, MaxX2, distance2) = CreateSeries(route?.rtept, "#F44336", 0.0, 0, gps_index);                              //From Start to GPS position
-                        var (lineSeries3, MinX3, MaxX3, distance3) = CreateSeries(route?.rtept, "#2196F3", distance2, gps_index-1, map_index);              //From GPS position to Map Position
-                        var (lineSeries4, MinX4, MaxX4, distance4) = CreateSeries(route?.rtept, "#FFC107", distance3, map_index-1, route?.rtept.Count-1);   //From Map Position to End
+                        var (series2, MinX2, MaxX2, distance2) = CreateSeries(route?.rtept, "#F44336", "#00FFFFFF", 0.0, 0, gps_index+1);                        //From Start to GPS position
+                        var (series3, MinX3, MaxX3, distance3) = CreateSeries(route?.rtept, "#2196F3", "#00FFFFFF", distance2, gps_index, map_index+1);          //From GPS position to Map Position
+                        var (series4, MinX4, MaxX4, distance4) = CreateSeries(route?.rtept, "#FFC107", "#00FFFFFF", distance3, map_index, route?.rtept.Count);   //From Map Position to End
+
 
                         PlotView? plotView = view.FindViewById<PlotView>(Resource.Id.oxyPlotWalkDone);
-                        if (plotView != null && (lineSeries1 != null || lineSeries2 != null || lineSeries3 != null || lineSeries4 != null))
+                        if (plotView != null && (series1 != null || series2 != null || series3 != null || series4 != null))
                         {
                             plotView.Model = new PlotModel
                             {
-                                Series = { lineSeries1, lineSeries2, lineSeries3, lineSeries4 },
+                                Series = { series1, series2, series3, series4 },
                                 Axes =
                                 {
                                     new LinearAxis
@@ -237,22 +238,27 @@ namespace hajk.Fragments
             return null;
         }
         
-        private (LineSeries? lineSeries, double MinX, double MaxX, double distance) CreateSeries(wptTypeCollection? waypoints, string? hexcolor, double distance_m, int start, int? end)
+        private (AreaSeries? series, double MinX, double MaxX, double distance) CreateSeries(wptTypeCollection? waypoints, string? hexcolor1, string? hexcolor2, double distance_m, int start, int? end)
         {
-            if (waypoints == null || waypoints?.Count < end)
+            if (waypoints == null)
                 return (null, 0, 0, 0);
+
+            //Sanitize end point
+            if (end > waypoints?.Count-1)
+                end = waypoints?.Count-1;
 
             double ele = (double)waypoints[start].ele;
             double min = ele, max = ele;
 
             //Create the series with first datapoint
-            var lineSeries = new LineSeries
+            var series = new AreaSeries
             {
                 MarkerType = MarkerType.None,
                 MarkerSize = 1,
                 MarkerStroke = OxyColors.White,
-                Color = OxyColor.Parse(hexcolor),
-                Points = { new DataPoint(distance_m/1000, ele) },
+                Color = OxyColor.Parse(hexcolor1),
+                Fill = OxyColor.Parse(hexcolor2),
+                Points = { new DataPoint(distance_m / 1000, ele) },
             };
 
             var ph = new PositionHandler();
@@ -273,14 +279,14 @@ namespace hajk.Fragments
                     continue;
 
                 ele = (double)curr.ele;
-                lineSeries.Points.Add(new DataPoint(distance_m / 1000, ele));
+                series.Points.Add(new DataPoint(distance_m / 1000, ele));
 
                 if (ele > max) max = ele;
                 if (ele < min) min = ele;
                 Serilog.Log.Information(i.ToString());
             }
 
-            return (lineSeries: lineSeries, MinX: min, MaxX: max, distance_m);
+            return (Series: series, MinX: min, MaxX: max, Distance: distance_m);
         }
     }
 }
