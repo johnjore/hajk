@@ -418,7 +418,7 @@ namespace hajk
                 {
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
-                        Fragment_gpx.mAdapter?.mGpxData.Insert(RouteDatabase.GetRouteAsync(r.Id).Result);
+                        Adapter.GpxAdapter.mGpxData.Insert(RouteDatabase.GetRouteAsync(r.Id).Result);
                         Fragment_gpx.mAdapter?.NotifyDataSetChanged();
                     });
                 }
@@ -513,7 +513,7 @@ namespace hajk
                 {
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
-                        Fragment_gpx.mAdapter?.mGpxData.Insert(RouteDatabase.GetRouteAsync(r.Id).Result);
+                        Adapter.GpxAdapter.mGpxData.Insert(RouteDatabase.GetRouteAsync(r.Id).Result);
                         Fragment_gpx.mAdapter?.NotifyDataSetChanged();
                     });
                 }
