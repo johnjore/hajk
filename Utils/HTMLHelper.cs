@@ -10,15 +10,27 @@ namespace hajk.Utilities
         /// </summary>
         public static string StripHtml(string html)
         {
-            if (string.IsNullOrWhiteSpace(html))
+            if (html == null || html == string.Empty)
                 return string.Empty;
 
-            var doc = new HtmlDocument { OptionAutoCloseOnEnd = true };
-            doc.LoadHtml(html);
+            try
+            {
+                if (string.IsNullOrWhiteSpace(html))
+                    return string.Empty;
 
-            // Extract text and decode HTML entities
-            var plainText = doc.DocumentNode.InnerText;
-            return WebUtility.HtmlDecode(plainText);
+                var doc = new HtmlDocument { OptionAutoCloseOnEnd = true };
+                doc.LoadHtml(html);
+
+                // Extract text and decode HTML entities
+                var plainText = doc.DocumentNode.InnerText;
+                return WebUtility.HtmlDecode(plainText);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Failed to parse HTML string");
+            }
+
+            return string.Empty;
         }
     }
 }
