@@ -78,70 +78,52 @@ namespace hajk
             return (WriteTile(TileCache.MbTileCache.sqlConn, mbtile));
         }
 
-        public static void PurgeMapDB(int Id)
+        public static async Task PurgeMapTile(int Id, AwesomeTiles.Tile tile)
         {
             try
             {
-                Log.Debug($"Remove Id: {Id}");
+                Log.Debug($"Remove tile, or reference to tile, from: {Id}, {tile.Zoom}/{tile.X}/{tile.Y}");
 
                 lock (MbTileCache.sqlConn)
                 {
-                    var a = Id.ToString();
-                    var b = "[" + a + "]";
-
-                    //When single entry, old format, delete tile
-                    var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Equals(a));
-                    if (query.Count() > 0)
+                    int tmsY = (int)Math.Pow(2, tile.Zoom) - 1 - tile.Y;
+                    var maptile = MbTileCache.sqlConn.Table<tiles>().Where(x => x.zoom_level == tile.Zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
+                    if (maptile != null)
                     {
-                        Log.Debug($"Query Count: " + query.Count().ToString());
-                        foreach (tiles maptile in query)
+                        //When single entry, old or new (JSON) format
+                        var oldFormat = Id.ToString();
+                        var newFormat = "[" + Id.ToString() + "]";
+                        if (maptile.reference == oldFormat || maptile.reference == newFormat)
                         {
                             Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
                             MbTileCache.sqlConn.Delete(maptile);
                         }
-                    }
-
-                    //When single entry, new format, delete tile
-                    query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Equals(b));
-                    if (query.Count() > 0)
-                    {
-                        Log.Debug($"Query Count: " + query.Count().ToString());
-                        foreach (tiles maptile in query)
+                        else if (maptile.reference.Contains(Id.ToString()))
                         {
-                            Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
-                            MbTileCache.sqlConn.Delete(maptile);
-                        }
-                    }
-
-                    //When multiple entries in reference field, remove reference, but do not delete tile
-                    //Carefull: Captures variants of 1151 15 and 5 when looking for '5'
-                    query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(a));
-                    if (query.Count() > 0)
-                    {
-                        Log.Debug($"Query Count: " + query.Count().ToString());
-                        foreach (tiles maptile in query)
-                        {
-                            //Is this the tile we are looking for?
-                            var r = JsonSerializer.Deserialize<List<int>>(maptile.reference);
-                            if (r.Contains(Id))
+                            //When multiple entries in reference field, remove reference, but do not delete tile
+                            //Carefull: Captures variants of 1151 15 and 5 when looking for '5'
+                            List<int>? reference = JsonSerializer.Deserialize<List<int>>(maptile.reference);
+                            if (reference.Contains(Id))
                             {
                                 Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
-
-                                r.Remove(Id);
-                                maptile.reference = JsonSerializer.Serialize(r);
+                                reference.Remove(Id);
+                                maptile.reference = JsonSerializer.Serialize(reference);
                                 Log.Debug($"Tile Id: {maptile.id}, Reference: {maptile.reference}");
                                 MbTileCache.sqlConn.Update(maptile);
                             }
                         }
                     }
+                    else
+                    {
+                        Log.Error($"Should not run this line. It means we're trying to process a tile thats not identified as part of the tiles for the GPX: maptile is null");
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "PurgeMapDb()");
+                Log.Fatal(ex, "PurgeMapTile()");
             }
         }
-
         public static void ImportMapTiles()
         {
             MainThread.BeginInvokeOnMainThread(async () =>
