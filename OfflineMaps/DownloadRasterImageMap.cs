@@ -90,7 +90,7 @@ namespace hajk
             }
         }
 
-        private static (int TotalTiles, int MissingTiles) CountTiles(AwesomeTiles.TileRange range, int zoom)
+        public static (int TotalTiles, int MissingTiles) CountTiles(AwesomeTiles.TileRange range, int zoom)
         {
             int CountMissingTiles = 0;
             int CountTotalTiles = 0;
