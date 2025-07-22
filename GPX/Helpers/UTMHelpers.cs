@@ -7,7 +7,7 @@ using hajk.Models;
 
 namespace hajk.GPX
 {
-    public class UTMtoWGS84LatLon
+    public class UTMHelpers
     {
         public static int UTMtoLatLon(string? a, int b, long UTMX, long UTMY)
         {
@@ -31,5 +31,22 @@ namespace hajk.GPX
 
             return result;
         }
+
+        public static UniversalTransverseMercator? LatLontoUTM(double latitude, double longitude)
+        {
+            try
+            {
+                Coordinate c = new(latitude, longitude);
+                UniversalTransverseMercator utm = c.UTM;
+                return utm;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Failed to convert lat: '{latitude}', lon: '{longitude}' to UTM format");
+            }
+
+            return null;
+        }
+
     }
 }
