@@ -35,7 +35,7 @@ namespace hajk.GPX
                     BoundsTop = (double)bounds.minlon
                 };
 
-                //Reset counters for download
+                //Reset counters
                 doneCount = 0;
                 missingTilesCount = 0;
                 totalTilesCount = 0;
@@ -45,7 +45,7 @@ namespace hajk.GPX
                 {
                     _ = Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.UpdatingTiles));
                     Progressbar.UpdateProgressBar.Progress = 0;
-                    Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount} - ({missingTilesCount})";
+                    Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount}";
                 });
 
                 //Tiles to update
@@ -71,7 +71,7 @@ namespace hajk.GPX
 
                             //Update progress counter as the tile is processed, even if unsuccessful
                             Progressbar.UpdateProgressBar.Progress = (int)Math.Ceiling((decimal)(Fragment_Preferences.MaxZoom + (++doneCount) * (100 - Fragment_Preferences.MaxZoom) / (totalTilesCount - missingTilesCount)));
-                            Progressbar.UpdateProgressBar.MessageBody = $"({doneCount} of {totalTilesCount - missingTilesCount})";
+                            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount - missingTilesCount})";
                         });
                     }
                     else
