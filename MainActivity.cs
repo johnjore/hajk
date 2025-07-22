@@ -230,6 +230,13 @@ namespace hajk
 
                 //Restore recording checkpoint file?
                 RecordTrack.RestoreCheckPoint();
+
+
+                SupportFragmentManager.BeginTransaction()
+                    .Add(Resource.Id.fragment_container, new FolderRecyclerFragment(), "FragmentTest")
+                    .Commit();
+                SupportFragmentManager.ExecutePendingTransactions();
+
             }
             catch (Exception ex)
             {
