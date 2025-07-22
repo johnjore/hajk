@@ -1,52 +1,77 @@
-﻿using Android.Views;
+﻿using Android.Content;
+using Android.Views;
 using Android.Widget;
 using hajk.Data;
-using SharpGPX;
+using hajk.Models;
 using Serilog;
+using SharpGPX;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace hajk.GPX
 {
     partial class Menus
     {
-        public static void ExportGPX(GPXViewHolder vh, ViewGroup parent)
+        public static void ExportGPX(GPXViewHolder? vh, ViewGroup parent)
         {
-            Log.Information($"Export route '{vh.Name.Text}'");
+            if (vh == null || parent?.Context == null)
+                return;
 
-            Android.Views.View? view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
-            AndroidX.AppCompat.App.AlertDialog.Builder? alertbuilder = new(parent.Context);
+            Log.Information($"Export route '{vh?.Name?.Text}'");
+
+            Android.Views.View? view = LayoutInflater.From(parent?.Context).Inflate(Resource.Layout.get_userinput, parent, false);
+            AndroidX.AppCompat.App.AlertDialog.Builder? alertbuilder = new(parent?.Context);
             alertbuilder.SetView(view);
             EditText? userdata = view?.FindViewById<EditText>(Resource.Id.editText);
-            userdata.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".gpx";
+
+            //Suggested sanitized filename
+            userdata.Text = FileNameSanitizer.Sanitize(DateTime.Now.ToString("yyMMdd") + "-" + vh?.Name?.Text);
 
             alertbuilder?.SetCancelable(false)
             .SetPositiveButton(Resource.String.Submit, delegate
             {
+                //Make sure folder exists
+                if (Directory.Exists(Fragment_Preferences.ShareFolder) == false)
+                    Directory.CreateDirectory(Fragment_Preferences.ShareFolder);
+
                 //Get the route
                 var route_to_export = RouteDatabase.GetRouteAsync(vh.Id).Result;
                 GpxClass gpx_to_export = GpxClass.FromXml(route_to_export.GPX);
 
-                //Clear the src field. Internal only
-                for (int i = 0; i < gpx_to_export.Routes[0].rtept.Count; i++)
+                if (vh.GPXType == GPXType.Track)
                 {
-                    gpx_to_export.Routes[0].rtept[i].src = "";
+                    //Clear some fields as they are internal use only
+                    for (int i = 0; i < gpx_to_export.Tracks[0].trkseg[0].trkpt.Count; i++)
+                    {
+                        gpx_to_export.Tracks[0].trkseg[0].trkpt[i].src = "";
+                        gpx_to_export.Tracks[0].trkseg[0].trkpt[i].cmt = "";
+                    }
+                }
+                else if (vh.GPXType == GPXType.Route)
+                {
+                    //Clear some fields as they are internal use only
+                    for (int i = 0; i < gpx_to_export.Routes[0].rtept.Count; i++)
+                    {
+                        gpx_to_export.Routes[0].rtept[i].src = "";
+                        gpx_to_export.Routes[0].rtept[i].cmt = "";
+                    }
+                }
+                else
+                {
+                    Log.Fatal($"GPXType not supported");
                 }
 
-                string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
-                if (DownLoadFolder != null)
-                {
-                    string gpxPath = Path.Combine(DownLoadFolder, userdata.Text);
-                    gpx_to_export.ToFile(gpxPath);
-                }
+                //Sanitize the filename
+                string safeName = FileNameSanitizer.Sanitize(Path.GetFileNameWithoutExtension(userdata.Text));
+                string? fileToShare = Path.Combine(Fragment_Preferences.ShareFolder, safeName + ".gpx");
+
+                gpx_to_export.ToFile(fileToShare);
+                Share.ShareFile(Android.App.Application.Context, fileToShare, "application/gpx+xml");
             })
             .SetNegativeButton(Resource.String.Cancel, delegate
             {
                 alertbuilder.Dispose();
             });
+
             AndroidX.AppCompat.App.AlertDialog dialog = alertbuilder?.Create();
             dialog?.Show();
         }

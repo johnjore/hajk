@@ -1,57 +1,72 @@
-﻿using Android.Views;
+﻿using Android.Content;
+using Android.Views;
 using Android.Widget;
 using hajk.Data;
-using SharpGPX;
-using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using hajk.Models;
-
+using Serilog;
+using SharpGPX;
+using System;
 namespace hajk.GPX
 {
     partial class Menus
     {
         public static void ExportMap(GPXViewHolder? vh, ViewGroup parent)
         {
-            Log.Information($"Export Map '{vh?.Name.Text}'");
+            if (vh == null || parent?.Context == null)
+                return;
 
-            Android.Views.View? view2 = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.get_userinput, parent, false);
-            AndroidX.AppCompat.App.AlertDialog.Builder alertbuilder2 = new(parent.Context);
-            alertbuilder2.SetView(view2);
-            var userdata2 = view2.FindViewById<EditText>(Resource.Id.editText);
-            userdata2.Text = DateTime.Now.ToString("yyyy-MM-dd HH-mm") + " - " + vh.Name.Text + ".mbtiles";
+            Log.Information($"Export route '{vh?.Name?.Text}'");
 
-            alertbuilder2.SetCancelable(false)
-            .SetPositiveButton(Resource.String.Submit, delegate
+            Android.Views.View? view = LayoutInflater.From(parent?.Context).Inflate(Resource.Layout.get_userinput, parent, false);
+            AndroidX.AppCompat.App.AlertDialog.Builder? alertbuilder = new(parent?.Context);
+            alertbuilder.SetView(view);
+            EditText? userdata = view?.FindViewById<EditText>(Resource.Id.editText);
+
+            //Suggested sanitized filename
+            userdata.Text = FileNameSanitizer.Sanitize(DateTime.Now.ToString("yyMMdd") + "-" + vh?.Name?.Text);
+
+            alertbuilder?.SetCancelable(false)
+            .SetPositiveButton(Resource.String.Submit, async delegate
             {
-                string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads).AbsolutePath;
-                if (DownLoadFolder != null)
+                //Make sure folder exists
+                if (Directory.Exists(Fragment_Preferences.ShareFolder) == false)
+                    Directory.CreateDirectory(Fragment_Preferences.ShareFolder);
+
+                //Sanitize the filename
+                string safeName = FileNameSanitizer.Sanitize(Path.GetFileNameWithoutExtension(userdata.Text));
+                string? fileToShare = Path.Combine(Fragment_Preferences.ShareFolder, safeName + ".mbtiles");
+
+                var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
+                GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
+                
+                if (vh.GPXType == GPXType.Track)
                 {
-                    string mbtTilesPath = DownLoadFolder + "/" + userdata2.Text;
-
-                    var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                    GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
-
-                    if (vh.GPXType == GPXType.Track)
+                    await Task.Run(async () =>
                     {
-                        Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, mbtTilesPath);
-                    }
-
-                    if (vh.GPXType == GPXType.Route)
+                        await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, fileToShare);
+                    });
+                } 
+                else if (vh.GPXType == GPXType.Route)
+                {
+                    await Task.Run(async () =>
                     {
-                        Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, mbtTilesPath);
-                    }
+                        await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, fileToShare);
+                    });
                 }
+                else
+                {
+                    Log.Fatal($"GPXType not supported");
+                }
+
+                Share.ShareFile(Android.App.Application.Context, fileToShare, "application/octet-stream");
             })
             .SetNegativeButton(Resource.String.Cancel, delegate
             {
-                alertbuilder2.Dispose();
+                alertbuilder.Dispose();
             });
-            AndroidX.AppCompat.App.AlertDialog dialog2 = alertbuilder2.Create();
-            dialog2.Show();
+
+            AndroidX.AppCompat.App.AlertDialog dialog = alertbuilder?.Create();
+            dialog?.Show();
         }
     }
 }
