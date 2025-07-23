@@ -13,7 +13,6 @@ using GPXUtils;
 using hajk.Data;
 using hajk.Fragments;
 using hajk.Models;
-using Java.Nio.FileNio.Attributes;
 using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
@@ -31,7 +30,6 @@ using Microsoft.Maui.Storage;
 using NetTopologySuite.Geometries;
 using Serilog;
 using SharpGPX;
-using SharpGPX.GPX1_0;
 using SharpGPX.GPX1_1;
 using SharpGPX.GPX1_1.Topografix;
 using System;
@@ -77,6 +75,9 @@ namespace hajk
                     .SetEnabled(true);
 
                 //nav?.Invalidate();
+
+                Log.Information("Create CheckPoint file");
+                trackGpx.ToFile(Fragment_Preferences.CheckpointGPX);
             }
             catch (Exception ex)
             {
