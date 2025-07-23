@@ -469,7 +469,7 @@ namespace hajk
                     double elevation = (double)getElevation(filteredList[i]);
                     double smoothed = RollingElevationAnalyzer.AddElevation(elevation); //Smoothed
 
-                    Serilog.Log.Information($"Raw: {smoothed:F2}, Smoothed: {smoothed:F2}, Ascent: {RollingElevationAnalyzer.TotalAscent:F2}, Descent: {RollingElevationAnalyzer.TotalDescent:F2}");
+                    Serilog.Log.Debug($"Raw: {smoothed:F2}, Smoothed: {smoothed:F2}, Ascent: {RollingElevationAnalyzer.TotalAscent:F2}, Descent: {RollingElevationAnalyzer.TotalDescent:F2}");
                 }
 
                 return ((int)RollingElevationAnalyzer.TotalAscent, (int)RollingElevationAnalyzer.TotalDescent);
