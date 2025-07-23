@@ -36,15 +36,16 @@ namespace hajk.GPX
                 string safeName = FileNameSanitizer.Sanitize(Path.GetFileNameWithoutExtension(userdata.Text));
                 string? fileToShare = Path.Combine(Fragment_Preferences.ShareFolder, safeName + ".mbtiles");
 
-                var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
-                GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
-                
+                GPXDataRouteTrack? route_to_export = RouteDatabase.GetRouteAsync(vh.Id)?.Result;
+                GpxClass gpx_to_export = GpxClass.FromXml(route_to_export?.GPX);
+
                 //Download
                 await Import.GetloadOfflineMap(gpx_to_export.GetBounds(), vh.Id);
 
                 //Export
                 await DownloadRasterImageMap.ExportMapTiles(gpx_to_export, fileToShare);
 
+                //Share
                 Share.ShareFile(Android.App.Application.Context, fileToShare, "application/octet-stream");
             })
             .SetNegativeButton(Resource.String.Cancel, delegate
