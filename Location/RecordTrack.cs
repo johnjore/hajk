@@ -79,6 +79,9 @@ namespace hajk
 
                 Log.Information("Create CheckPoint file");
                 trackGpx.ToFile(Fragment_Preferences.CheckpointGPX);
+
+                //Reset elevation counters
+                ElevationAnalyzer.Reset();
             }
             catch (Exception ex)
             {
