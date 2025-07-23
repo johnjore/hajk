@@ -166,7 +166,7 @@ namespace hajk.Fragments
                         DistanceTravelled = (TrackDistanceFromStart_m / 1000).ToString("N2") + "km";
                         Serilog.Log.Debug($"TrackDistanceFromStart_m: '{TrackDistanceFromStart_m.ToString()}', DistanceTravelled: '{DistanceTravelled}', TrackAscentFromStart_m: '{TrackAscentFromStart_m.ToString()}', TrackDescentFromStart_m: '{TrackDescentFromStart_m}'");
 
-                        CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} {DistanceTravelled} / " +
+                        CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} {DistanceTravelled:N2} / " +
                                         $"{char.ConvertFromUtf32(0x1f53c)} {TrackAscentFromStart_m:N0}m / " +
                                         $"{char.ConvertFromUtf32(0x1f53d)} {TrackDescentFromStart_m:N0}m";
                         view.FindViewById<TextView>(Resource.Id.Completed).Text = CompletedText;
@@ -201,7 +201,7 @@ namespace hajk.Fragments
                                     {
                                         Position = AxisPosition.Bottom,
                                         FormatAsFractions = false,
-                                        Unit = $"Travelled {DistanceTravelled} / {'\u25B2'} {ElevationAnalyzer.TotalAscent:N0}m / {'\u25BC'} {ElevationAnalyzer.TotalDescent:N0}m",
+                                        Unit = $"Travelled {DistanceTravelled:N2} / {'\u25B2'} {ElevationAnalyzer.TotalAscent:N0}m / {'\u25BC'} {ElevationAnalyzer.TotalDescent:N0}m",
                                     },
                                     new LinearAxis
                                     {
