@@ -59,7 +59,7 @@ namespace hajk.GPX
 
                             //Update progress counter as the tile is processed, even if unsuccessful
                             Progressbar.UpdateProgressBar.Progress = (int)Math.Ceiling((decimal)(Fragment_Preferences.MaxZoom + (++doneCount) * (100 - Fragment_Preferences.MaxZoom) / (totalTilesCount - missingTilesCount)));
-                            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount - missingTilesCount})";
+                            Progressbar.UpdateProgressBar.MessageBody = $"({doneCount} of {totalTilesCount - missingTilesCount})";
                         });
                     }
                     else
