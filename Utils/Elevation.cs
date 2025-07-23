@@ -428,81 +428,21 @@ namespace hajk
         /// </summary>
         /// <param name="LatLonEle"></param>
         /// <returns>ascent and descent in meters</returns>
-        public static (int, int) CalculateAscentDescent(List<Position> LatLonEle)
+        public static (int ascent, int descent) CalculateAscentDescent(List<Position> positions)
         {
-            /**///List of Positions needs slicing to make more granular
-
-            double ascent = 0;
-            double descent = 0;
-
-            //Only include where "ElevationSpecified == true"
-            var filtered_list = LatLonEle.Where(x => x.ElevationSpecified == true).ToList();
-
-            try
-            {
-                for (int j = 0; j < filtered_list.Count - 1; j++)
-                {
-                    var j0 = filtered_list[j].Elevation;
-                    var j1 = filtered_list[j + 1].Elevation;
-
-                    if (j0 > j1)
-                    {
-                        descent += j0 - j1;
-                    }
-                    else
-                    {
-                        ascent += j1 - j0;
-                    }
-                }
-
-                return ((int)ascent, (int)descent);
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, $"CalculateAscentDescent(List<Position>)");
-                return (0, 0);
-            }
+            var filtered = positions.Where(x => x.ElevationSpecified).ToList();
+            return CalculateAscentDescentCore(filtered, x => (decimal)x.Elevation);
         }
-
+        
         /// <summary>
         /// Loop through a route with elevation data and calculate how much ascent and descent
         /// </summary>
         /// <param name="route"></param>
         /// <returns>ascent and descent in meters</returns>
-        public static (int, int) CalculateAscentDescent(rteType route)
+        public static (int ascent, int descent) CalculateAscentDescent(rteType route)
         {
-            /**///List of Positions needs slicing to make more granular
-
-            decimal ascent = 0;
-            decimal descent = 0;
-            
-            //Only include where "eleSpecified == true"
-            var filtered_route = route.rtept.Where(x => x.eleSpecified == true).ToList();
-
-            try
-            {
-                for (int j = 0; j < filtered_route.Count - 1; j++)
-                {
-                    var j0 = filtered_route[j].ele;
-                    var j1 = filtered_route[j + 1].ele;
-
-                    if (j0 > j1)
-                    {
-                        descent += j0 - j1;
-                    }
-                    else
-                    {
-                        ascent += j1 - j0;
-                    }
-                }
-
-                return ((int)ascent, (int)descent);
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, $"CalculateAscentDescent(rteType)");
-                return (0, 0);
-            }
+            var filtered = route.rtept.Where(x => x.eleSpecified).ToList();
+            return CalculateAscentDescentCore(filtered, x => x.ele);
         }
 
         /// <summary>
@@ -510,18 +450,35 @@ namespace hajk
         /// </summary>
         /// <param name="track"></param>
         /// <returns>ascent and descent in meters</returns>
-        public static (int, int) CalculateAscentDescent(trkType track)
+        public static (int ascent, int descent) CalculateAscentDescent(trkType track)
         {
-            var route = track.ToRoutes();
+            var filtered = track.trkseg.FirstOrDefault().trkpt.Where(x => x.eleSpecified).ToList();
+            return CalculateAscentDescentCore(filtered, x => x.ele);
+        }
 
-            if (route.Count != 1)
+        private static (int ascent, int descent) CalculateAscentDescentCore<T>(List<T> filteredList, Func<T, decimal> getElevation)
+        {
+            /**///List of Positions needs slicing to make more granular
+
+            RollingElevationAnalyzer.Initialize(smoothingWindow: 3, noiseBand: 0.35, minimumGain: 4.0);
+
+            try
             {
-                Serilog.Log.Fatal("Why is this not 1?");
+                for (int i = 0; i < filteredList.Count - 1; i++)
+                {
+                    double elevation = (double)getElevation(filteredList[i]);
+                    double smoothed = RollingElevationAnalyzer.AddElevation(elevation); //Smoothed
+
+                    Serilog.Log.Information($"Raw: {smoothed:F2}, Smoothed: {smoothed:F2}, Ascent: {RollingElevationAnalyzer.TotalAscent:F2}, Descent: {RollingElevationAnalyzer.TotalDescent:F2}");
+                }
+
+                return ((int)RollingElevationAnalyzer.TotalAscent, (int)RollingElevationAnalyzer.TotalDescent);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Fatal(ex, $"CalculateAscentDescentCore");
                 return (0, 0);
             }
-
-            (var ascent, var descent) = CalculateAscentDescent(route[0]);
-            return ((int)ascent, (int)descent);
         }
 
         private static async Task<(List<string>?, int)>? DownloadElevationTilesAsync(AwesomeTiles.TileRange? range, int intMissingtiles)
