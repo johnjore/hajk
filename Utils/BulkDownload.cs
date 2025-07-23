@@ -157,7 +157,7 @@ namespace hajk.Utilities
                         var bounds = gpx.Waypoints.GetBounds();
 
                         //Get all missing tiles
-                        await DownloadRasterImageMap.DownloadMap(bounds, 999999, false);
+                        await DownloadRasterImageMap.DownloadMap(bounds, 999999);
                     }
                 });
             }
