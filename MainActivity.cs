@@ -1,10 +1,11 @@
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.Content.Res;
-using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
+using Android.Widget;
 using AndroidX.AppCompat.App;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
@@ -18,21 +19,21 @@ using hajk.Models;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Storage;
-using Serilog;
 using Sentry;
 using Sentry.Android;
 using Sentry.Serilog;
+using Serilog;
+using Serilog.Events;
 using SharpGPX;
 using SQLite;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using System.Threading;
-using System;
-using Serilog.Events;
+using System.Threading.Tasks;
 
 namespace hajk
 {
@@ -241,6 +242,13 @@ namespace hajk
             {
                 Log.Fatal(ex, $"MainActivity - OnCreate");
             }
+        }
+
+        protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
+        {
+            base.OnActivityResult(requestCode, resultCode, data);
+
+            SafBackupService.HandleFolderSelection(this, requestCode, resultCode, data);
         }
 
         public override void OnBackPressed()

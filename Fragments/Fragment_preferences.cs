@@ -2,6 +2,7 @@
 using Android.Content;
 using Android.OS;
 using Android.Views;
+using AndroidX.DocumentFile.Provider;
 using AndroidX.Preference;
 using Google.Android.Material.FloatingActionButton;
 using hajk.Fragments;
@@ -122,6 +123,15 @@ namespace hajk
             //Load Preference layout
             SetPreferencesFromResource(Resource.Xml.Preferences, rootKey);
 
+            //Select Backup Folder
+            SetSummary((Preference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.BackupFolderKey)), SafBackupService.PrefKeySafFolderUri);
+            Preference? backupPref = (Preference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.BackupFolderKey));
+            backupPref.PreferenceClick += (sender, e) =>
+            {
+                // Call SAF folder picker
+                SafBackupService.RequestFolderSelection(Platform.CurrentActivity);
+            };
+            
             //Populate the ListPreference's
             CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source)));
 
@@ -169,7 +179,7 @@ namespace hajk
             {
                 return;
             }
-            
+
             if (etp.Text == null || etp.Text == string.Empty || etp.Text == "")
             {
                 etp.Summary = Platform.CurrentActivity?.GetString(Resource.String.NotSet);
@@ -180,11 +190,36 @@ namespace hajk
             }
         }
 
+        private static void SetSummary(Preference? pref, string Key)
+        {
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(Android.App.Application.Context);
+            if (prefs == null || pref == null)
+            {
+                return;
+            }
+
+            var uri = prefs.GetString(Key, null);
+
+            //Backup Folder Specific
+            if (uri != null && Key.Equals(SafBackupService.PrefKeySafFolderUri))
+            {
+                var folderUri = Android.Net.Uri.Parse(uri);
+                var doc = DocumentFile.FromTreeUri(Android.App.Application.Context, folderUri);
+                pref.Summary = $"Backup Folder: {doc?.Name}";
+            }
+        }
+        
         public void OnSharedPreferenceChanged(ISharedPreferences? prefs, string? key)
         {
             if (prefs == null || key == null)
             {
                 return;
+            }
+
+            //Update Summary
+            if (key.Equals(SafBackupService.PrefKeySafFolderUri))
+            {
+                SetSummary((Preference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.BackupFolderKey)), SafBackupService.PrefKeySafFolderUri);
             }
 
             Preference? pref = FindPreference(key);
@@ -226,8 +261,6 @@ namespace hajk
             Log.Verbose($"Set map rotation (lock or not):" + LockMapRotation.ToString());
 
             var a = Preferences.Get("Wakelock", Fragment_Preferences.EnableWakeLock);
-
-
             if (Preferences.Get("Wakelock", Fragment_Preferences.EnableWakeLock))
             {
                 PowerManager? powerManager = (PowerManager)Android.App.Application.Context.GetSystemService(Context.PowerService) as PowerManager;
@@ -244,8 +277,8 @@ namespace hajk
             }
 
 
-                //Show FloatingActionButton
-                Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCompass).Visibility = ViewStates.Visible;
+            //Show FloatingActionButton
+            Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCompass).Visibility = ViewStates.Visible;
             Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCamera).Visibility = ViewStates.Visible;
 
             base.OnDestroy();
