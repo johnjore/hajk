@@ -102,6 +102,34 @@ namespace GPXUtils
             return null;
         }
 
+        public static AwesomeTiles.TileRange? GetTileRange(int zoom, boundsType bounds)
+        {
+            try
+            {
+                var leftBottom = AwesomeTiles.Tile.CreateAroundLocation((double)bounds.minlat, (double)bounds.minlon, zoom);
+                var topRight = AwesomeTiles.Tile.CreateAroundLocation((double)bounds.maxlat, (double)bounds.maxlon, zoom);
+
+                if (leftBottom == null || topRight == null)
+                {
+                    return null;
+                }
+
+                var minX = Math.Min(leftBottom.X, topRight.X);
+                var maxX = Math.Max(leftBottom.X, topRight.X);
+                var minY = Math.Min(leftBottom.Y, topRight.Y);
+                var maxY = Math.Max(leftBottom.Y, topRight.Y);
+
+                var tiles = new AwesomeTiles.TileRange(minX, minY, maxX, maxY, zoom);
+                //Serilog.Log.Information($"Need to download {tiles.Count} tiles for zoom level {zoom}");
+                return tiles;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Fatal(ex, $"GPXUtils - GetTileRange()");
+            }
+
+            return null;
+        }
 
         public static (int, int, int) CalculateElevationDistanceData(wptTypeCollection Waypoints, int start_index, int end_index)
         {

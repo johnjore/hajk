@@ -23,18 +23,6 @@ namespace hajk.GPX
                 var route_to_delete = RouteDatabase.GetRouteAsync(vh.Id).Result;
                 GpxClass gpx_to_delete = GpxClass.FromXml(route_to_delete.GPX);
 
-                //Create boundary
-                var bounds = gpx_to_delete.GetBounds();
-                Models.Map map = new()
-                {
-                    ZoomMin = Fragment_Preferences.MinZoom,
-                    ZoomMax = Fragment_Preferences.MaxZoom,
-                    BoundsLeft = (double)bounds.minlat,
-                    BoundsBottom = (double)bounds.maxlon,
-                    BoundsRight = (double)bounds.maxlat,
-                    BoundsTop = (double)bounds.minlon
-                };
-
                 //Reset counters
                 doneCount = 0;
                 missingTilesCount = 0;
@@ -49,20 +37,20 @@ namespace hajk.GPX
                 });
 
                 //Tiles to update
-                for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
+                for (int zoom = Fragment_Preferences.MinZoom; zoom <= Fragment_Preferences.MaxZoom; zoom++)
                 {
-                    AwesomeTiles.TileRange? tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
+                    AwesomeTiles.TileRange? tiles = GPXUtils.GPXUtils.GetTileRange(zoom, gpx_to_delete);
                     (int TotalTiles, int MissingTiles) = DownloadRasterImageMap.CountTiles(tiles, zoom);
                     totalTilesCount += TotalTiles;
                     missingTilesCount += MissingTiles;
-                    Progressbar.UpdateProgressBar.Progress = zoom - map.ZoomMin + 1;
+                    Progressbar.UpdateProgressBar.Progress = zoom - Fragment_Preferences.MinZoom + 1;
                     Log.Information($"Need to update '{TotalTiles-MissingTiles}' tiles for zoom level '{zoom}', total to update '{totalTilesCount-missingTilesCount}'");
                 }
 
                 //Remove reference in tiles
-                for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
+                for (int zoom = Fragment_Preferences.MinZoom; zoom <= Fragment_Preferences.MaxZoom; zoom++)
                 {
-                    AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
+                    AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, gpx_to_delete);
                     if (totalTilesCount > 0 && tiles != null)
                     {
                         await tiles.ParallelForEachAsync(async tile =>
@@ -81,7 +69,7 @@ namespace hajk.GPX
                 }
 
                 Progressbar.UpdateProgressBar.Dismiss();
-                Log.Debug($"Done updating tiles for {map.Id}");
+                Log.Debug($"Done updating tiles for {vh.Id}");
 
                 //Remove from route DB
                 _ = RouteDatabase.DeleteRouteAsync(vh.Id);
