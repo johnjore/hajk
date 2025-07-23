@@ -343,6 +343,17 @@ namespace hajk
                 doneCount = 0;
                 totalTilesCount = 0;
 
+                //Progress bar - This is shit?!? /**/
+                await Task.Run(async () =>
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.ExportingTiles));
+                        Progressbar.UpdateProgressBar.Progress = 0;
+                        Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount}";
+                    });
+                });
+
                 //Total Tile Count
                 for (int zoom = Fragment_Preferences.MinZoom; zoom <= Fragment_Preferences.MaxZoom; zoom++)
                 {
@@ -351,14 +362,6 @@ namespace hajk
                     Progressbar.UpdateProgressBar.Progress = zoom - Fragment_Preferences.MinZoom + 1;
                     Log.Information($"Need to export '{tiles.Count}' tiles for zoom level '{zoom}', total to export '{totalTilesCount}'");
                 }
-
-                //Progress bar
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.UpdatingTiles));
-                    Progressbar.UpdateProgressBar.Progress = 0;
-                    Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount}";
-                });
 
                 //Export tiles
                 for (int zoom = Fragment_Preferences.MinZoom; zoom <= Fragment_Preferences.MaxZoom; zoom++)
@@ -382,7 +385,7 @@ namespace hajk
 
                             //Update progress counter
                             Progressbar.UpdateProgressBar.Progress = (int)Math.Ceiling((decimal)(Fragment_Preferences.MaxZoom + (++doneCount) * (100 - Fragment_Preferences.MaxZoom) / (totalTilesCount)));
-                            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount})";
+                            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount}";
                         });
                     }
                     else
