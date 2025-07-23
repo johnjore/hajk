@@ -47,11 +47,11 @@ namespace hajk.GPX
                 //Download elevation data first
                 await Elevation.DownloadElevationData(gpx_to_download);
 
-                await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, null);
+                await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id);
             }
             else if (vh.GPXType == GPXType.Track && gpx_to_download.Tracks.Count == 1)
             {
-                //await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, null);
+                //await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id);
             }
             else
             {

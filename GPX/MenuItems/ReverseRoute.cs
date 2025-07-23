@@ -88,7 +88,7 @@ namespace hajk.GPX
             //Update map tiles with new reference
             await Task.Run(async() =>
             {
-                await Import.GetloadOfflineMap(gpxToReverse.Routes[0].GetBounds(), dbID, null);
+                await Import.GetloadOfflineMap(gpxToReverse.Routes[0].GetBounds(), dbID);
             });
 
             // Update UI: add the new route to the adapter and refresh the RecyclerView

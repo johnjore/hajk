@@ -326,7 +326,7 @@ namespace hajk
                     Task.Run(async () =>
                     {
                         var b = new boundsType(p.Lat, p.Lat, p.Lon, p.Lon);
-                        await GetloadOfflineMap(b, -1, null);
+                        await GetloadOfflineMap(b, -1);
                     });
                 }
             }
@@ -609,29 +609,12 @@ namespace hajk
             return null;
         }
 
-        public static async Task GetloadOfflineMap(boundsType bounds, int id, string? strFilePath)
+        public static async Task GetloadOfflineMap(boundsType bounds, int id)
         {
             try
             {
-                Models.Map map = new()
-                {
-                    Id = id,
-                    ZoomMin = Fragment_Preferences.MinZoom,
-                    ZoomMax = Fragment_Preferences.MaxZoom,
-                    BoundsLeft = (double)bounds.minlat,
-                    BoundsBottom = (double)bounds.maxlon,
-                    BoundsRight = (double)bounds.maxlat,
-                    BoundsTop = (double)bounds.minlon
-                };
-
                 //Get all missing tiles
-                await DownloadRasterImageMap.DownloadMap(map, false);
-
-                //Also exporting?
-                if (strFilePath != null)
-                {
-                    DownloadRasterImageMap.ExportMapTiles(id, strFilePath);
-                }
+                await DownloadRasterImageMap.DownloadMap(bounds, id, false);
             }
             catch (Exception ex)
             {
@@ -810,11 +793,11 @@ namespace hajk
             //Get map tiles
             if (route_to_download.GPXType == GPXType.Route && gpx_to_import.Routes.Count == 1)
             {
-                await Import.GetloadOfflineMap(gpx_to_import.Routes[0].GetBounds(), databaseId, null);
+                await Import.GetloadOfflineMap(gpx_to_import.Routes[0].GetBounds(), databaseId);
             }
             else if (route_to_download.GPXType == GPXType.Track && gpx_to_import.Tracks.Count == 1)
             {
-                await Import.GetloadOfflineMap(gpx_to_import.Tracks[0].GetBounds(), databaseId, null);
+                await Import.GetloadOfflineMap(gpx_to_import.Tracks[0].GetBounds(), databaseId);
             }
             else
             {
@@ -900,7 +883,7 @@ namespace hajk
                     await Elevation.DownloadElevationData(gpx);
 
                     //Download Map Tiles
-                    await Import.GetloadOfflineMap(gpx.Routes[0].GetBounds(), index, null);
+                    await Import.GetloadOfflineMap(gpx.Routes[0].GetBounds(), index);
                 }
                 else if (route.GPXType == GPXType.Track && gpx.Tracks.Count == 1)
                 {
@@ -908,7 +891,7 @@ namespace hajk
                     await Elevation.DownloadElevationData(gpx);
 
                     //Download Map Tiles
-                    await Import.GetloadOfflineMap(gpx.Tracks[0].GetBounds(), index, null);
+                    await Import.GetloadOfflineMap(gpx.Tracks[0].GetBounds(), index);
                 }
                 else
                 {
