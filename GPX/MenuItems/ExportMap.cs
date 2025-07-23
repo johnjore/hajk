@@ -6,6 +6,7 @@ using hajk.Models;
 using Serilog;
 using SharpGPX;
 using System;
+
 namespace hajk.GPX
 {
     partial class Menus
@@ -40,7 +41,7 @@ namespace hajk.GPX
                 GpxClass gpx_to_export = GpxClass.FromXml(route_to_export?.GPX);
 
                 //Download
-                await Import.GetloadOfflineMap(gpx_to_export.GetBounds(), vh.Id);
+                await DownloadRasterImageMap.DownloadMap(gpx_to_export.GetBounds(), vh.Id);
 
                 //Export
                 await DownloadRasterImageMap.ExportMapTiles(gpx_to_export, fileToShare);

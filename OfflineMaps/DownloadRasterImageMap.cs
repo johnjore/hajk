@@ -29,7 +29,7 @@ namespace hajk
         private static int missingTilesCount = 0;
         private static int totalTilesCount = 0;
 
-        public static async Task DownloadMap(boundsType bounds, int id, bool ShowDialog)
+        public static async Task DownloadMap(boundsType bounds, int id)
         {
             try
             {
@@ -79,12 +79,6 @@ namespace hajk
                 {
                     Toast.MakeText(Platform.AppContext, $"{intFailedDownloadsCounter} map tiles failed to download", ToastLength.Long)?.Show();
                 }
-
-                if (ShowDialog)
-                {
-                    Show_Dialog msg3 = new(Platform.CurrentActivity);
-                    await msg3.ShowDialog($"Done", $"Map Download Completed", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
-                }               
             }
             catch (Exception ex)
             {

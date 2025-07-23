@@ -2,16 +2,17 @@
 using Android.Widget;
 using hajk.Data;
 using hajk.Fragments;
-using SharpGPX;
-using SharpGPX.GPX1_1;
+using hajk.Models;
 using Serilog;
+using SharpGPX;
+using SharpGPX.GPX1_0;
+using SharpGPX.GPX1_1;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using hajk.Models;
 
 namespace hajk.GPX
 {
@@ -40,24 +41,9 @@ namespace hajk.GPX
             var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
             GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
 
-
             //Get map tiles
-            if (vh.GPXType == GPXType.Route && gpx_to_download.Routes.Count == 1)
-            {
-                //Download elevation data first
-                await Elevation.DownloadElevationData(gpx_to_download);
-
-                await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id);
-            }
-            else if (vh.GPXType == GPXType.Track && gpx_to_download.Tracks.Count == 1)
-            {
-                //await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id);
-            }
-            else
-            {
-                Serilog.Log.Fatal("Unknown and unhandled GPXType or too many routes/tracks in GPX");
-                return;
-            }
+            await Elevation.DownloadElevationData(gpx_to_download);
+            await DownloadRasterImageMap.DownloadMap(gpx_to_download.GetBounds(), vh.Id);
 
             //Update route with elevation data
             await Task.Run(() =>
