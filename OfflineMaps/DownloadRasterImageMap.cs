@@ -1,11 +1,16 @@
 ﻿using Android.Views;
+using Android.Widget;
 using Dasync.Collections;
 using hajk.Models;
 using Mapsui.Layers;
 using Mapsui.Tiling.Layers;
 using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Networking;
 using Microsoft.Maui.Storage;
 using Serilog;
+using SharpGPX;
+using SharpGPX.GPX1_1;
+using SQLite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +19,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using SQLite;
 using static hajk.TileCache;
-using Microsoft.Maui.Networking;
-using Android.Widget;
 
 namespace hajk
 {
@@ -27,7 +29,7 @@ namespace hajk
         private static int missingTilesCount = 0;
         private static int totalTilesCount = 0;
 
-        public static async Task DownloadMap(Models.Map map, bool ShowDialog)
+        public static async Task DownloadMap(boundsType bounds, int id)
         {
             try
             {
@@ -46,23 +48,23 @@ namespace hajk
                 });
 
                 //Count required tiles to download
-                for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
+                for (int zoom = Fragment_Preferences.MinZoom; zoom <= Fragment_Preferences.MaxZoom; zoom++)
                 {
-                    AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
+                    AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, bounds);
                     (int TotalTiles, int MissingTiles) = CountTiles(tiles, zoom);
                     totalTilesCount += TotalTiles;
                     missingTilesCount += MissingTiles;
-                    Progressbar.UpdateProgressBar.Progress = zoom - map.ZoomMin+1;
+                    Progressbar.UpdateProgressBar.Progress = zoom - Fragment_Preferences.MinZoom + 1;
                     Log.Information($"Need to download '{MissingTiles}' tiles for zoom level '{zoom}', total to download '{missingTilesCount}'");
                 }
 
                 //Download missing tiles
-                for (int zoom = map.ZoomMin; zoom <= map.ZoomMax; zoom++)
+                for (int zoom = Fragment_Preferences.MinZoom; zoom <= Fragment_Preferences.MaxZoom; zoom++)
                 {
-                    AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, map);
+                    AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, bounds);
                     if (totalTilesCount > 0 && tiles != null)
                     {
-                        intFailedDownloadsCounter += await DownloadTiles(tiles, zoom, TileCache.MbTileCache.sqlConn, map.Id, missingTilesCount, totalTilesCount);
+                        intFailedDownloadsCounter += await DownloadTiles(tiles, zoom, TileCache.MbTileCache.sqlConn, id, missingTilesCount, totalTilesCount);
                     }
                     else
                     {
@@ -71,18 +73,12 @@ namespace hajk
                 }
 
                 Progressbar.UpdateProgressBar.Dismiss();
-                Log.Debug($"Done downloading map for {map.Id}");
+                Log.Debug($"Done downloading map for {id}");
 
                 if (intFailedDownloadsCounter > 0)
                 {
                     Toast.MakeText(Platform.AppContext, $"{intFailedDownloadsCounter} map tiles failed to download", ToastLength.Long)?.Show();
                 }
-
-                if (ShowDialog)
-                {
-                    Show_Dialog msg3 = new(Platform.CurrentActivity);
-                    await msg3.ShowDialog($"Done", $"Map Download Completed", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
-                }               
             }
             catch (Exception ex)
             {
@@ -333,26 +329,48 @@ namespace hajk
             }
         }
 
-        public static void ExportMapTiles(int Id, string strFileName)
+        public static async Task ExportMapTiles(GpxClass gpx, string strFileName)
         {
             try
             {
                 //Save tiles here
-                SQLiteConnection ExportDB = InitializeTileCache(strFileName, "png");
+                SQLiteConnection? ExportDB = InitializeTileCache(strFileName, "png");
 
-                //Get tiles
-                lock (MbTileCache.sqlConn)
+                if (ExportDB == null)
+                    return;
+
+                //Reset counters
+                doneCount = 0;
+                totalTilesCount = 0;
+
+                //Total Tile Count
+                for (int zoom = Fragment_Preferences.MinZoom; zoom <= Fragment_Preferences.MaxZoom; zoom++)
                 {
-                    //Careful: Captures variants of 1151 15 and 5 when looking for '5'
-                    var query = MbTileCache.sqlConn.Table<tiles>().Where(x => x.reference.Contains(Id.ToString()));
+                    AwesomeTiles.TileRange? tiles = GPXUtils.GPXUtils.GetTileRange(zoom, gpx);
+                    totalTilesCount += tiles.Count;
+                    Progressbar.UpdateProgressBar.Progress = zoom - Fragment_Preferences.MinZoom + 1;
+                    Log.Information($"Need to export '{tiles.Count}' tiles for zoom level '{zoom}', total to export '{totalTilesCount}'");
+                }
 
-                    Log.Debug($"Query Count: " + query.Count().ToString());
-                    foreach (tiles maptile in query)
+                //Progress bar
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.UpdatingTiles));
+                    Progressbar.UpdateProgressBar.Progress = 0;
+                    Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount}";
+                });
+
+                //Export tiles
+                for (int zoom = Fragment_Preferences.MinZoom; zoom <= Fragment_Preferences.MaxZoom; zoom++)
+                {
+                    AwesomeTiles.TileRange tiles = GPXUtils.GPXUtils.GetTileRange(zoom, gpx);
+                    if (tiles != null && tiles.Count > 0)
                     {
-                        //Is this the tile we are looking for?
-                        var r = JsonSerializer.Deserialize<List<int>>(maptile.reference);
-                        if (r.Contains(Id))
+                        await tiles.ParallelForEachAsync(async tile =>
                         {
+                            int tmsY = (int)Math.Pow(2, tile.Zoom) - 1 - tile.Y;
+                            var maptile = MbTileCache.sqlConn.Table<tiles>().Where(x => x.zoom_level == tile.Zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
+
                             Log.Debug($"Tile Id: {maptile.id}");
 
                             //Clear the ID and reference
@@ -361,14 +379,23 @@ namespace hajk
 
                             //Add to DB
                             ExportDB.Insert(maptile);
-                        }
+
+                            //Update progress counter
+                            Progressbar.UpdateProgressBar.Progress = (int)Math.Ceiling((decimal)(Fragment_Preferences.MaxZoom + (++doneCount) * (100 - Fragment_Preferences.MaxZoom) / (totalTilesCount)));
+                            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount})";
+                        });
+                    }
+                    else
+                    {
+                        throw new Exception("How can this be?!?");
                     }
                 }
-                ExportDB.Close();
-                ExportDB.Dispose();
 
-                Show_Dialog msg = new(Platform.CurrentActivity);
-                msg.ShowDialog(Platform.CurrentActivity.GetString(Resource.String.Done), Platform.CurrentActivity.GetString(Resource.String.MapExportCompleted), Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.NONE, Show_Dialog.MessageResult.OK);
+                ExportDB?.Close();
+                ExportDB?.Dispose();
+
+                Progressbar.UpdateProgressBar.Dismiss();
+                Log.Debug($"Done exporting tiles to '{strFileName}'");
             }
             catch (Exception ex)
             {

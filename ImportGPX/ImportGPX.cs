@@ -326,7 +326,7 @@ namespace hajk
                     Task.Run(async () =>
                     {
                         var b = new boundsType(p.Lat, p.Lat, p.Lon, p.Lon);
-                        await GetloadOfflineMap(b, -1, null);
+                        await DownloadRasterImageMap.DownloadMap(b, -1);
                     });
                 }
             }
@@ -609,36 +609,6 @@ namespace hajk
             return null;
         }
 
-        public static async Task GetloadOfflineMap(boundsType bounds, int id, string? strFilePath)
-        {
-            try
-            {
-                Models.Map map = new()
-                {
-                    Id = id,
-                    ZoomMin = Fragment_Preferences.MinZoom,
-                    ZoomMax = Fragment_Preferences.MaxZoom,
-                    BoundsLeft = (double)bounds.minlat,
-                    BoundsBottom = (double)bounds.maxlon,
-                    BoundsRight = (double)bounds.maxlat,
-                    BoundsTop = (double)bounds.minlon
-                };
-
-                //Get all missing tiles
-                await DownloadRasterImageMap.DownloadMap(map, false);
-
-                //Also exporting?
-                if (strFilePath != null)
-                {
-                    DownloadRasterImageMap.ExportMapTiles(id, strFilePath);
-                }
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, $"Import - GetloadOfflineMap()");
-            }
-        }
-
         public static (string?, float, List<Position>?) ParseGPXtoRoute(rteType? route)
         {
             try
@@ -808,19 +778,7 @@ namespace hajk
             await Elevation.DownloadElevationData(gpx_to_import);
 
             //Get map tiles
-            if (route_to_download.GPXType == GPXType.Route && gpx_to_import.Routes.Count == 1)
-            {
-                await Import.GetloadOfflineMap(gpx_to_import.Routes[0].GetBounds(), databaseId, null);
-            }
-            else if (route_to_download.GPXType == GPXType.Track && gpx_to_import.Tracks.Count == 1)
-            {
-                await Import.GetloadOfflineMap(gpx_to_import.Tracks[0].GetBounds(), databaseId, null);
-            }
-            else
-            {
-                Serilog.Log.Fatal("Unknown and unhandled GPXType or too many routes/tracks in GPX");
-                return false;
-            }
+            await DownloadRasterImageMap.DownloadMap(gpx_to_import.GetBounds(), databaseId);
 
             //Update with elevation data
             await Task.Run(() =>
@@ -894,27 +852,8 @@ namespace hajk
                 GpxClass gpx = GpxClass.FromXml(route.GPX);
 
                 //Get tiles (Elevation and Map)
-                if (route.GPXType == GPXType.Route && gpx.Routes.Count == 1)
-                {
-                    //Download Elevation data
-                    await Elevation.DownloadElevationData(gpx);
-
-                    //Download Map Tiles
-                    await Import.GetloadOfflineMap(gpx.Routes[0].GetBounds(), index, null);
-                }
-                else if (route.GPXType == GPXType.Track && gpx.Tracks.Count == 1)
-                {
-                    //Download Elevation data
-                    await Elevation.DownloadElevationData(gpx);
-
-                    //Download Map Tiles
-                    await Import.GetloadOfflineMap(gpx.Tracks[0].GetBounds(), index, null);
-                }
-                else
-                {
-                    Serilog.Log.Fatal("Unknown and unhandled GPXType or too many routes/tracks in GPX");
-                    return false;
-                }
+                await Elevation.DownloadElevationData(gpx);
+                await DownloadRasterImageMap.DownloadMap(gpx.GetBounds(), index);
 
                 //Update route with elevation data
                 await Task.Run(() =>

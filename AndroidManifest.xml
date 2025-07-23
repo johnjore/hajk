@@ -1,59 +1,74 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="no.johnjore.hajk">
 	<application android:allowBackup="true" android:label="@string/app_name" android:supportsRtl="true" android:theme="@style/AppTheme" android:icon="@mipmap/ic_launcher">
-		<activity android:label="@string/app_name" 
-              android:name="no.johnjore.hajk.MainActivity" 
-              android:theme="@style/AppTheme.NoActionBar"
-							android:configChanges="orientation|keyboardHidden|screenSize"
-							android:exported="true">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
+        <activity android:label="@string/app_name" 
+				  android:name="no.johnjore.hajk.MainActivity" 
+				  android:theme="@style/AppTheme.NoActionBar"
+				  android:configChanges="orientation|keyboardHidden|screenSize"
+				  android:exported="true">
+		<intent-filter>
+			<action android:name="android.intent.action.MAIN" />
+			<category android:name="android.intent.category.LAUNCHER" />
+		</intent-filter>
 
-      <!--
-         Used by the filepicker to only show GPX files for importing
-         Used to import GPX files from file managers (OneDrive, GoogleDrive etc)
-      -->
-      <intent-filter>
-        <action android:name="android.intent.action.VIEW" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <category android:name="android.intent.category.BROWSABLE" />
-        <data android:scheme="content" />
-        <data android:scheme="file" />
-        <data android:host="*" />
-        <data android:mimeType="*/*" />
-        <data android:mimeType="application/gpx" />
-        <data android:mimeType="application/octet-stream" />
-        <data android:pathPattern=".*\\.gpx" />
-        <data android:pathPattern=".*\\..*\\.gpx" />
-        <data android:pathPattern=".*\\..*\\..*\\.gpx" />
-        <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx" />
-        <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.gpx" />
-        <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.gpx" />
-        <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.gpx" />
-      </intent-filter>
+          <!--
+             Used by the filepicker to only show GPX files for importing
+             Used to import GPX files from file managers (OneDrive, GoogleDrive etc)
+          -->
+          <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="content" />
+            <data android:scheme="file" />
+            <data android:host="*" />
+            <data android:mimeType="*/*" />
+            <data android:mimeType="application/gpx" />
+            <data android:mimeType="application/octet-stream" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\..*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.gpx" />
+          </intent-filter>
 			
-    </activity>
-    <service 
-			android:name=".LocationForegroundService"
-			android:foregroundServiceType="location"
-      android:exported="false">
-		</service>
+        </activity>
+        <service 
+		    android:name=".LocationForegroundService"
+		    android:foregroundServiceType="location"
+		    android:exported="false">
+	    </service>
+
+	    <!--
+            Used to "Share" GPX and mapfiles with other applications
+        -->
+        <provider
+		    android:name="androidx.core.content.FileProvider"
+		    android:authorities="${applicationId}.fileprovider"
+		    android:exported="false"
+		    android:grantUriPermissions="true">
+		    <meta-data
+			    android:name="android.support.FILE_PROVIDER_PATHS"
+			    android:resource="@xml/file_paths" 
+		    />
+	    </provider>
+		
 	</application>
-  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-  <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-  <uses-permission android:name="android.permission.VIBRATE" />
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.WAKE_LOCK" />
-  <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
 	<uses-feature android:name="android.hardware.location.gps" android:required="false" />
 	<uses-feature android:name="android.hardware.location.network" android:required="false" />
 </manifest>

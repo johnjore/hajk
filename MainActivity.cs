@@ -233,6 +233,9 @@ namespace hajk
 
                 //Restore recording checkpoint file?
                 RecordTrack.RestoreCheckPoint();
+
+                //Clean share folder
+                Share.CleanSharefolder();
             }
             catch (Exception ex)
             {
