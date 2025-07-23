@@ -155,19 +155,9 @@ namespace hajk.Utilities
                         await Elevation.DownloadElevationData(gpx);
 
                         var bounds = gpx.Waypoints.GetBounds();
-                        Models.Map map = new()
-                        {
-                            Id = 999999,
-                            ZoomMin = Fragment_Preferences.MinZoom,
-                            ZoomMax = Fragment_Preferences.MaxZoom,
-                            BoundsLeft = (double)bounds.minlat,
-                            BoundsBottom = (double)bounds.maxlon,
-                            BoundsRight = (double)bounds.maxlat,
-                            BoundsTop = (double)bounds.minlon
-                        };
 
                         //Get all missing tiles
-                        await DownloadRasterImageMap.DownloadMap(map, false);
+                        await DownloadRasterImageMap.DownloadMap(bounds, 999999, false);
                     }
                 });
             }

@@ -39,24 +39,11 @@ namespace hajk.GPX
                 var route_to_download = RouteDatabase.GetRouteAsync(vh.Id).Result;
                 GpxClass gpx_to_download = GpxClass.FromXml(route_to_download.GPX);
                 
-                if (vh.GPXType == GPXType.Track)
-                {
-                    await Task.Run(async () =>
-                    {
-                        await Import.GetloadOfflineMap(gpx_to_download.Tracks[0].GetBounds(), vh.Id, fileToShare);
-                    });
-                } 
-                else if (vh.GPXType == GPXType.Route)
-                {
-                    await Task.Run(async () =>
-                    {
-                        await Import.GetloadOfflineMap(gpx_to_download.Routes[0].GetBounds(), vh.Id, fileToShare);
-                    });
-                }
-                else
-                {
-                    Log.Fatal($"GPXType not supported");
-                }
+                //Download
+                await Import.GetloadOfflineMap(gpx_to_export.GetBounds(), vh.Id);
+
+                //Export
+                await DownloadRasterImageMap.ExportMapTiles(gpx_to_export, fileToShare);
 
                 Share.ShareFile(Android.App.Application.Context, fileToShare, "application/octet-stream");
             })
