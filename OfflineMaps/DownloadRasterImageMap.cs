@@ -160,10 +160,10 @@ namespace hajk
                 {
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
                     tiles newTile = new();
-                    
+                    tiles oldTile = new();
+
                     for (int i = 0; i < 10; i++)
                     {
-                        tiles oldTile;
                         try
                         {
                             oldTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
@@ -257,13 +257,17 @@ namespace hajk
                         }
                     }
 
-                    if (MBTilesWriter.WriteTile(newTile) == 0)
+                    //Only write to the database if the tiles are different
+                    if (oldTile?.Equals(newTile) == false)
                     {
-                        Log.Error($"Failed to add rows to database");
-                    }
-                    else
-                    {
-                        Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{doneCount}/{missingTilesCount}");
+                        if (MBTilesWriter.WriteTile(newTile) == 0)
+                        {
+                            Log.Error($"Failed to add rows to database");
+                        }
+                        else
+                        {
+                            Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{doneCount}/{missingTilesCount}");
+                        }
                     }
 
                     //Update progress counter as the tile is processed, even if unsuccessful
@@ -343,6 +347,17 @@ namespace hajk
                 doneCount = 0;
                 totalTilesCount = 0;
 
+                //Progress bar - This is shit?!? /**/
+                await Task.Run(async () =>
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.ExportingTiles));
+                        Progressbar.UpdateProgressBar.Progress = 0;
+                        Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount}";
+                    });
+                });
+
                 //Total Tile Count
                 for (int zoom = Fragment_Preferences.MinZoom; zoom <= Fragment_Preferences.MaxZoom; zoom++)
                 {
@@ -351,14 +366,6 @@ namespace hajk
                     Progressbar.UpdateProgressBar.Progress = zoom - Fragment_Preferences.MinZoom + 1;
                     Log.Information($"Need to export '{tiles.Count}' tiles for zoom level '{zoom}', total to export '{totalTilesCount}'");
                 }
-
-                //Progress bar
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync(Platform.CurrentActivity.GetString(Resource.String.UpdatingTiles));
-                    Progressbar.UpdateProgressBar.Progress = 0;
-                    Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount}";
-                });
 
                 //Export tiles
                 for (int zoom = Fragment_Preferences.MinZoom; zoom <= Fragment_Preferences.MaxZoom; zoom++)
@@ -382,7 +389,7 @@ namespace hajk
 
                             //Update progress counter
                             Progressbar.UpdateProgressBar.Progress = (int)Math.Ceiling((decimal)(Fragment_Preferences.MaxZoom + (++doneCount) * (100 - Fragment_Preferences.MaxZoom) / (totalTilesCount)));
-                            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount})";
+                            Progressbar.UpdateProgressBar.MessageBody = $"{doneCount} of {totalTilesCount}";
                         });
                     }
                     else
