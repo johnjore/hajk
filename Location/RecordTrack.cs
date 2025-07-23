@@ -81,7 +81,7 @@ namespace hajk
                 trackGpx.ToFile(Fragment_Preferences.CheckpointGPX);
 
                 //Reset elevation counters
-                ElevationAnalyzer.Reset();
+                RollingElevationAnalyzer.Initialize(smoothingWindow: 3, noiseBand: 0.35, minimumGain: 4.0);
             }
             catch (Exception ex)
             {
@@ -103,9 +103,6 @@ namespace hajk
 
                 //Update status
                 Preferences.Set("RecordingTrack", false);
-
-                //Reset the counter
-                ElevationAnalyzer.Reset();
 
                 Show_Dialog msg1 = new(Platform.CurrentActivity);
                 if (await msg1.ShowDialog($"Track", $"Save Track ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.NO)
@@ -416,7 +413,7 @@ namespace hajk
                 {
                     lat = (decimal)location.Latitude,
                     lon = (decimal)location.Longitude,
-                    ele = (decimal)ElevationAnalyzer.AddElevation(location.Altitude), //Smoothed
+                    ele = (decimal)RollingElevationAnalyzer.AddElevation(location.Altitude), //Smoothed
                     time = DateTime.Now,
                     timeSpecified = true,
                     eleSpecified = true,

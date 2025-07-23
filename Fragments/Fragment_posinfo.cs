@@ -201,7 +201,7 @@ namespace hajk.Fragments
                                     {
                                         Position = AxisPosition.Bottom,
                                         FormatAsFractions = false,
-                                        Unit = $"Travelled {DistanceTravelled:N2} / {'\u25B2'} {ElevationAnalyzer.TotalAscent:N0}m / {'\u25BC'} {ElevationAnalyzer.TotalDescent:N0}m",
+                                        Unit = $"Travelled {DistanceTravelled:N2} / {'\u25B2'} {RollingElevationAnalyzer.TotalAscent:N0}m / {'\u25BC'} {RollingElevationAnalyzer.TotalDescent:N0}m",
                                     },
                                     new LinearAxis
                                     {
