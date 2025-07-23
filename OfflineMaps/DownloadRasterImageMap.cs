@@ -97,7 +97,7 @@ namespace hajk
                 {
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
                     tiles dbTile = MbTileCache.sqlConn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
-                    if ((dbTile == null) || ((DateTime.UtcNow - dbTile.createDate).TotalDays > Fragment_Preferences.OfflineMaxAge))
+                    if ((dbTile == null) || ((DateTime.UtcNow - dbTile.createDate)?.TotalDays > Fragment_Preferences.OfflineMaxAge))
                     {
                         CountMissingTiles++;
                     }
@@ -160,14 +160,14 @@ namespace hajk
                 {
                     int tmsY = (int)Math.Pow(2, zoom) - 1 - tile.Y;
                     tiles newTile = new();
-                    
+                    tiles oldTile = new();
+
                     for (int i = 0; i < 10; i++)
                     {
-                        tiles oldTile;
                         try
                         {
                             oldTile = conn.Table<tiles>().Where(x => x.zoom_level == zoom && x.tile_column == tile.X && x.tile_row == tmsY).FirstOrDefault();
-                            if ((oldTile != null) && ((DateTime.UtcNow - oldTile.createDate).TotalDays < Fragment_Preferences.OfflineMaxAge))
+                            if ((oldTile != null) && ((DateTime.UtcNow - oldTile.createDate)?.TotalDays < Fragment_Preferences.OfflineMaxAge))
                             {
                                 //Tile blob is upto date. No need to download. Break out of for-loop. Update reference
                                 newTile = oldTile;
@@ -257,13 +257,17 @@ namespace hajk
                         }
                     }
 
-                    if (MBTilesWriter.WriteTile(newTile) == 0)
+                    //Only write to the database if the tiles are different
+                    if (oldTile?.Equals(newTile) == false)
                     {
-                        Log.Error($"Failed to add rows to database");
-                    }
-                    else
-                    {
-                        Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{doneCount}/{missingTilesCount}");
+                        if (MBTilesWriter.WriteTile(newTile) == 0)
+                        {
+                            Log.Error($"Failed to add rows to database");
+                        }
+                        else
+                        {
+                            Log.Information($"Zoomindex: {zoom}, x/y/tmsY: {tile.X}/{tile.Y}/{tmsY}, ID: {tile.Id}. Done:{doneCount}/{missingTilesCount}");
+                        }
                     }
 
                     //Update progress counter as the tile is processed, even if unsuccessful
