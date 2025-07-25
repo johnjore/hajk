@@ -12,81 +12,57 @@ namespace hajk
 {
     internal class Restore
     {
-        internal static readonly string[] mimeValue = ["application/zip"];
+        internal static readonly string mimeValue = "application/zip";
 
         public static void ShowRestoreDialogAsync()
         {
-            Task.Run(async () =>
+            SafBackupService.OnFileSelected = (filename) =>
             {
-                string? sourceFile = await PickFileToRestore();
-                if (sourceFile == null || sourceFile == string.Empty)
+                Serilog.Log.Information($"Imported: '{filename}'");
+
+                Task.Run(async () =>
                 {
-                    Serilog.Log.Information("No filename to restore from");
-                    return;
-                }
-
-                Serilog.Log.Information("SourceFile:" + sourceFile);
-
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    Progressbar.UpdateProgressBar.Progress = 0.0;
-                    Progressbar.UpdateProgressBar.MessageBody = $"";
-                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync("Unpacking archive");
-                });
-
-                if (UnPackArchive(sourceFile, Fragment_Preferences.rootPath + "/Temp") == false)
-                {
-                    Serilog.Log.Error("Failed to unpack archive file");
-                    return;
-                }
-
-                //GUI options for restore
-                FragmentActivity? activity = (FragmentActivity?)Platform.CurrentActivity;
-                FragmentTransaction? fragmentTransaction = activity?.SupportFragmentManager.BeginTransaction();
-                Fragment? fragmentPrev = activity?.SupportFragmentManager.FindFragmentByTag("dialog");
-                if (fragmentPrev != null)
-                {
-                    fragmentTransaction?.Remove(fragmentPrev);
-                }
-
-                fragmentTransaction?.AddToBackStack(null);
-
-                Fragment_restore dialogFragment = Fragment_restore.NewInstace(null);
-                if (fragmentTransaction != null)
-                {
-                    dialogFragment.Show(fragmentTransaction, "dialog");
-                }                
-            });
-        }
-
-        private static async Task<string?> PickFileToRestore()
-        {
-            try
-            {
-                var options = new PickOptions
-                {
-                    PickerTitle = "File to restore",
-                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                    if (filename == null || filename == string.Empty)
                     {
-                        { DevicePlatform.Android, mimeValue},
-                    })
-                };
+                        Serilog.Log.Information("No filename to restore from");
+                        return;
+                    }
 
-                var sourceFile = await FilePicker.PickAsync(options);
-                if (sourceFile == null)
-                {
-                    Serilog.Log.Information($"Failed to select file to restore");
-                    return null;
-                }
+                    Serilog.Log.Information("SourceFile:" + filename);
 
-                Serilog.Log.Information($"SourceFile: '{sourceFile.FullPath}'");
-                return sourceFile.FullPath;
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, $"Failed to select file to restore");
-                return null;
-            }
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        Progressbar.UpdateProgressBar.Progress = 0.0;
+                        Progressbar.UpdateProgressBar.MessageBody = $"";
+                        _ = Progressbar.UpdateProgressBar.CreateGUIAsync("Unpacking archive");
+                    });
+
+                    if (UnPackArchive(filename, Fragment_Preferences.rootPath + "/Temp") == false)
+                    {
+                        Serilog.Log.Error("Failed to unpack archive file");
+                        return;
+                    }
+
+                    //GUI options for restore
+                    FragmentActivity? activity = (FragmentActivity?)Platform.CurrentActivity;
+                    FragmentTransaction? fragmentTransaction = activity?.SupportFragmentManager.BeginTransaction();
+                    Fragment? fragmentPrev = activity?.SupportFragmentManager.FindFragmentByTag("dialog");
+                    if (fragmentPrev != null)
+                    {
+                        fragmentTransaction?.Remove(fragmentPrev);
+                    }
+
+                    fragmentTransaction?.AddToBackStack(null);
+
+                    Fragment_restore dialogFragment = Fragment_restore.NewInstace(null);
+                    if (fragmentTransaction != null)
+                    {
+                        dialogFragment.Show(fragmentTransaction, "dialog");
+                    }
+                });
+            };
+
+            SafBackupService.LaunchFilePicker(Platform.CurrentActivity, mimeValue);
         }
 
         private static bool UnPackArchive(string fileName, string tmpFolder)
