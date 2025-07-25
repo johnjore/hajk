@@ -3,6 +3,7 @@ using Android.Content.Res;
 using Android.Content;
 using Android.OS;
 using Android.Widget;
+using AndroidX.DocumentFile.Provider;
 using SharpCompress.Common;
 using SharpCompress.Writers;
 using SQLite;
@@ -23,15 +24,30 @@ namespace hajk
                 Preferences.Get("BackupElevationData", true),
             ];
 
-            //All files
-            var backupFiles = Directory.GetFiles(Fragment_Preferences.Backups);
+            //All backup files
+            var baseFiles = SafServices.ListFilesInFolder(Platform.AppContext);
+            foreach (DocumentFile fileName in baseFiles)
+            {
+                Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
+            }
 
             //Backup taken today?
-            string todaysDate = (DateTime.Now).ToString("yyMMdd");
-            if (backupFiles.Where(x => x.Contains("/" + todaysDate + "-")).FirstOrDefault() != null)
+            foreach (DocumentFile fileName in baseFiles)
             {
-                Serilog.Log.Information($"Backup already taken today '{todaysDate}'");
-                return;
+                Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
+
+                var localDate = DateTimeOffset
+                    .FromUnixTimeMilliseconds(fileName.LastModified())
+                    .DateTime
+                    .ToLocalTime();
+
+                Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()} / '{localDate.Date}'");
+
+                if (localDate.Date >= DateTime.Today)
+                {
+                    Serilog.Log.Information($"Backup already taken today '{DateTime.Today.ToString("yyMMdd")}'");
+                    return;
+                }
             }
 
             //Create progress bar
@@ -220,7 +236,7 @@ namespace hajk
                 }
 
                 Progressbar.UpdateProgressBar.MessageBody = "Creating archive";
-                r6 = CompressBackupFolder(BackupFolder);
+                r6 = SafServices.CreateBackupFile(Platform.AppContext, BackupFolder);
                 Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
                 Progressbar.UpdateProgressBar.MessageBody = "Done creating archive";
                 if (r6 == false)
@@ -458,12 +474,13 @@ namespace hajk
         private static string? CreateBackupFolder()
         {
             Serilog.Log.Information("Create Backup Folder");
+
             //Make sure Backup folder exists
             if (!Directory.Exists(Fragment_Preferences.Backups))
             {
                 try
                 {
-                    _ = Directory.CreateDirectory(Fragment_Preferences.Backups);
+                    Directory.CreateDirectory(Fragment_Preferences.Backups);
                 }
                 catch (Exception ex)
                 {
@@ -497,88 +514,19 @@ namespace hajk
             }
         }
 
-        private static bool CompressBackupFolder(string BackupFolder)
-        {
-            try
-            {
-                Serilog.Log.Information("Create single backup file");
-
-                foreach (string fileName in Directory.GetFiles(BackupFolder))
-                    Serilog.Log.Debug(fileName);
-
-                string[] allfiles = Directory.GetFiles(BackupFolder, "*", SearchOption.AllDirectories);
-
-                using (var zip = File.OpenWrite(BackupFolder + ".zip"))
-                using (var zipWriter = WriterFactory.Open(zip, ArchiveType.Zip, CompressionType.None))
-                {
-                    //zipWriter.WriteAll(BackupFolder, "*", SearchOption.AllDirectories);
-
-                    foreach (string file in allfiles) 
-                    {
-                        if (file.Contains(".nomedia") == false && file.Contains(".noimage") == false)
-                        {
-                            string entryPath = file.Replace(BackupFolder, "");
-                            zipWriter.Write(entryPath, file);
-                        }
-                    }
-                }
-
-                //Remove Temp Folder
-                Utils.Misc.EmptyFolder(BackupFolder);
-
-                foreach (string fileName in Directory.GetFiles(Fragment_Preferences.Backups))
-                    Serilog.Log.Debug(fileName);
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, "Failed to compress backup files to single folder");
-                return false;
-            }
-
-            Serilog.Log.Information("Done creating backup archive");
-            return true;
-        }
-
         private static bool KeepOnlyNBackups()
         {
             try
             {
                 Serilog.Log.Information("Remove old backup files");
 
-                var backupFiles = new DirectoryInfo(Fragment_Preferences.Backups).EnumerateFiles()
-                    .OrderBy(fi => fi.CreationTime).ToList();
-
-                if (backupFiles == null)
-                {
-                    Serilog.Log.Error("backupFiles is 'null' ?");
-                    return false;
-                }
-
-                if (backupFiles.Count == 0)
-                {
-                    Serilog.Log.Fatal("# of backupFiles is '0', which is impossible if we've successfully taken a backup?");
-                    return false;
-                }
-
                 int KeepNBackups = int.Parse(Preferences.Get("KeepNBackups", Fragment_Preferences.KeepNBackups.ToString()));
-                if (backupFiles.Count < KeepNBackups)
-                {
-                    Serilog.Log.Information($"Not reached max backup copies: '{KeepNBackups}'");
-                    return true;
-                }
+                SafServices.PruneOldFiles(Platform.AppContext, "ZIP", ".zip", KeepNBackups);
 
-                //How many files to remove?
-                for (int i = 0; i < backupFiles.Count - KeepNBackups; i++)
+                var baseFiles = SafServices.ListFilesInFolder(Platform.AppContext);
+                foreach (DocumentFile fileName in baseFiles)
                 {
-                    File.Delete(backupFiles[i].FullName);
-                }
-
-                //Backup files
-                backupFiles = [.. new DirectoryInfo(Fragment_Preferences.Backups).EnumerateFiles().OrderBy(fi => fi.CreationTime)];
-
-                foreach (var fileName in backupFiles)
-                {
-                    Serilog.Log.Debug($"Backup files: {fileName.FullName} / {fileName.Length} bytes");
+                    Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length} bytes / Modified: {fileName.LastModified}");
                 }
             }
             catch (Exception ex)

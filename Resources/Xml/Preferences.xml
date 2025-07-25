@@ -112,7 +112,13 @@
 			app:useSimpleSummaryProvider="true" />
 	</PreferenceCategory>
 
-  <PreferenceCategory android:title="Backup">
+    <PreferenceCategory android:title="Backup">
+		<Preference
+			android:key="@string/BackupFolderKey"
+			android:title="@string/BackupFolderTitle"
+			android:icon="@android:drawable/ic_menu_save"
+			android:summary="Choose where backups are saved (Nextcloud, SD card, etc.)" />
+
 		<EditTextPreference
 			android:title="@string/KeepNBackups"
 			android:key="KeepNBackups"

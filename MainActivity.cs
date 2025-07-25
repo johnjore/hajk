@@ -1,10 +1,11 @@
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.Content.Res;
-using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
+using Android.Widget;
 using AndroidX.AppCompat.App;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
@@ -18,21 +19,21 @@ using hajk.Models;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Storage;
-using Serilog;
 using Sentry;
 using Sentry.Android;
 using Sentry.Serilog;
+using Serilog;
+using Serilog.Events;
 using SharpGPX;
 using SQLite;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using System.Threading;
-using System;
-using Serilog.Events;
+using System.Threading.Tasks;
 
 namespace hajk
 {
@@ -97,7 +98,7 @@ namespace hajk
                     _Path, 
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 2, 
-                    fileSizeLimitBytes: 2*1024*1024,
+                    fileSizeLimitBytes: 20*1024*1024,
                     outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}{NewLine}"
                 )
                 .WriteTo.Sentry(options =>
@@ -241,6 +242,14 @@ namespace hajk
             {
                 Log.Fatal(ex, $"MainActivity - OnCreate");
             }
+        }
+
+        protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
+        {
+            base.OnActivityResult(requestCode, resultCode, data);
+
+            SafServices.HandleFolderSelection(this, requestCode, resultCode, data);
+            SafServices.HandleFileSelection(this, requestCode, resultCode, data);
         }
 
         public override void OnBackPressed()
@@ -630,10 +639,6 @@ namespace hajk
                     SentrySdk.CaptureMessage("Log files", scope =>
                     {
                         //Copy log files to Backup folder
-                        var logFolder = Path.Combine(Fragment_Preferences.Backups, DateTime.Now.ToString("yyyy-MM-dd HHmm"));
-                        if (Directory.Exists(logFolder) == false)
-                            Directory.CreateDirectory(logFolder);
-
                         Serilog.Log.Debug($"All log files in rootPath, '{Fragment_Preferences.rootPath}'");
                         var allFiles = Directory.GetFiles(Fragment_Preferences.rootPath, "walkabout*", SearchOption.AllDirectories);
                         foreach (var file in allFiles)
@@ -644,14 +649,14 @@ namespace hajk
                                 Serilog.Log.Error("Attachments too large for Sentry!");
                             
                             scope.AddAttachment(file);
-                            File.Copy(file, Path.Combine(logFolder, Path.GetFileName(file)), true);
+                            _ = SafServices.CopyFileToSafAsync(Platform.AppContext, file);
                         }
 
                         //Include checkpoint file, if it exists
                         if (File.Exists(Fragment_Preferences.CheckpointGPX))
                         {
                             scope.AddAttachment(Fragment_Preferences.CheckpointGPX);
-                            File.Copy(Fragment_Preferences.CheckpointGPX, Path.Combine(logFolder, Path.GetFileName(Fragment_Preferences.CheckpointGPX)), true);
+                            _ = SafServices.CopyFileToSafAsync(Platform.AppContext, Fragment_Preferences.CheckpointGPX);
                         }
                     });
                 });

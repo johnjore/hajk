@@ -1,4 +1,6 @@
-﻿using AndroidX.Fragment.App;
+﻿using Android.Content;
+using Android.Provider;
+using AndroidX.Fragment.App;
 using hajk.Fragments;
 using SharpCompress.Common;
 using SharpCompress.Readers;
@@ -12,85 +14,69 @@ namespace hajk
 {
     internal class Restore
     {
-        internal static readonly string[] mimeValue = ["application/zip"];
+        internal static readonly string mimeValue = "application/zip";
 
         public static void ShowRestoreDialogAsync()
         {
-            Task.Run(async () =>
+            SafServices.OnFileSelected = (uri) =>
             {
-                string? sourceFile = await PickFileToRestore();
-                if (sourceFile == null || sourceFile == string.Empty)
+                Task.Run(async () =>
                 {
-                    Serilog.Log.Information("No filename to restore from");
-                    return;
-                }
-
-                Serilog.Log.Information("SourceFile:" + sourceFile);
-
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    Progressbar.UpdateProgressBar.Progress = 0.0;
-                    Progressbar.UpdateProgressBar.MessageBody = $"";
-                    _ = Progressbar.UpdateProgressBar.CreateGUIAsync("Unpacking archive");
-                });
-
-                if (UnPackArchive(sourceFile, Fragment_Preferences.rootPath + "/Temp") == false)
-                {
-                    Serilog.Log.Error("Failed to unpack archive file");
-                    return;
-                }
-
-                //GUI options for restore
-                FragmentActivity? activity = (FragmentActivity?)Platform.CurrentActivity;
-                FragmentTransaction? fragmentTransaction = activity?.SupportFragmentManager.BeginTransaction();
-                Fragment? fragmentPrev = activity?.SupportFragmentManager.FindFragmentByTag("dialog");
-                if (fragmentPrev != null)
-                {
-                    fragmentTransaction?.Remove(fragmentPrev);
-                }
-
-                fragmentTransaction?.AddToBackStack(null);
-
-                Fragment_restore dialogFragment = Fragment_restore.NewInstace(null);
-                if (fragmentTransaction != null)
-                {
-                    dialogFragment.Show(fragmentTransaction, "dialog");
-                }                
-            });
-        }
-
-        private static async Task<string?> PickFileToRestore()
-        {
-            try
-            {
-                var options = new PickOptions
-                {
-                    PickerTitle = "File to restore",
-                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        { DevicePlatform.Android, mimeValue},
-                    })
-                };
+                        Progressbar.UpdateProgressBar.Progress = 0.0;
+                        Progressbar.UpdateProgressBar.MessageBody = $"";
+                        _ = Progressbar.UpdateProgressBar.CreateGUIAsync("Unpacking archive");
+                    });
 
-                var sourceFile = await FilePicker.PickAsync(options);
-                if (sourceFile == null)
-                {
-                    Serilog.Log.Information($"Failed to select file to restore");
-                    return null;
-                }
+                    if (UnPackArchive(Platform.AppContext, uri, Fragment_Preferences.rootPath + "/Temp") == false)
+                    {
+                        Serilog.Log.Error("Failed to unpack archive file");
+                        return;
+                    }
 
-                Serilog.Log.Information($"SourceFile: '{sourceFile.FullPath}'");
-                return sourceFile.FullPath;
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, $"Failed to select file to restore");
-                return null;
-            }
+                    //GUI options for restore
+                    FragmentActivity? activity = (FragmentActivity?)Platform.CurrentActivity;
+                    FragmentTransaction? fragmentTransaction = activity?.SupportFragmentManager.BeginTransaction();
+                    Fragment? fragmentPrev = activity?.SupportFragmentManager.FindFragmentByTag("dialog");
+                    if (fragmentPrev != null)
+                    {
+                        fragmentTransaction?.Remove(fragmentPrev);
+                    }
+
+                    fragmentTransaction?.AddToBackStack(null);
+
+                    Fragment_restore dialogFragment = Fragment_restore.NewInstace(null);
+                    if (fragmentTransaction != null)
+                    {
+                        dialogFragment.Show(fragmentTransaction, "dialog");
+                    }
+                });
+            };
+
+            SafServices.LaunchFilePicker(Platform.CurrentActivity, mimeValue);
         }
 
-        private static bool UnPackArchive(string fileName, string tmpFolder)
+        public static string? GetDisplayNameFromUri(Context? context, Android.Net.Uri uri)
         {
+            using var cursor = context?.ContentResolver?.Query(uri, null, null, null, null);
+            if (cursor != null && cursor.MoveToFirst())
+            {
+                int nameIndex = cursor.GetColumnIndex(OpenableColumns.DisplayName);
+                if (nameIndex >= 0)
+                    return cursor.GetString(nameIndex);
+            }
+            return null;
+        }
+
+        private static bool UnPackArchive(Context context, Android.Net.Uri? uri, string tmpFolder)
+        {
+            var filename = GetDisplayNameFromUri(Platform.AppContext, uri);
+            if (string.IsNullOrEmpty(filename))
+                return false;
+
+            Serilog.Log.Information("SourceFile:" + filename);
+
             try
             {
                 //Make sure temp restore folder exists
@@ -109,7 +95,7 @@ namespace hajk
 
                 //Count files in file to unpack
                 int Entries = 0;
-                using (Stream stream = File.OpenRead(fileName))
+                using (Stream? stream = context?.ContentResolver?.OpenInputStream(uri))
                 using (var reader = ReaderFactory.Open(stream))
                 {
                     while (reader.MoveToNextEntry())
@@ -121,7 +107,7 @@ namespace hajk
                 double ProgressBarIncrement = ((double)100 / Entries);
                 Serilog.Log.Information($"Entries in Stream '{Entries}'. Each Progressbar increment is '{ProgressBarIncrement}'");
 
-                using (Stream stream = File.OpenRead(fileName))
+                using (Stream stream = context?.ContentResolver?.OpenInputStream(uri))
                 using (var reader = ReaderFactory.Open(stream))
                 {
                     while (reader.MoveToNextEntry())
