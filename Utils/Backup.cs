@@ -25,7 +25,7 @@ namespace hajk
             ];
 
             //All backup files
-            var baseFiles = SafBackupService.ListFilesInFolder(Platform.AppContext);
+            var baseFiles = SafServices.ListFilesInFolder(Platform.AppContext);
             foreach (DocumentFile fileName in baseFiles)
             {
                 Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
@@ -542,7 +542,7 @@ namespace hajk
                 }
 
                 //Move file to Saf
-                if (SafBackupService.MoveFileToSaf(Platform.AppContext, ZipFile, Path.GetFileName(ZipFile), "application/zip", null) == false)
+                if (SafServices.MoveFileToSaf(Platform.AppContext, ZipFile, Path.GetFileName(ZipFile), "application/zip", null) == false)
                     return false;
 
                 //Remove Temp Folder
@@ -568,9 +568,9 @@ namespace hajk
                 Serilog.Log.Information("Remove old backup files");
 
                 int KeepNBackups = int.Parse(Preferences.Get("KeepNBackups", Fragment_Preferences.KeepNBackups.ToString()));
-                SafBackupService.PruneOldFiles(Platform.AppContext, "ZIP", ".zip", KeepNBackups);
+                SafServices.PruneOldFiles(Platform.AppContext, "ZIP", ".zip", KeepNBackups);
 
-                var baseFiles = SafBackupService.ListFilesInFolder(Platform.AppContext);
+                var baseFiles = SafServices.ListFilesInFolder(Platform.AppContext);
                 foreach (DocumentFile fileName in baseFiles)
                 {
                     Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length} bytes / Modified: {fileName.LastModified}");

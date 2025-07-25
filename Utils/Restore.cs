@@ -1,4 +1,6 @@
-﻿using AndroidX.Fragment.App;
+﻿using Android.Content;
+using Android.Provider;
+using AndroidX.Fragment.App;
 using hajk.Fragments;
 using SharpCompress.Common;
 using SharpCompress.Readers;
@@ -16,20 +18,10 @@ namespace hajk
 
         public static void ShowRestoreDialogAsync()
         {
-            SafBackupService.OnFileSelected = (filename) =>
+            SafServices.OnFileSelected = (uri) =>
             {
-                Serilog.Log.Information($"Imported: '{filename}'");
-
                 Task.Run(async () =>
                 {
-                    if (filename == null || filename == string.Empty)
-                    {
-                        Serilog.Log.Information("No filename to restore from");
-                        return;
-                    }
-
-                    Serilog.Log.Information("SourceFile:" + filename);
-
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
                         Progressbar.UpdateProgressBar.Progress = 0.0;
@@ -37,7 +29,7 @@ namespace hajk
                         _ = Progressbar.UpdateProgressBar.CreateGUIAsync("Unpacking archive");
                     });
 
-                    if (UnPackArchive(filename, Fragment_Preferences.rootPath + "/Temp") == false)
+                    if (UnPackArchive(Platform.AppContext, uri, Fragment_Preferences.rootPath + "/Temp") == false)
                     {
                         Serilog.Log.Error("Failed to unpack archive file");
                         return;
@@ -62,11 +54,29 @@ namespace hajk
                 });
             };
 
-            SafBackupService.LaunchFilePicker(Platform.CurrentActivity, mimeValue);
+            SafServices.LaunchFilePicker(Platform.CurrentActivity, mimeValue);
         }
 
-        private static bool UnPackArchive(string fileName, string tmpFolder)
+        public static string? GetDisplayNameFromUri(Context? context, Android.Net.Uri uri)
         {
+            using var cursor = context?.ContentResolver?.Query(uri, null, null, null, null);
+            if (cursor != null && cursor.MoveToFirst())
+            {
+                int nameIndex = cursor.GetColumnIndex(OpenableColumns.DisplayName);
+                if (nameIndex >= 0)
+                    return cursor.GetString(nameIndex);
+            }
+            return null;
+        }
+
+        private static bool UnPackArchive(Context context, Android.Net.Uri? uri, string tmpFolder)
+        {
+            var filename = GetDisplayNameFromUri(Platform.AppContext, uri);
+            if (string.IsNullOrEmpty(filename))
+                return false;
+
+            Serilog.Log.Information("SourceFile:" + filename);
+
             try
             {
                 //Make sure temp restore folder exists
@@ -85,7 +95,7 @@ namespace hajk
 
                 //Count files in file to unpack
                 int Entries = 0;
-                using (Stream stream = File.OpenRead(fileName))
+                using (Stream? stream = context?.ContentResolver?.OpenInputStream(uri))
                 using (var reader = ReaderFactory.Open(stream))
                 {
                     while (reader.MoveToNextEntry())
@@ -97,7 +107,7 @@ namespace hajk
                 double ProgressBarIncrement = ((double)100 / Entries);
                 Serilog.Log.Information($"Entries in Stream '{Entries}'. Each Progressbar increment is '{ProgressBarIncrement}'");
 
-                using (Stream stream = File.OpenRead(fileName))
+                using (Stream stream = context?.ContentResolver?.OpenInputStream(uri))
                 using (var reader = ReaderFactory.Open(stream))
                 {
                     while (reader.MoveToNextEntry())

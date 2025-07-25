@@ -248,8 +248,8 @@ namespace hajk
         {
             base.OnActivityResult(requestCode, resultCode, data);
 
-            SafBackupService.HandleFolderSelection(this, requestCode, resultCode, data);
-            SafBackupService.HandleFileSelection(this, requestCode, resultCode, data);
+            SafServices.HandleFolderSelection(this, requestCode, resultCode, data);
+            SafServices.HandleFileSelection(this, requestCode, resultCode, data);
         }
 
         public override void OnBackPressed()

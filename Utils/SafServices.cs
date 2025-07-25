@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 
 namespace hajk
 {
-    public static class SafBackupService
+    public static class SafServices
     {
         private const int RequestCodeOpenFolder = 1001;
         public const int RequestCodeOpenFile = 1002;
         public const string PrefKeySafFolderUri = "saf_backup_uri";
-        public static Action<string> OnFileSelected;
+        public static Action<Android.Net.Uri>? OnFileSelected;
 
         public static void RequestFolderSelection(Activity activity)
         {
@@ -67,29 +67,7 @@ namespace hajk
             if (requestCode != RequestCodeOpenFile || resultCode != Result.Ok || data?.Data == null)
                 return;
 
-            var uri = data.Data;
-            var filename = GetDisplayNameFromUri(context, uri);
-            if (string.IsNullOrEmpty(filename))
-                return;
-
-            string destinationPath = Path.Combine(Fragment_Preferences.rootPath, "Temp", filename);
-            var success = CopyFileFromSafUri(context, uri, destinationPath);
-            if (success)
-            {
-                OnFileSelected?.Invoke(filename);
-            }
-        }
-
-        public static string? GetDisplayNameFromUri(Context? context, Android.Net.Uri uri)
-        {
-            using var cursor = context?.ContentResolver?.Query(uri, null, null, null, null);
-            if (cursor != null && cursor.MoveToFirst())
-            {
-                int nameIndex = cursor.GetColumnIndex(OpenableColumns.DisplayName);
-                if (nameIndex >= 0)
-                    return cursor.GetString(nameIndex);
-            }
-            return null;
+            OnFileSelected?.Invoke(data.Data);
         }
 
         // Returns true if SAF backup folder is set
@@ -224,29 +202,6 @@ namespace hajk
             File.Delete(sourcePath);
 
             return true;
-        }
-
-        public static bool CopyFileFromSafUri(Context? context, Android.Net.Uri sourceUri, string destinationPath)
-        {
-            try
-            {
-                if (sourceUri == null || string.IsNullOrEmpty(destinationPath))
-                    return false;
-
-                using var inputStream = context?.ContentResolver?.OpenInputStream(sourceUri);
-                if (inputStream == null)
-                    return false;
-
-                using var outputStream = System.IO.File.Create(destinationPath);
-                inputStream.CopyTo(outputStream);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, $"Failed to copy from SAF");
-                return false;
-            }
         }
     }
 }

@@ -124,12 +124,12 @@ namespace hajk
             SetPreferencesFromResource(Resource.Xml.Preferences, rootKey);
 
             //Select Backup Folder
-            SetSummary((Preference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.BackupFolderKey)), SafBackupService.PrefKeySafFolderUri);
+            SetSummary((Preference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.BackupFolderKey)), SafServices.PrefKeySafFolderUri);
             Preference? backupPref = (Preference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.BackupFolderKey));
             backupPref.PreferenceClick += (sender, e) =>
             {
                 // Call SAF folder picker
-                SafBackupService.RequestFolderSelection(Platform.CurrentActivity);
+                SafServices.RequestFolderSelection(Platform.CurrentActivity);
             };
             
             //Populate the ListPreference's
@@ -201,7 +201,7 @@ namespace hajk
             var uri = prefs.GetString(Key, null);
 
             //Backup Folder Specific
-            if (uri != null && Key.Equals(SafBackupService.PrefKeySafFolderUri))
+            if (uri != null && Key.Equals(SafServices.PrefKeySafFolderUri))
             {
                 var folderUri = Android.Net.Uri.Parse(uri);
                 var doc = DocumentFile.FromTreeUri(Android.App.Application.Context, folderUri);
@@ -217,9 +217,9 @@ namespace hajk
             }
 
             //Update Summary
-            if (key.Equals(SafBackupService.PrefKeySafFolderUri))
+            if (key.Equals(SafServices.PrefKeySafFolderUri))
             {
-                SetSummary((Preference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.BackupFolderKey)), SafBackupService.PrefKeySafFolderUri);
+                SetSummary((Preference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.BackupFolderKey)), SafServices.PrefKeySafFolderUri);
             }
 
             Preference? pref = FindPreference(key);
