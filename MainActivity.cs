@@ -98,7 +98,7 @@ namespace hajk
                     _Path, 
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 2, 
-                    fileSizeLimitBytes: 2*1024*1024,
+                    fileSizeLimitBytes: 20*1024*1024,
                     outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}{NewLine}"
                 )
                 .WriteTo.Sentry(options =>
@@ -639,10 +639,6 @@ namespace hajk
                     SentrySdk.CaptureMessage("Log files", scope =>
                     {
                         //Copy log files to Backup folder
-                        var logFolder = Path.Combine(Fragment_Preferences.Backups, DateTime.Now.ToString("yyyy-MM-dd HHmm"));
-                        if (Directory.Exists(logFolder) == false)
-                            Directory.CreateDirectory(logFolder);
-
                         Serilog.Log.Debug($"All log files in rootPath, '{Fragment_Preferences.rootPath}'");
                         var allFiles = Directory.GetFiles(Fragment_Preferences.rootPath, "walkabout*", SearchOption.AllDirectories);
                         foreach (var file in allFiles)
@@ -653,14 +649,14 @@ namespace hajk
                                 Serilog.Log.Error("Attachments too large for Sentry!");
                             
                             scope.AddAttachment(file);
-                            File.Copy(file, Path.Combine(logFolder, Path.GetFileName(file)), true);
+                            _ = SafServices.CopyFileToSafAsync(Platform.AppContext, file);
                         }
 
                         //Include checkpoint file, if it exists
                         if (File.Exists(Fragment_Preferences.CheckpointGPX))
                         {
                             scope.AddAttachment(Fragment_Preferences.CheckpointGPX);
-                            File.Copy(Fragment_Preferences.CheckpointGPX, Path.Combine(logFolder, Path.GetFileName(Fragment_Preferences.CheckpointGPX)), true);
+                            _ = SafServices.CopyFileToSafAsync(Platform.AppContext, Fragment_Preferences.CheckpointGPX);
                         }
                     });
                 });

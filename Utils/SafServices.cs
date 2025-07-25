@@ -3,6 +3,7 @@ using Android.Content;
 using Android.Net;
 using Android.Preferences;
 using Android.Provider;
+using Android.Webkit;
 using Android.Widget;
 using AndroidX.DocumentFile.Provider;
 using SharpCompress.Common;
@@ -213,6 +214,57 @@ namespace hajk
             }
 
             return true;
+        }
+
+        public static async Task<bool> CopyFileToSafAsync(Context context, string sourceFilePath)
+        {
+            if (!File.Exists(sourceFilePath))
+                return false;
+
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(context);
+            var uriString = prefs.GetString(PrefKeySafFolderUri, null);
+            if (string.IsNullOrEmpty(uriString))
+                return false;
+
+            var baseUri = Android.Net.Uri.Parse(uriString);
+            var targetFolder = DocumentFile.FromTreeUri(context, baseUri);
+
+            if (targetFolder == null || !targetFolder.CanWrite() || !targetFolder.IsDirectory)
+                return false;
+
+            var mimeType = GetMimeType(sourceFilePath) ?? "application/octet-stream";
+            var filename = Path.GetFileName(sourceFilePath);
+
+            // Delete existing file if already exists
+            var existingFile = targetFolder.FindFile(filename);
+            existingFile?.Delete();
+
+            // Create target file
+            var targetFile = targetFolder.CreateFile(mimeType, filename);
+            if (targetFile == null)
+                return false;
+
+            try
+            {
+                using var input = File.OpenRead(sourceFilePath);
+                using var output = context.ContentResolver.OpenOutputStream(targetFile.Uri);
+                if (output == null)
+                    return false;
+
+                await input.CopyToAsync(output);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, $"Error copying file");
+                return false;
+            }
+        }
+
+        private static string GetMimeType(string filePath)
+        {
+            var extension = Path.GetExtension(filePath)?.TrimStart('.').ToLowerInvariant();
+            return MimeTypeMap.Singleton.GetMimeTypeFromExtension(extension);
         }
     }
 }
