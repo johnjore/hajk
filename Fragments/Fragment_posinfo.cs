@@ -163,7 +163,7 @@ namespace hajk.Fragments
                     try
                     {
                         (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) = GPXUtils.GPXUtils.CalculateElevationDistanceData(RecordTrack.trackGpx.Waypoints, 0, RecordTrack.trackGpx.Waypoints.Count - 1);
-                        DistanceTravelled = (TrackDistanceFromStart_m / 1000).ToString("N2") + "km";
+                        DistanceTravelled = (TrackDistanceFromStart_m / 1000.0).ToString("N2") + "km";
                         Serilog.Log.Debug($"TrackDistanceFromStart_m: '{TrackDistanceFromStart_m.ToString()}', DistanceTravelled: '{DistanceTravelled}', TrackAscentFromStart_m: '{TrackAscentFromStart_m.ToString()}', TrackDescentFromStart_m: '{TrackDescentFromStart_m}'");
 
                         CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} {DistanceTravelled:N2} / " +
