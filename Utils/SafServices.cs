@@ -5,6 +5,8 @@ using Android.Preferences;
 using Android.Provider;
 using Android.Widget;
 using AndroidX.DocumentFile.Provider;
+using SharpCompress.Common;
+using SharpCompress.Writers;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
@@ -145,18 +147,18 @@ namespace hajk
                 out _);
         }
 
-        public static bool MoveFileToSaf(Context context, string sourcePath, string targetFilename, string mimeType, string? relativeFolderPath = null)
+        public static bool CreateBackupFile(Context context, string BackupFolder)
         {
-            if (!File.Exists(sourcePath))
-                return false;
+            Serilog.Log.Information("Create single (non-compressed zip) file");
 
+            //Where to save zip file
             var prefs = PreferenceManager.GetDefaultSharedPreferences(context);
-            var uriString = prefs.GetString("saf_backup_uri", null);
-            if (string.IsNullOrEmpty(uriString)) 
+            var uriString = prefs.GetString(PrefKeySafFolderUri, null);
+            if (string.IsNullOrEmpty(uriString))
                 return false;
 
             var baseFolder = DocumentFile.FromTreeUri(context, Android.Net.Uri.Parse(uriString));
-            if (baseFolder == null || !baseFolder.IsDirectory) 
+            if (baseFolder == null || !baseFolder.IsDirectory)
                 return false;
 
             var persisted = context.ContentResolver?.PersistedUriPermissions;
@@ -165,41 +167,50 @@ namespace hajk
                 Serilog.Log.Debug("SAF", $"Persisted: {perm.Uri}, Read: {perm.IsReadPermission}, Write: {perm.IsWritePermission}");
             }
 
-            DocumentFile targetFolder = baseFolder;
-            if (!string.IsNullOrEmpty(relativeFolderPath))
-            {
-                var parts = relativeFolderPath.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var part in parts)
-                {
-                    var next = targetFolder.FindFile(part);
-                    if (next == null || !next.IsDirectory)
-                        next = targetFolder.CreateDirectory(part);
-                    if (next == null) 
-                        return false;
-                    targetFolder = next;
-                }
-            }
-
             //Make sure target is a directory and writeable
-            if (!targetFolder.IsDirectory || !targetFolder.CanWrite())
+            if (!baseFolder.IsDirectory || !baseFolder.CanWrite())
             {
-                Serilog.Log.Error("SAF", $"Target folder is not writable or not a directory: {targetFolder.Uri}");
+                Serilog.Log.Error("SAF", $"Target folder is not writable or not a directory: {baseFolder.Uri}");
                 return false;
             }
 
             // Delete any existing file
-            targetFolder.FindFile(targetFilename)?.Delete();
+            string targetFilename = Path.GetFileName(BackupFolder + ".zip");
+            baseFolder.FindFile(targetFilename)?.Delete();
 
-            var targetFile = targetFolder.CreateFile(mimeType, targetFilename);
-            if (targetFile == null) 
+            //Can we create the zip file?
+            var targetFile = baseFolder.CreateFile("application/zip", targetFilename);
+            if (targetFile == null)
                 return false;
 
-            using var inputStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read);
-            using var outputStream = context.ContentResolver.OpenOutputStream(targetFile.Uri, "w");
-            inputStream.CopyTo(outputStream);
+            //Files to backup
+            foreach (string fileName in Directory.GetFiles(BackupFolder))
+                Serilog.Log.Debug(fileName);
 
-            //Remove the source file
-            File.Delete(sourcePath);
+            //Create zip file
+            string[] allfiles = Directory.GetFiles(BackupFolder, "*", SearchOption.AllDirectories);
+            using (var zip = context.ContentResolver.OpenOutputStream(targetFile.Uri, "w"))
+            using (var zipWriter = WriterFactory.Open(zip, ArchiveType.Zip, CompressionType.None))
+            {
+                foreach (string file in allfiles)
+                {
+                    if (file.Contains(".nomedia") == false && file.Contains(".noimage") == false)
+                    {
+                        string entryPath = Path.GetFileName(file); //Strip off the full Android pathname
+                        var inputStream = new FileStream(file, FileMode.Open, FileAccess.Read);
+                        zipWriter.Write(entryPath, inputStream);
+                    }
+                }
+            }
+
+            //Remove Temp Folder
+            Utils.Misc.EmptyFolder(BackupFolder);
+
+            var baseFiles = ListFilesInFolder(context);
+            foreach (DocumentFile fileName in baseFiles)
+            {
+                Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
+            }
 
             return true;
         }

@@ -236,7 +236,7 @@ namespace hajk
                 }
 
                 Progressbar.UpdateProgressBar.MessageBody = "Creating archive";
-                r6 = CompressBackupFolder(BackupFolder);
+                r6 = SafServices.CreateBackupFile(Platform.AppContext, BackupFolder);
                 Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
                 Progressbar.UpdateProgressBar.MessageBody = "Done creating archive";
                 if (r6 == false)
@@ -512,53 +512,6 @@ namespace hajk
                 Serilog.Log.Fatal($"Folder already exists: '{backupFolderName}'");
                 return null;
             }
-        }
-
-        private static bool CompressBackupFolder(string BackupFolder)
-        {
-            try
-            {
-                Serilog.Log.Information("Create single backup file");
-
-                foreach (string fileName in Directory.GetFiles(BackupFolder))
-                    Serilog.Log.Debug(fileName);
-
-                string[] allfiles = Directory.GetFiles(BackupFolder, "*", SearchOption.AllDirectories);
-
-                string ZipFile = BackupFolder + ".zip";
-                using (var zip = File.OpenWrite(ZipFile))
-                using (var zipWriter = WriterFactory.Open(zip, ArchiveType.Zip, CompressionType.None))
-                {
-                    //zipWriter.WriteAll(BackupFolder, "*", SearchOption.AllDirectories);
-
-                    foreach (string file in allfiles) 
-                    {
-                        if (file.Contains(".nomedia") == false && file.Contains(".noimage") == false)
-                        {
-                            string entryPath = Path.GetFileName(file); //Strip off the full Android pathname
-                            zipWriter.Write(entryPath, file);
-                        }
-                    }
-                }
-
-                //Move file to Saf
-                if (SafServices.MoveFileToSaf(Platform.AppContext, ZipFile, Path.GetFileName(ZipFile), "application/zip", null) == false)
-                    return false;
-
-                //Remove Temp Folder
-                Utils.Misc.EmptyFolder(BackupFolder);
-
-                foreach (string fileName in Directory.GetFiles(Fragment_Preferences.Backups))
-                    Serilog.Log.Debug(fileName);
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, "Failed to compress backup files to single folder");
-                return false;
-            }
-
-            Serilog.Log.Information("Done creating backup archive");
-            return true;
         }
 
         private static bool KeepOnlyNBackups()
