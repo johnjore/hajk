@@ -72,7 +72,7 @@ namespace hajk
         public readonly static string rootPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
         public readonly static string LiveData = rootPath + "/" + "LiveData";   //Live Data
         public readonly static string? DownloadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
-        public readonly static string Backups = DownloadFolder + "/" + "Backups";           //Backup Data
+        public readonly static string Backups = rootPath + "/" + "Backups";                 //Working folder Backups
         public readonly static string MapFolder = LiveData + "/" + "MapTiles";              //Folder to store offline tiles (one file per MapSource)
         public readonly static string CheckpointGPX = LiveData + "/" + "Checkpoint.gpx";    //Checkpoint file for GPX recordings
         public readonly static string ShareFolder = Path.Combine(rootPath, "Sharing");      //Folder for sharing files - Cleaned up app at startup
