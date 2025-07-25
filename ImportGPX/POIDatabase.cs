@@ -67,9 +67,11 @@ namespace hajk.Data
 
 
         // Get a specific waypoint
-        public static Task<GPXDataPOI> GetPOIAsync(long id)
+        public static Task<GPXDataPOI> GetPOIAsync(long? id)
         {
-            return database.Table<GPXDataPOI>().Where(i => i.Id == id).FirstOrDefaultAsync();
+            if (id != null)
+                return database.Table<GPXDataPOI>().Where(i => i.Id == id).FirstOrDefaultAsync();
+            else return null;
         }
 
         //Update or save a new waypoint
@@ -109,8 +111,8 @@ namespace hajk.Data
         }
 
         // Delete a waypoint
-        public static Task<int> DeletePOIAsync(long id)
-        {            
+        public static Task<int> DeletePOIAsync(long? id)
+        {
             return database.DeleteAsync(database.Table<GPXDataPOI>().Where(i => i.Id == id).FirstAsync().Result);
         }
     }

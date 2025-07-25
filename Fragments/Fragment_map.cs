@@ -33,7 +33,8 @@ namespace hajk.Fragments
         public static MapControl? mapControl = null;
         public static Mapsui.Map map = new();
         private static Position? MapPressed = null;
-        private static long MovingPOI = -1;               //For MapInfo, if >=0, next tap is new location for POI #
+        private static long? Id = null;
+        private static long? MovingPOI = -1;               //For MapInfo, if >=0, next tap is new location for POI #
 
         public override void OnCreate(Bundle? savedInstanceState)
         {
@@ -171,6 +172,12 @@ namespace hajk.Fragments
                 if (args.MapInfo.WorldPosition == null)
                     return;
 
+                //Update MapPressed & Id
+                var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+                MapPressed = new Position(b.lat, b.lon, 0, false, null);
+                Serilog.Log.Debug($"Route Object. GPS Position: " + b.ToString());
+                Id = Convert.ToInt64(args.MapInfo?.Feature?["id"]);
+
                 //Create POI?
                 if (args.MapInfo?.Feature == null && args.NumTaps >= 2 && args.MapInfo?.WorldPosition != null)
                 {
@@ -230,11 +237,6 @@ namespace hajk.Fragments
                 if (args.MapInfo.Layer.Tag == null)
                     return;
 
-                //Update MapPressed
-                var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-                MapPressed = new Position(b.lat, b.lon, 0, false, null);
-                Serilog.Log.Debug($"Route Object. GPS Position: " + b.ToString());
-
                 //Simplify
                 var layer = args.MapInfo.Layer;
                 var style = args.MapInfo.Style;
@@ -243,7 +245,6 @@ namespace hajk.Fragments
                 if (layer.Name == Fragment_Preferences.Layer_Poi && layer.Tag.ToString() == Fragment_Preferences.Layer_Poi && args.MapInfo != null && args.MapInfo.WorldPosition != null)
                 {
                     Serilog.Log.Debug($"POI Object");
-                    long id = Convert.ToInt64(args.MapInfo?.Feature["id"]);
                     var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                     var text = "Name:\n" + args.MapInfo?.Feature["name"] + "\n\nDescription:\n" + args.MapInfo?.Feature["description"] + "\n\nLocation:\n";
 
@@ -254,7 +255,7 @@ namespace hajk.Fragments
                     UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lat, lon);
                     text += ($"\nUTM: {utm?.LongZone}{utm?.LatZone} {utm?.Easting.ToString("0")} E {utm?.Northing.ToString("0")} N");
 
-                    Serilog.Log.Debug($"{text} {id}");
+                    Serilog.Log.Debug($"{text}/n{Id}");
 
                     Task.Run(async () =>
                     {
@@ -266,8 +267,8 @@ namespace hajk.Fragments
                             var result = await msg.ShowDialog("Delete POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
                             if (result == Show_Dialog.MessageResult.YES)
                             {
-                                Serilog.Log.Debug($"Deleting {id} from POI DB and MemoryLayer");
-                                var r = await POIDatabase.DeletePOIAsync(id);
+                                Serilog.Log.Debug($"Deleting {Id} from POI DB and MemoryLayer");
+                                var r = await POIDatabase.DeletePOIAsync(Id);
                                 DisplayMapItems.AddPOIToMap();
                             }
                         }
@@ -278,8 +279,8 @@ namespace hajk.Fragments
                             var result = await msg.ShowDialog("Move POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
                             if (result == Show_Dialog.MessageResult.YES)
                             {
-                                Serilog.Log.Debug($"Moving {id} ing POI DB and MemoryLayer");
-                                MovingPOI = id;
+                                Serilog.Log.Debug($"Moving {Id} ing POI DB and MemoryLayer");
+                                MovingPOI = Id;
                             }
                         }
                     });
@@ -288,7 +289,37 @@ namespace hajk.Fragments
                 //Track?
                 if (layer.Tag.ToString() == Fragment_Preferences.Layer_Track)
                 {
-                    Serilog.Log.Debug($"Track Object");
+                    var activity = (FragmentActivity?)Platform.CurrentActivity;
+
+                    //Remove the old fragment, before creating a new one. Maybe replace this with update, instead of delete and create... /**/
+                    var fragment = activity?.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo");
+                    if (fragment != null)
+                    {
+                        activity?.SupportFragmentManager.BeginTransaction()
+                            .Remove(fragment)
+                            .Commit();
+                        activity?.SupportFragmentManager.ExecutePendingTransactions();
+                    }
+
+                    //Create fragment
+                    activity?.SupportFragmentManager.BeginTransaction()
+                        .Add(Resource.Id.fragment_container, new Fragment_posinfo(), "Fragment_posinfo")
+                        .Commit();
+                    activity?.SupportFragmentManager.ExecutePendingTransactions();
+
+                    //Show fragment
+                    var frag = activity?.SupportFragmentManager?.FindFragmentByTag("Fragment_posinfo");
+                    if (frag != null)
+                    {
+                        activity?.SupportFragmentManager.BeginTransaction()
+                            .Show(frag)
+                            .Commit();
+                        activity?.SupportFragmentManager.ExecutePendingTransactions();
+                    }
+
+                    long id = Convert.ToInt64(args.MapInfo?.Feature["id"]);
+                    var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+
                 }
 
                 //Route?
@@ -345,6 +376,11 @@ namespace hajk.Fragments
         public static Position? GetMapPressedCoordinates()
         {
             return MapPressed;
+        }
+
+        public static long? GetId()
+        {
+            return Id;
         }
 
     }
