@@ -11,89 +11,76 @@ using Mapsui.Nts.Extensions;
 using Mapsui.Projections;
 using Mapsui.Styles;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.IO;
-using Org.Apache.Http.Conn.Routing;
 using SharpGPX;
-using static Java.Util.Jar.Attributes;
 
 namespace hajk
 {
+    /// <summary>
+    /// Static utility class for displaying POIs, routes, and tracks on the map.
+    /// </summary>
     internal class DisplayMapItems
     {
+        /// <summary>
+        /// Adds POIs stored in the database to the map as a MemoryLayer.
+        /// </summary>
         public static void AddPOIToMap()
         {
             try
             {
                 List<GPXDataPOI> POIs = POIDatabase.GetPOIAsync().Result;
-
-                if (POIs == null || POIs.Count == 0)
-                {
-                    return;
-                }
+                if (POIs == null || POIs.Count == 0) return;
 
                 var poiLayer = Fragment_map.map.Layers.FindLayer(Fragment_Preferences.Layer_Poi).FirstOrDefault();
                 if (poiLayer != null)
-                {
                     Fragment_map.map.Layers.Remove(poiLayer);
-                }
 
-                //Add layer
                 var POILayer = new MemoryLayer
                 {
                     Name = Fragment_Preferences.Layer_Poi,
                     Tag = Fragment_Preferences.Layer_Poi,
                     Enabled = true,
                     IsMapInfoLayer = true,
-                    Features = ConvertListToInumerable(POIs),
+                    Features = ConvertListToFeatures(POIs),
                     Style = new SymbolStyle { Enabled = false },
                 };
 
-                //Wait for each layer to complete
                 foreach (ILayer layer in Fragment_map.map.Layers)
-                {
-                    while (layer.Busy)
-                    {
-                        Thread.Sleep(1);
-                    }
-                }
+                    while (layer.Busy) Thread.Sleep(1);
 
                 Fragment_map.map.Layers.Add(POILayer);
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"DisplayMapItems - AddPOIToMap");
+                Serilog.Log.Fatal(ex, "DisplayMapItems - AddPOIToMap");
             }
         }
 
+        /// <summary>
+        /// Adds a GPX route or track to the map, optionally updating UI and zooming.
+        /// </summary>
         public static void AddRouteTrackToMap(GPXDataRouteTrack routetrack, bool UpdateMenu, string? name, bool ZoomAndCenter)
         {
             try
             {
                 GpxClass? gpx = null;
+                var alreadyExists = Fragment_map.map.Layers.FirstOrDefault(x => x.Name == name);
 
-                var AlreadyExists = Fragment_map.map.Layers.Where(x => x.Name == name).FirstOrDefault();
-                if (AlreadyExists == null)
+                if (alreadyExists == null)
                 {
-                    //Optimize GPX
                     gpx = GPXOptimize.Optimize(GpxClass.FromXml(routetrack.GPX));
-
-                    //layer
-                    ILayer? lineStringLayer = null;
-
-                    //Get list of Coordinates
                     Coordinate[]? coords = null;
+                    MemoryLayer? lineStringLayer = null;
+
                     if (routetrack.GPXType == GPXType.Track)
                     {
-                        coords = gpx.Tracks.FirstOrDefault().trkseg.FirstOrDefault().trkpt
-                           .Select(p => new Coordinate(SphericalMercator.FromLonLat((double)p.lon, (double)p.lat).ToCoordinate()))
-                           .ToArray();
+                        coords = gpx?.Tracks?.FirstOrDefault()?.trkseg?.FirstOrDefault()?.trkpt
+                            .Select(p => new Coordinate(SphericalMercator.FromLonLat((double)p.lon, (double)p.lat).ToCoordinate())).ToArray();
                         lineStringLayer = CreateRouteandTrackLayer(coords, Mapsui.Styles.Color.Red, CreateStyle("Red"));
                     }
                     else if (routetrack.GPXType == GPXType.Route)
                     {
-                        coords = gpx.Routes.FirstOrDefault().rtept
-                           .Select(p => new Coordinate(SphericalMercator.FromLonLat((double)p.lon, (double)p.lat).ToCoordinate()))
-                           .ToArray();
+                        coords = gpx?.Routes?.FirstOrDefault()?.rtept
+                            .Select(p => new Coordinate(SphericalMercator.FromLonLat((double)p.lon, (double)p.lat).ToCoordinate())).ToArray();
                         lineStringLayer = CreateRouteandTrackLayer(coords, Mapsui.Styles.Color.Blue, CreateStyle("Blue"));
                     }
                     else
@@ -102,108 +89,100 @@ namespace hajk
                         return;
                     }
 
-                    if (lineStringLayer == null)
-                    {
-                        return;
-                    }
+                    if (lineStringLayer == null) return;
 
-                    //Configure lineString
                     lineStringLayer.IsMapInfoLayer = true;
                     lineStringLayer.Enabled = true;
-                    lineStringLayer.Tag = (routetrack.GPXType == GPXType.Route) ? Fragment_Preferences.Layer_Route : Fragment_Preferences.Layer_Track;
-                    lineStringLayer.Name = (name != null) ? name : string.Empty;
+                    lineStringLayer.Tag = routetrack.GPXType == GPXType.Route ? Fragment_Preferences.Layer_Route : Fragment_Preferences.Layer_Track;
+                    lineStringLayer.Name = name ?? string.Empty;
                     Fragment_map.map.Layers.Add(lineStringLayer);
                 }
 
-                if (ZoomAndCenter)
+                if (ZoomAndCenter && gpx != null)
                 {
-                    SharpGPX.GPX1_1.boundsType? bounds = gpx?.GetBounds();
-                    var (x1, y1) = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
-                    var (x2, y2) = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
-                    Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(x1, y1, x2, y2), MBoxFit.Fit);
+                    var bounds = gpx.GetBounds();
+                    if (bounds?.maxlon != null && bounds?.minlat != null && bounds?.minlon != null && bounds?.maxlat != null)
+                    {
+                        (double x1, double y1) = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
+                        (double x2, double y2) = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+                        Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(x1, y1, x2, y2), MBoxFit.Fit);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"DisplayMapItems - AddRouteToMap()");
+                Serilog.Log.Fatal(ex, "DisplayMapItems - AddRouteToMap()");
             }
 
-            //Enable menu?
             try
             {
-                if (UpdateMenu)
+                if (UpdateMenu && Platform.CurrentActivity != null)
                 {
-                    AndroidX.AppCompat.Widget.Toolbar? toolbar = Platform.CurrentActivity.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
+                    var toolbar = Platform.CurrentActivity.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
                     toolbar?.Menu?.FindItem(Resource.Id.action_clearmap)?.SetEnabled(true);
                 }
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"Import - AddRouteToMap()");
+                Serilog.Log.Fatal(ex, "DisplayMapItems - AddRouteToMap() - Menu Update");
             }
         }
-        
+
+        /// <summary>
+        /// Loads and displays all saved tracks on the map.
+        /// </summary>
         public static void AddAllTracksToMap()
         {
-            var Tracks = RouteDatabase.GetTracksAsync().Result;
-
-            if (Tracks == null || Tracks.Count == 0)
-                return;
-
             try
             {
-                foreach (var track in Tracks)
+                var tracks = RouteDatabase.GetTracksAsync()?.Result;
+                if (tracks == null || tracks.Count == 0) return;
+
+                foreach (var track in tracks)
                 {
-                    string? layerName = track.Name + "|" + track.Id.ToString();
+                    string? layerName = track.Name + "|" + track.Id;
                     AddRouteTrackToMap(track, false, layerName, false);
                 }
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"DisplayMapItems - AddTracksToMap()");
+                Serilog.Log.Fatal(ex, "DisplayMapItems - AddTracksToMap()");
             }
         }
 
+        /// <summary>
+        /// Creates a map thumbnail for a given route or track.
+        /// </summary>
         public static string? CreateThumbnail(GPXType? gpxtype, GpxClass? gpx)
         {
             try
             {
-                if (gpx == null)
-                {
-                    return null;
-                }
+                if (gpx == null) return null;
 
-                //Save list of enabled layers (excluding tile layer)
                 List<ILayer> enabledLayers = [];
-                for (int i = 0; i < Fragment_map.map.Layers.Count; i++)
+                foreach (var layer in Fragment_map.map.Layers)
                 {
-                    if (Fragment_map.map.Layers[i].Enabled && Fragment_map.map.Layers[i].Name != Fragment_Preferences.TileLayerName)
+                    if (layer.Enabled && layer.Name != Fragment_Preferences.TileLayerName)
                     {
-                        Fragment_map.map.Layers[i].Enabled = false;
-                        enabledLayers.Add(Fragment_map.map.Layers[i]);
+                        layer.Enabled = false;
+                        enabledLayers.Add(layer);
                     }
                 }
 
-                //Optimize GPX
-                var gpx_optimized = GPXOptimize.Optimize(gpx);
-
-                //layer
-                ILayer? lineStringLayer = null;
-
-                //Get list of Coordinates
+                var gpxOptimized = GPXOptimize.Optimize(gpx);
                 Coordinate[]? coords = null;
+                MemoryLayer? lineStringLayer = null;
+
                 if (gpxtype == GPXType.Track)
                 {
-                    coords = gpx_optimized.Tracks.FirstOrDefault().trkseg.FirstOrDefault().trkpt
-                       .Select(p => new Coordinate(SphericalMercator.FromLonLat((double)p.lon, (double)p.lat).ToCoordinate()))
-                       .ToArray();
+                    coords = gpxOptimized?.Tracks?.FirstOrDefault()?.trkseg?.FirstOrDefault()?.trkpt
+                        .Select(p => new Coordinate(SphericalMercator.FromLonLat((double)p.lon, (double)p.lat).ToCoordinate())).ToArray();
                     lineStringLayer = CreateRouteandTrackLayer(coords, Mapsui.Styles.Color.Red, CreateStyle("Red"));
                 }
                 else if (gpxtype == GPXType.Route)
                 {
-                    coords = gpx_optimized.Routes.FirstOrDefault().rtept
-                       .Select(p => new Coordinate(SphericalMercator.FromLonLat((double)p.lon, (double)p.lat).ToCoordinate()))
-                       .ToArray();
+                    coords = gpxOptimized?.Routes?.FirstOrDefault()?.rtept
+                        .Select(p => new Coordinate(SphericalMercator.FromLonLat((double)p.lon, (double)p.lat).ToCoordinate())).ToArray();
                     lineStringLayer = CreateRouteandTrackLayer(coords, Mapsui.Styles.Color.Blue, CreateStyle("Blue"));
                 }
                 else
@@ -212,34 +191,26 @@ namespace hajk
                     return null;
                 }
 
-                if (lineStringLayer == null)
-                {
-                    return null;
-                }
+                if (lineStringLayer == null) return null;
 
-                //Show only route/track on map tiles, create thumbprint, and remove the route/track again
                 lineStringLayer.Enabled = true;
                 Fragment_map.map.Layers.Add(lineStringLayer);
-                string? ImageBase64String = Import.CreateThumbprintMap(gpx);
+                string? imageBase64 = Import.CreateThumbprintMap(gpx);
                 Fragment_map.map.Layers.Remove(lineStringLayer);
 
-                //Re-enable the layers
-                foreach (ILayer layer in enabledLayers)
-                {
+                foreach (var layer in enabledLayers)
                     layer.Enabled = true;
-                }
 
-                return ImageBase64String;
+                return imageBase64;
             }
             catch (Exception ex)
             {
-                Serilog.Log.Fatal(ex, $"DisplayMapItems - AddRouteToMap()");
+                Serilog.Log.Fatal(ex, "DisplayMapItems - CreateThumbnail");
+                return null;
             }
-
-            return null;
         }
-
-        private static ILayer? CreateRouteandTrackLayer(Coordinate[] coords, Mapsui.Styles.Color sColor, IStyle? style = null)
+               
+        private static MemoryLayer? CreateRouteandTrackLayer(Coordinate[]? coords, Mapsui.Styles.Color sColor, IStyle? style = null)
         {
             if (coords == null || coords.Length < 1)
             {
@@ -355,11 +326,15 @@ namespace hajk
             {
                 Fill = null,
                 Outline = null,
-                Line = { Color = Mapsui.Styles.Color.FromString(colour), Width = 4, PenStyle = PenStyle.Solid }
+                Line = new Pen { 
+                    Color = Mapsui.Styles.Color.FromString(colour), 
+                    Width = 4,
+                    PenStyle = PenStyle.Solid
+                }
             };
         }
 
-        private static IEnumerable<IFeature> ConvertListToInumerable(List<GPXDataPOI>? POIs)
+        private static List<IFeature> ConvertListToFeatures(List<GPXDataPOI>? POIs)
         {
             if (POIs == null || POIs.Count == 0)
             {
