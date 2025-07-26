@@ -1,30 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Android.OS;
+﻿using Android.OS;
 using Android.Views;
-using AndroidX.Fragment;
 using AndroidX.Fragment.App;
-using Mapsui;
-using Mapsui.Extensions;
-using Mapsui.UI;
-using Mapsui.UI.Android;
-using Mapsui.Layers;
-using Mapsui.Nts;
-using Mapsui.Projections;
-using Mapsui.Styles;
-using Mapsui.Tiling;
-using Mapsui.Widgets;
-using Mapsui.Widgets.ScaleBar;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Storage;
-using GPXUtils;
-using static System.Net.Mime.MediaTypeNames;
-using hajk.Data;
-using Mapsui.Nts.Extensions;
-using hajk.Models;
 using CoordinateSharp;
+using GPXUtils;
+using hajk.Data;
+using hajk.Models;
+using Mapsui.Extensions;
+using Mapsui.Layers;
+using Mapsui.Projections;
+using Mapsui.UI.Android;
+using Mapsui.Widgets.ScaleBar;
+using Mapsui.Widgets;
+using Mapsui;
+using System.Text;
 
 namespace hajk.Fragments
 {
