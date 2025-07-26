@@ -164,7 +164,6 @@ namespace hajk.Fragments
                 var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                 MapPressed = new Position(b.lat, b.lon, 0, false, null);
                 Serilog.Log.Debug($"Route Object. GPS Position: " + b.ToString());
-                Id = Convert.ToInt64(args.MapInfo?.Feature?["id"]);
 
                 //Create POI?
                 if (args.MapInfo?.Feature == null && args.NumTaps >= 2 && args.MapInfo?.WorldPosition != null)
@@ -276,45 +275,17 @@ namespace hajk.Fragments
                 }
 
                 //Track?
-                if (layer.Tag.ToString() == Fragment_Preferences.Layer_Track)
+                if (layer.Tag.ToString() == Fragment_Preferences.Layer_Track ||
+                    layer.Tag.ToString() == Fragment_Preferences.Layer_Route)
                 {
                     var activity = (FragmentActivity?)Platform.CurrentActivity;
-
-                    //Remove the old fragment, before creating a new one. Maybe replace this with update, instead of delete and create... /**/
-                    var fragment = activity?.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo");
-                    if (fragment != null)
+                    Id = 0;
+                    long i = 0;
+                    bool success = long.TryParse(layer.Name.Split('|')[1], out i);
+                    if (success)
                     {
-                        activity?.SupportFragmentManager.BeginTransaction()
-                            .Remove(fragment)
-                            .Commit();
-                        activity?.SupportFragmentManager.ExecutePendingTransactions();
+                        Id = i;
                     }
-
-                    //Create fragment
-                    activity?.SupportFragmentManager.BeginTransaction()
-                        .Add(Resource.Id.fragment_container, new Fragment_posinfo(), "Fragment_posinfo")
-                        .Commit();
-                    activity?.SupportFragmentManager.ExecutePendingTransactions();
-
-                    //Show fragment
-                    var frag = activity?.SupportFragmentManager?.FindFragmentByTag("Fragment_posinfo");
-                    if (frag != null)
-                    {
-                        activity?.SupportFragmentManager.BeginTransaction()
-                            .Show(frag)
-                            .Commit();
-                        activity?.SupportFragmentManager.ExecutePendingTransactions();
-                    }
-
-                    long id = Convert.ToInt64(args.MapInfo?.Feature["id"]);
-                    var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-
-                }
-
-                //Route?
-                if (layer.Tag.ToString() == Fragment_Preferences.Layer_Route)
-                {
-                    var activity = (FragmentActivity?)Platform.CurrentActivity;
 
                     //Remove the old fragment, before creating a new one. Maybe replace this with update, instead of delete and create... /**/
                     var fragment = activity?.SupportFragmentManager.FindFragmentByTag("Fragment_posinfo");
