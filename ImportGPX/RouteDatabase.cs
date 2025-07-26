@@ -1,9 +1,5 @@
 ﻿using hajk.Models;
-using Microsoft.Maui.Storage;
 using SQLite;
-using System;
-using System.Collections.Generic;
-using System.IO;
 
 //https://docs.microsoft.com/en-us/xamarin/get-started/quickstarts/database?pivots=windows
 

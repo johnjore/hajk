@@ -5,10 +5,12 @@
              android:layout_height="wrap_content">
 
     <LinearLayout
+		android:id="@+id/recording"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:paddingBottom="30dp"
+		android:visibility="gone" >
 
         <TextView
             android:layout_width="match_parent"
@@ -57,13 +59,79 @@
             android:layout_height="200dp"
             android:visibility="gone" />
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:text="@string/Hide"                    
-            android:id="@+id/btn_HideFragment"
-            android:layout_marginLeft="@dimen/layout_marginLeft" />
-
     </LinearLayout>
+
+	<LinearLayout
+		android:id="@+id/notrecording"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="30dp"
+		android:visibility="gone" >
+
+		<OxyPlot.Xamarin.Android.PlotView
+			android:layout_marginTop="5dp"
+			android:layout_marginBottom="5dp"
+			android:layout_marginStart="0dp"
+			android:layout_marginEnd="0dp"
+			android:id="@+id/oxyPlot2"
+			android:scaleType="fitCenter"
+			android:layout_width="match_parent"
+			android:layout_height="200dp"
+			android:visibility="gone" />
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			android:layout_marginTop="8dp">
+
+			<LinearLayout
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:orientation="vertical">
+
+				<TextView
+					android:id="@+id/textView1"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:text="Label 1" />
+
+				<TextView
+					android:id="@+id/textView2"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:text="Label 2" />
+			</LinearLayout>
+
+			<LinearLayout
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:orientation="vertical">
+
+				<TextView
+					android:id="@+id/textView3"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:text="Label 3" />
+
+				<TextView
+					android:id="@+id/textView4"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:text="Label 4" />
+			</LinearLayout>
+		</LinearLayout>
+	</LinearLayout>
+
+	<Button
+		android:layout_width="match_parent"
+		android:layout_height="40dp"
+		android:text="@string/Hide"
+		android:id="@+id/btn_HideFragment"
+		android:layout_gravity="bottom"
+		android:layout_marginLeft="@dimen/layout_marginLeft" />
 
 </FrameLayout>
