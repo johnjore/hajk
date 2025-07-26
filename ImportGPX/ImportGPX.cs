@@ -620,9 +620,9 @@ namespace hajk
                 }
 
                 List<Position>? ListLatLon = GetAllWayPointsFromRoute(route);
-                if (ListLatLon == null)
+                if (ListLatLon == null || ListLatLon.Count <= 1)
                 {
-                    Serilog.Log.Information("Unable to extract WayPoints from route, ListLatLon is 'null'");
+                    Serilog.Log.Information("Unable to extract WayPoints from route, ListLatLon is 'null', or 1 or less");
                     return (null, 0, null);
                 }
 
@@ -657,7 +657,7 @@ namespace hajk
                 }
 
                 //Add last item
-                ListLatLonEle.Add(ListLatLon.Last());
+                ListLatLonEle?.Add(ListLatLon.Last());
 
                 //Convert the list to a string
                 string mapRoute = ConvertLatLonListToLineString(ListLatLonEle);
