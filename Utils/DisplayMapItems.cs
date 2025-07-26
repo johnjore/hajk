@@ -63,70 +63,6 @@ namespace hajk
             }
         }
 
-        public static void AddRouteToMap(string? mapRoute, GPXType? gpxtype, bool UpdateMenu, string? name)
-        {
-            try
-            {
-                var AlreadyExists = Fragment_map.map.Layers.Where(x => x.Name == name).FirstOrDefault();
-                if (AlreadyExists != null)
-                {
-                    Serilog.Log.Information($"Already Added 'mapRoute' '{name}' to Map");
-                    return;
-                }
-
-                //Add layer
-                ILayer? lineStringLayer;
-                if (gpxtype == GPXType.Route)
-                {
-                    lineStringLayer = CreateRouteandTrackLayer(mapRoute, Mapsui.Styles.Color.Blue, CreateStyle("Blue"));
-                    if (lineStringLayer != null)
-                    {
-                        lineStringLayer.Tag = Fragment_Preferences.Layer_Route;
-                    }
-                }
-                else
-                {
-                    lineStringLayer = CreateRouteandTrackLayer(mapRoute, Mapsui.Styles.Color.Red, CreateStyle("Red"));
-                    if (lineStringLayer != null)
-                    {
-                        lineStringLayer.Tag = Fragment_Preferences.Layer_Track;
-                    }
-                }
-
-                if (lineStringLayer == null)
-                {
-                    return;
-                }
-
-                if (name != null)
-                {
-                    lineStringLayer.Name = name;
-                }
-
-                lineStringLayer.IsMapInfoLayer = true;
-                lineStringLayer.Enabled = true;
-                Fragment_map.map.Layers.Add(lineStringLayer);
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, $"DisplayMapItems - AddRouteToMap()");
-            }
-
-            //Enable menu
-            try
-            {
-                if (UpdateMenu)
-                {
-                    AndroidX.AppCompat.Widget.Toolbar? toolbar = Platform.CurrentActivity.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
-                    toolbar?.Menu?.FindItem(Resource.Id.action_clearmap)?.SetEnabled(true);
-                }
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, $"Import - AddRouteToMap()");
-            }
-        }
-
         public static void AddRouteTrackToMap(GPXDataRouteTrack routetrack, bool UpdateMenu, string? name, bool ZoomAndCenter)
         {
             try
@@ -204,6 +140,7 @@ namespace hajk
                 Serilog.Log.Fatal(ex, $"Import - AddRouteToMap()");
             }
         }
+        
         public static void AddTracksToMap()
         {
             var Tracks = RouteDatabase.GetTracksAsync().Result;
