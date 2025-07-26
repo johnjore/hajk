@@ -38,7 +38,7 @@ namespace hajk.GPX
             string? mapRouteTrack_2 = Import.ConvertRouteToLineString(gpx_2.Routes[0]);
 
             //Add GPX to Map
-            DisplayMapItems.AddRouteToMap(mapRouteTrack_2, routetrack_2.GPXType, true, vh.Name.Text);
+            DisplayMapItems.AddRouteToMap(mapRouteTrack_2, routetrack_2.GPXType, true, vh.Name.Text + "|" + vh.Id.ToString());
 
             //Center on imported route
             var bounds_2 = gpx_2.GetBounds();
