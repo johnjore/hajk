@@ -5,6 +5,8 @@ using Android.Widget;
 using AndroidX.Fragment;
 using AndroidX.Fragment.App;
 using GPXUtils;
+using hajk.Data;
+using hajk.Models;
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
@@ -63,6 +65,24 @@ namespace hajk.Fragments
                 GPXUtils.Position? GpsPosition = new GPXUtils.Position(GpsLocation.Latitude, GpsLocation.Longitude, 0, false, null);
                 GPXUtils.Position? MapPosition = Fragment_map.GetMapPressedCoordinates();
 
+                rteType route = null;
+                if (MainActivity.ActiveRoute != null)
+                {
+                    //If following a route, we process this one
+                    route = MainActivity.ActiveRoute.Routes.First();
+                }
+                else
+                {
+                    //If not following, show stats about the one clicked on
+                    long? Id = Fragment_map.GetId();
+                    GPXDataRouteTrack a = Task.Run(() => RouteDatabase.GetRouteAsync((int)Id)).GetAwaiter().GetResult();
+                    if (a != null)
+                    {
+                        GpxClass gpx = GpxClass.FromXml(a.GPX);
+                        route = gpx.Routes.FirstOrDefault();
+                    }
+                }
+
                 //Elevation (Altitude)
                 try
                 {
@@ -94,43 +114,38 @@ namespace hajk.Fragments
                 {
                     view.FindViewById<TextView>(Resource.Id.MapPosition).Text = "Not Following a Route!";
 
-                    if (MainActivity.ActiveRoute != null)
-                    {
-                        rteType route = MainActivity.ActiveRoute.Routes.First();
-
-                        /**/
-                        //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
-                        //MapPoint should already know the item pressed?
-                        //Optimizing map, removes a lot of points - But does this really matter?
-                        (var m1, var route_index_end) = MapInformation.FindClosestWayPoint(route, MapPosition);
-                        Serilog.Log.Information($"m1: {m1} - route_index_end: {route_index_end}");
+                    /**/
+                    //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
+                    //MapPoint should already know the item pressed?
+                    //Optimizing map, removes a lot of points - But does this really matter?
+                    (var m1, var route_index_end) = MapInformation.FindClosestWayPoint(route, MapPosition);
+                    Serilog.Log.Information($"m1: {m1} - route_index_end: {route_index_end}");
                         
-                        //WayPoint we are closest to?
-                        (var p1, var route_index_start) = MapInformation.FindClosestWayPoint(route, GpsPosition);
-                        Serilog.Log.Information($"m1: {p1} - route_index_start: {route_index_start}");
+                    //WayPoint we are closest to?
+                    (var p1, var route_index_start) = MapInformation.FindClosestWayPoint(route, GpsPosition);
+                    Serilog.Log.Information($"m1: {p1} - route_index_start: {route_index_start}");
 
-                        //Get how much Ascent, Descent and Distance along the track to the MapPoint
-                        (var AscentGPSLocationMapLocation_m, var DescentGPSLocationMapLocation_m, var DistanceGPSLocationMapLocation_m)= GPXUtils.GPXUtils.CalculateElevationDistanceData(route.rtept, route_index_start, route_index_end);
-                        Serilog.Log.Information($"AscentGPSLocationMapLocation_m: {AscentGPSLocationMapLocation_m} - DescentGPSLocationMapLocation_m: {DescentGPSLocationMapLocation_m} - DistanceGPSLocationMapLocation_m: {DistanceGPSLocationMapLocation_m}");
+                    //Get how much Ascent, Descent and Distance along the track to the MapPoint
+                    (var AscentGPSLocationMapLocation_m, var DescentGPSLocationMapLocation_m, var DistanceGPSLocationMapLocation_m)= GPXUtils.GPXUtils.CalculateElevationDistanceData(route.rtept, route_index_start, route_index_end);
+                    Serilog.Log.Information($"AscentGPSLocationMapLocation_m: {AscentGPSLocationMapLocation_m} - DescentGPSLocationMapLocation_m: {DescentGPSLocationMapLocation_m} - DistanceGPSLocationMapLocation_m: {DistanceGPSLocationMapLocation_m}");
 
-                        //Add distance from GPSLocation to first waypoint. We might not be on-top of it. If we are, distance should be 0...
-                        Serilog.Log.Information($"DistanceGPSLocationMapLocation_m - 1: {DistanceGPSLocationMapLocation_m}");
-                        DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(p1, GpsLocation, DistanceType.Meters));
-                        Serilog.Log.Information($"DistanceGPSLocationMapLocation_m - 2: {DistanceGPSLocationMapLocation_m}");
+                    //Add distance from GPSLocation to first waypoint. We might not be on-top of it. If we are, distance should be 0...
+                    Serilog.Log.Information($"DistanceGPSLocationMapLocation_m - 1: {DistanceGPSLocationMapLocation_m}");
+                    DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(p1, GpsLocation, DistanceType.Meters));
+                    Serilog.Log.Information($"DistanceGPSLocationMapLocation_m - 2: {DistanceGPSLocationMapLocation_m}");
 
-                        //Add distance from m1 to MapPosition
-                        DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(m1, MapPosition, DistanceType.Meters));
-                        Serilog.Log.Information($"DistanceGPSLocationMapLocation_m - 3: {DistanceGPSLocationMapLocation_m}");
+                    //Add distance from m1 to MapPosition
+                    DistanceGPSLocationMapLocation_m += (int)(new PositionHandler().CalculateDistance(m1, MapPosition, DistanceType.Meters));
+                    Serilog.Log.Information($"DistanceGPSLocationMapLocation_m - 3: {DistanceGPSLocationMapLocation_m}");
 
-                        /**///What about elevation changes for m1->e1 and GPS->p1 ?
-                        //Elevation changes between route index's?
+                    /**///What about elevation changes for m1->e1 and GPS->p1 ?
+                    //Elevation changes between route index's?
 
-                        //Show the values
-                        var mapPositionText = $"{'\u27f7'} {Utils.Misc.KMvsM(DistanceGPSLocationMapLocation_m)} / " +
-                                              $"{'\u25B2'} {AscentGPSLocationMapLocation_m:N0}m / " +
-                                              $"{'\u25BC'} {DescentGPSLocationMapLocation_m:N0}m";
-                        view.FindViewById<TextView>(Resource.Id.MapPosition).Text = mapPositionText;
-                    }
+                    //Show the values
+                    var mapPositionText = $"{'\u27f7'} {Utils.Misc.KMvsM(DistanceGPSLocationMapLocation_m)} / " +
+                                            $"{'\u25B2'} {AscentGPSLocationMapLocation_m:N0}m / " +
+                                            $"{'\u25BC'} {DescentGPSLocationMapLocation_m:N0}m";
+                    view.FindViewById<TextView>(Resource.Id.MapPosition).Text = mapPositionText;
                 }
                 catch (Exception ex)
                 {
@@ -176,7 +191,6 @@ namespace hajk.Fragments
                         var (series1, MinX1, MaxX1, distance1) = CreateSeries(RecordTrack.trackGpx?.Waypoints, "#4CAF50", "#00FFFFFF", 0.0, 0, RecordTrack.trackGpx?.Waypoints.Count - 1);    //Recording, the past
                         //var (series5, MinX5, MaxX5) = CreateSeries(MainActivity.ActiveRoute?.Routes.First().rtept, "#F44336");  //Whole Track/Route
 
-                        var route = MainActivity.ActiveRoute?.Routes.First();
                         //MapPoint closest to Route. Distance should be 0... Can't we find this quicker by looking for LatLng in the route?
                         var (dummy1, map_index) = MapInformation.FindClosestWayPoint(route, new GPXUtils.Position(MapPosition.Latitude, MapPosition.Longitude, 0, false, null));
                         //WayPoint we are closest to
@@ -221,6 +235,10 @@ namespace hajk.Fragments
                     {
                         Serilog.Log.Fatal(ex, "posinfo - Crashed calculating Completed 'Distance / Ascent / Descent'");
                     }
+                }
+                else
+                {
+                    Serilog.Log.Information("Not following a route - show details of the route or track we pressed?");
                 }
 
                 //ConfigureGraph(view, GpsLocation, MapPosition);

@@ -12,7 +12,9 @@ using Mapsui.Projections;
 using Mapsui.Styles;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
+using Org.Apache.Http.Conn.Routing;
 using SharpGPX;
+using static Java.Util.Jar.Attributes;
 
 namespace hajk
 {
@@ -141,14 +143,11 @@ namespace hajk
             }
         }
         
-        public static void AddTracksToMap()
+        public static void AddAllTracksToMap()
         {
             var Tracks = RouteDatabase.GetTracksAsync().Result;
 
-            if (Tracks == null)
-                return;
-
-            if (Tracks.Count == 0)
+            if (Tracks == null || Tracks.Count == 0)
                 return;
 
             try
@@ -185,21 +184,31 @@ namespace hajk
                     }
                 }
 
-                //Add layer for new route
-                ILayer? lineStringLayer;
-                if (gpxtype == GPXType.Route)
+                //Optimize GPX
+                var gpx_optimized = GPXOptimize.Optimize(gpx);
+
+                //layer
+                ILayer? lineStringLayer = null;
+
+                //Get list of Coordinates
+                Coordinate[]? coords = null;
+                if (gpxtype == GPXType.Track)
                 {
-                    string mapRoute = Import.ParseGPXtoRoute(gpx.Routes[0]).Item1;
-                    lineStringLayer = CreateRouteandTrackLayer(mapRoute, Mapsui.Styles.Color.Blue, CreateStyle("Blue"));
+                    coords = gpx_optimized.Tracks.FirstOrDefault().trkseg.FirstOrDefault().trkpt
+                       .Select(p => new Coordinate(SphericalMercator.FromLonLat((double)p.lon, (double)p.lat).ToCoordinate()))
+                       .ToArray();
+                    lineStringLayer = CreateRouteandTrackLayer(coords, Mapsui.Styles.Color.Red, CreateStyle("Red"));
                 }
-                else if (gpxtype == GPXType.Track)
+                else if (gpxtype == GPXType.Route)
                 {
-                    string mapRoute = Import.ParseGPXtoRoute(gpx.Tracks[0].ToRoutes()[0]).Item1;
-                    lineStringLayer = CreateRouteandTrackLayer(mapRoute, Mapsui.Styles.Color.Red, CreateStyle("Red"));
+                    coords = gpx_optimized.Routes.FirstOrDefault().rtept
+                       .Select(p => new Coordinate(SphericalMercator.FromLonLat((double)p.lon, (double)p.lat).ToCoordinate()))
+                       .ToArray();
+                    lineStringLayer = CreateRouteandTrackLayer(coords, Mapsui.Styles.Color.Blue, CreateStyle("Blue"));
                 }
                 else
                 {
-                    Serilog.Log.Fatal("Unsupported gpxtype");
+                    Serilog.Log.Fatal($"GPXType not supported: {gpxtype}");
                     return null;
                 }
 
@@ -228,110 +237,6 @@ namespace hajk
             }
 
             return null;
-        }
-
-        private static ILayer? CreateRouteandTrackLayer(string? strRoute, Mapsui.Styles.Color sColor, IStyle? style = null)
-        {
-            if (strRoute == null)
-            {
-                return null;
-            }
-
-            var features = new List<IFeature>();
-
-            try
-            {
-                var GPSlineString = (LineString)new WKTReader().Read(strRoute);
-
-                //Lines between each waypoint
-                var lineString = new LineString(GPSlineString.Coordinates.Select(v => SphericalMercator.FromLonLat(v.Y, v.X).ToCoordinate()).ToArray());
-                features.Add(new GeometryFeature { Geometry = lineString });
-
-                //End of route
-                var FeatureEnd = new GeometryFeature { Geometry = lineString.EndPoint };
-                FeatureEnd.Styles.Add(new SymbolStyle
-                {
-                    SymbolScale = 1.5f,
-                    MaxVisible = 2.0f,
-                    MinVisible = 0.0f,
-                    RotateWithMap = true,
-                    SymbolType = SymbolType.Ellipse,
-                    Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Cross, Color = Mapsui.Styles.Color.Red, Background = Mapsui.Styles.Color.Transparent },
-                    Outline = new Pen { Color = Mapsui.Styles.Color.Red, Width = 1.5f }
-                });
-                features.Add(FeatureEnd);
-
-                //Start of route
-                var FeatureStart = new GeometryFeature { Geometry = lineString.StartPoint };
-                FeatureStart.Styles.Add(new SymbolStyle
-                {
-                    SymbolScale = 1.5f,
-                    MaxVisible = 2.0f,
-                    MinVisible = 0.0f,
-                    RotateWithMap = true,
-                    SymbolType = SymbolType.Ellipse,
-                    Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Cross, Color = Mapsui.Styles.Color.Green, Background = Mapsui.Styles.Color.Transparent },
-                    Outline = new Pen { Color = Mapsui.Styles.Color.Green, Width = 1.5f }
-                });
-                features.Add(FeatureStart);
-
-                //Add arrow halfway between waypoints and highlight routing points
-                var bitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource("hajk.Images.Arrow-up.png");
-                for (int i = 0; i < GPSlineString.NumPoints - 1; i++)
-                {
-                    //End points for line
-                    GPXUtils.Position p1 = new(GPSlineString.Coordinates[i].X, GPSlineString.Coordinates[i].Y, 0, false, null);
-                    GPXUtils.Position p2 = new(GPSlineString.Coordinates[i + 1].X, GPSlineString.Coordinates[i + 1].Y, 0, false, null);
-
-                    //Quarter point on line for arrow
-                    MPoint p_quarter = Utils.Misc.CalculateQuarter(lineString.Coordinates[i].Y, lineString.Coordinates[i].X, lineString.Coordinates[i + 1].Y, lineString.Coordinates[i + 1].X);
-
-                    //Bearing of arrow
-                    var p = new PositionHandler();
-                    var angle = p.CalculateBearing(p1, p2);
-
-                    var FeatureArrow = new PointFeature(new MPoint(p_quarter));
-                    FeatureArrow.Styles.Add(new SymbolStyle
-                    {
-                        BitmapId = bitmapId,
-                        SymbolScale = 0.5f,
-                        MaxVisible = 2.0f,
-                        MinVisible = 0.0f,
-                        RotateWithMap = true,
-                        SymbolRotation = angle,
-                        SymbolOffset = new Offset(0, 0),
-                        SymbolType = SymbolType.Triangle,
-                        Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Solid, Color = sColor, Background = sColor },
-                        Outline = new Pen { Color = sColor, Width = 1.5f },
-                    });
-                    features.Add(FeatureArrow);
-
-                    //Waypoints
-                    var FeatureWaypoint = new GeometryFeature { Geometry = lineString.Coordinates[i].ToPoint() };
-                    FeatureWaypoint.Styles.Add(new SymbolStyle
-                    {
-                        SymbolScale = 0.7f,
-                        MaxVisible = 1.5f,
-                        MinVisible = 0.0f,
-                        RotateWithMap = true,
-                        SymbolRotation = 0,
-                        SymbolType = SymbolType.Ellipse,
-                        Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Hollow, Color = Mapsui.Styles.Color.Transparent, Background = Mapsui.Styles.Color.Transparent },
-                        Outline = new Pen { Color = sColor, Width = 1.5f },
-                    });
-                    features.Add(FeatureWaypoint);
-                }
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, $"DisplayMapItems - CreateRouteAndTrackLayer()");
-            }
-
-            return new MemoryLayer
-            {
-                Features = features,
-                Style = style
-            };
         }
 
         private static ILayer? CreateRouteandTrackLayer(Coordinate[] coords, Mapsui.Styles.Color sColor, IStyle? style = null)

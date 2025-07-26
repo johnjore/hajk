@@ -120,7 +120,7 @@ namespace hajk.Fragments
                 Serilog.Log.Information($"Show All Tracks on Map");
                 if (Preferences.Get("DrawTracksOnGui", Fragment_Preferences.DrawTracksOnGui_b))
                 {
-                    Task.Run(() => DisplayMapItems.AddTracksToMap());
+                    Task.Run(() => DisplayMapItems.AddAllTracksToMap());
                 }
 
                 Serilog.Log.Information("Show Recording Track on Map?");
@@ -172,7 +172,7 @@ namespace hajk.Fragments
                 if (args.MapInfo.WorldPosition == null)
                     return;
 
-                //Update MapPressed & Id
+                //Update MapPressed
                 var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                 MapPressed = new Position(b.lat, b.lon, 0, false, null);
                 Serilog.Log.Debug($"Route Object. GPS Position: " + b.ToString());
@@ -247,6 +247,7 @@ namespace hajk.Fragments
                     Serilog.Log.Debug($"POI Object");
                     var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                     var text = "Name:\n" + args.MapInfo?.Feature["name"] + "\n\nDescription:\n" + args.MapInfo?.Feature["description"] + "\n\nLocation:\n";
+                    Id = Convert.ToInt64(args.MapInfo?.Feature?["id"]);
 
                     //GPS
                     text += $"GPS: {lat.ToString("0.000000")}, {lon.ToString("0.000000")}";
