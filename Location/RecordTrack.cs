@@ -428,7 +428,6 @@ namespace hajk
                     var p2 = new GPXUtils.Position((float)waypoint.lat, (float)waypoint.lon, 0, false, null);
 
                     float mapDistance_m = (float)new PositionHandler().CalculateDistance(p1, p2, DistanceType.Meters);
-                    var DistanceToPrevious_m =  mapDistance_m;
                     TimeSpan timeLapse = waypoint.time - previous_waypoint.time;
                     var speed = mapDistance_m / timeLapse.TotalSeconds;
 
@@ -588,7 +587,17 @@ namespace hajk
                     string contents = File.ReadAllText(Fragment_Preferences.CheckpointGPX);
                     trackGpx = GpxClass.FromXml(contents);
 
+                    GPXDataRouteTrack r = new()
+                    {
+                        GPXType = GPXType.Track,
+                        GPX = trackGpx.ToXml(),
+                    };
+                    DisplayMapItems.AddRouteTrackToMap(r, true, "recording", true);
+
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
                     StartTrackTimer();
+                    });
                 }
             });
         }
