@@ -56,7 +56,6 @@ namespace hajk
                     route = gpx.Routes.FirstOrDefault();
                 }
 
-
                 g.Clear();
                 DisplayElevationData(view, GpsPosition, MapPosition);
                 InformationAtMapLocation(view, route, GpsPosition, MapPosition);
@@ -275,8 +274,6 @@ namespace hajk
             //Calculate Distance / Ascent / Descent from Start to Current Position
             try
             {
-                view.FindViewById<TextView>(Resource.Id.MapPosition).Text = "Not Following a Route!";
-                
                 var CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} N/A / " +
                                     $"{char.ConvertFromUtf32(0x1f53c)} N/A / " +
                                     $"{char.ConvertFromUtf32(0x1f53d)} N/A";
