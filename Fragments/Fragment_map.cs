@@ -252,7 +252,7 @@ namespace hajk.Fragments
                         //Delete POI
                         if (args.NumTaps == 1)
                         {
-                            var result = await msg.ShowDialog("Delete POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
+                            var result = await msg.ShowDialog2("Delete POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
                             if (result == Show_Dialog.MessageResult.YES)
                             {
                                 Serilog.Log.Debug($"Deleting {Id} from POI DB and MemoryLayer");
