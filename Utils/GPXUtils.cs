@@ -267,16 +267,40 @@ namespace GPXUtils
         public double CalculateBearing(Position position1, Position position2)
         {
             var lat1 = angleConverter.ConvertDegreesToRadians(position1.Latitude);
+            var lon1 = angleConverter.ConvertDegreesToRadians(position1.Longitude);
             var lat2 = angleConverter.ConvertDegreesToRadians(position2.Latitude);
-            var long1 = angleConverter.ConvertDegreesToRadians(position2.Longitude);
-            var long2 = angleConverter.ConvertDegreesToRadians(position1.Longitude);
-            var dLon = long1 - long2;
+            var lon2 = angleConverter.ConvertDegreesToRadians(position2.Longitude);
+
+            var dLon = lon2 - lon1;
 
             var y = Math.Sin(dLon) * Math.Cos(lat2);
-            var x = Math.Cos(lat1) * Math.Sin(lat2) - Math.Sin(lat1) * Math.Cos(lat2) * Math.Cos(dLon);
-            var brng = Math.Atan2(y, x);
+            var x = Math.Cos(lat1) * Math.Sin(lat2) -
+                    Math.Sin(lat1) * Math.Cos(lat2) * Math.Cos(dLon);
 
+            var brng = Math.Atan2(y, x);
             return (angleConverter.ConvertRadiansToDegrees(brng) + 360) % 360;
+        }
+
+        public double CalculateProjectedBearing(double x1, double y1, double x2, double y2)
+        {
+            var dx = x2 - x1;
+            var dy = y2 - y1;
+
+            var angleRad = Math.Atan2(dx, dy);
+            var angleDeg = angleRad * 180.0 / Math.PI;
+
+            return (angleDeg + 360) % 360;
+        }
+
+        public double CalculateProjectedBearing(Position p1, Position p2)
+        {
+            var dx = p2.Latitude - p1.Latitude;
+            var dy = p2.Longitude - p1.Longitude;
+
+            var angleRad = Math.Atan2(dx, dy);
+            var angleDeg = angleRad * 180.0 / Math.PI;
+
+            return (angleDeg + 360) % 360;
         }
 
         public double CalculateDistance(Position position1, Position position2, DistanceType distanceType)

@@ -266,10 +266,6 @@ namespace hajk
                     //Quarter point on line for arrow
                     MPoint p_quarter = Utils.Misc.CalculateQuarter(lineString.Coordinates[i].Y, lineString.Coordinates[i].X, lineString.Coordinates[i + 1].Y, lineString.Coordinates[i + 1].X);
 
-                    //Bearing of arrow
-                    var p = new PositionHandler();
-                    var angle = p.CalculateBearing(p1, p2);
-
                     var FeatureArrow = new PointFeature(new MPoint(p_quarter));
                     FeatureArrow.Styles.Add(new SymbolStyle
                     {
@@ -278,7 +274,7 @@ namespace hajk
                         MaxVisible = 2.0f,
                         MinVisible = 0.0f,
                         RotateWithMap = true,
-                        SymbolRotation = angle,
+                        SymbolRotation = new PositionHandler().CalculateProjectedBearing(p1, p2),
                         SymbolOffset = new Offset(0, 0),
                         SymbolType = SymbolType.Triangle,
                         Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Solid, Color = sColor, Background = sColor },
