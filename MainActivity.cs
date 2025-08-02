@@ -89,7 +89,7 @@ namespace hajk
             //Logging
             string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.logFile);
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Verbose()
                 .Enrich.FromLogContext()
                 .WriteTo.AndroidLog(
                     outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}"
@@ -114,7 +114,8 @@ namespace hajk
             Log.Information($"Logging to '{_Path}'");
             
             //Enable Mapsui logging
-            MapsuiLogging.AttachMapsuiLogging();
+            /**/
+            //MapsuiLogging.AttachMapsuiLogging();
 
             //Make sure LiveData folder exists
             if (!Directory.Exists(Fragment_Preferences.LiveData))
