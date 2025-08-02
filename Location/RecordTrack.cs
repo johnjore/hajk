@@ -101,9 +101,6 @@ namespace hajk
                 //Clear ActiveRoute
                 MainActivity.ActiveRoute = null;
 
-                //Update status
-                Preferences.Set("RecordingTrack", false);
-
                 Show_Dialog msg1 = new(Platform.CurrentActivity);
                 if (await msg1.ShowDialog($"Track", $"Save Track ?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.NO)
                 {
