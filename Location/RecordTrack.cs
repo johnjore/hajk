@@ -167,7 +167,7 @@ namespace hajk
                 await RouteDatabase.SaveRouteAsync(r);
 
                 //Remove checkpoint file
-                Serilog.Log.Verbose("Deleting checkpoint file");
+                Serilog.Log.Debug("Deleting checkpoint file");
                 File.Delete(Fragment_Preferences.CheckpointGPX);
             }
             catch (Exception ex)
@@ -576,7 +576,7 @@ namespace hajk
                 Show_Dialog msg1 = new(Platform.CurrentActivity);
                 if (await msg1.ShowDialog($"Recording", $"Load checkpoint file?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.NO)
                 {
-                    Serilog.Log.Verbose("Deleting checkpoint file");
+                    Serilog.Log.Debug("Deleting checkpoint file");
                     File.Delete(Fragment_Preferences.CheckpointGPX);
                 }
                 else
@@ -589,6 +589,7 @@ namespace hajk
                         GPXType = GPXType.Track,
                         GPX = trackGpx.ToXml(),
                     };
+                            Serilog.Log.Debug("Adding recording to map");
                     DisplayMapItems.AddRouteTrackToMap(r, true, "recording", true);
 
                     await MainThread.InvokeOnMainThreadAsync(() =>
