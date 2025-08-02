@@ -517,57 +517,10 @@ namespace hajk
             }
         }
 
-        public static void ShowRecordedTrack()
-        {
-            AddTrackingLayer();
-
-            try
-            {
-                foreach (var it in trackGpx.Waypoints.Select((x, i) => new { Value = x, Index = i }))
-                {
-                    if (it.Index >= 1)
-                    {
-                        Serilog.Log.Information($"Index: {it.Index} of {trackGpx.Waypoints.Count - 1}");
-
-                        var a1 = trackGpx.Waypoints[it.Index - 1];
-                        var b1 = trackGpx.Waypoints[it.Index];
-                        var a2 = SphericalMercator.FromLonLat((double)a1.lon, (double)a1.lat).ToCoordinate();
-                        var b2 = SphericalMercator.FromLonLat((double)b1.lon, (double)b1.lat).ToCoordinate();
-
-                        //Lines between waypoints
-                        trackLayer?.Features.Add(new GeometryFeature
-                        {
-                            Geometry = new LineString([a2, b2])
-                        });
-
-                        //Waypoints
-                        var feature = new GeometryFeature { Geometry = b2.ToPoint() };
-                        feature.Styles.Add(new SymbolStyle
-                        {
-                            SymbolScale = 0.7f,
-                            MaxVisible = 3.0f,
-                            MinVisible = 0.0f,
-                            RotateWithMap = true,
-                            SymbolRotation = 0,
-                            SymbolType = SymbolType.Ellipse,
-                            Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Hollow, Color = Mapsui.Styles.Color.Transparent, Background = Mapsui.Styles.Color.Transparent },
-                            Outline = new Pen { Color = Mapsui.Styles.Color.Red, Width = 1.0f },
-                        });
-
-                        trackLayer?.Features.Add(feature);
-                    }
-                }
-
-                trackLayer?.DataHasChanged();
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, $"RecordTrack - ¨ShowRecordedTrack()");
-            }
-        }
-
         public static void RestoreCheckPoint()
         {
+            try
+            {
             if (File.Exists(Fragment_Preferences.CheckpointGPX) == false)
                 return;
 
@@ -589,15 +542,25 @@ namespace hajk
                         GPXType = GPXType.Track,
                         GPX = trackGpx.ToXml(),
                     };
+
+                        await Task.Run(() =>
+                        {
                             Serilog.Log.Debug("Adding recording to map");
-                    DisplayMapItems.AddRouteTrackToMap(r, true, "recording", true);
+                            DisplayMapItems.AddRouteTrackToMap(r, true, Fragment_Preferences.Layer_Track, true);
+                        });
 
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
+                            Serilog.Log.Debug("Call StartTrackTimer()");
                     StartTrackTimer();
                     });
                 }
             });
+        }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "Failed to resume from checkpoint file");
+            }
         }
     }
 }
