@@ -28,7 +28,7 @@ namespace hajk.GPX
                 return;
             }
 
-            // Get the GPX data and reverse the items based on type (track or route)
+            Log.Debug($"Get the GPX data and reverse the items based on type (track or route)");
             GpxClass gpxToReverse = GpxClass.FromXml(routeToReverse?.GPX);
             if (routeToReverse?.GPXType == GPXType.Track)
             {
@@ -45,7 +45,7 @@ namespace hajk.GPX
                 gpxToReverse.Routes[0].rtept.Reverse();
             }
 
-            // Swap ascent and descent values and update calculatations
+            Log.Debug($"Swap ascent and descent values and update calculatations");
             if (routeToReverse?.Ascent != null && routeToReverse?.Descent != null)
             {
                 (routeToReverse.Descent, routeToReverse.Ascent) = (routeToReverse.Ascent, routeToReverse.Descent);
@@ -66,7 +66,7 @@ namespace hajk.GPX
                 );
             }
 
-            // Generate new thumbnail
+            Log.Debug($"Generate new thumbnail");
             string? ImageBase64String = DisplayMapItems.CreateThumbnail(
                 routeToReverse?.GPXType,
                 gpxToReverse
@@ -76,16 +76,16 @@ namespace hajk.GPX
                 routeToReverse.ImageBase64String = ImageBase64String;
             }
 
-            // Update metadata for the reversed route
+            Log.Debug($"Update metadata for the reversed route");
             routeToReverse.Name += " - reversed";
             routeToReverse.Description += " - reversed";
             routeToReverse.Id = 0; // Ensure this gets saved as a new entry
             routeToReverse.GPX = gpxToReverse.ToXml();
 
-            // Save the new route entry
+            Log.Debug($"Save the new route entry");
             var dbID = RouteDatabase.SaveRoute(routeToReverse);
 
-            //Update map tiles with new reference
+            Log.Debug($"Update map tiles with new reference");
             await Task.Run(async() =>
             {
                 await DownloadRasterImageMap.DownloadMap(gpxToReverse.Routes[0].GetBounds(), dbID);
