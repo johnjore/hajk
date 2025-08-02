@@ -34,47 +34,35 @@ namespace hajk.Progressbar
 
         public static async Task CreateGUIAsync(string strTitle)
         {
-            try
+            if (Platform.CurrentActivity == null)
             {
-                if (Platform.CurrentActivity == null)
-                {
-                    return;
-                }
-
-                if (Looper.MyLooper() == null)
-                {
-                    Looper.Prepare();
-                }
-
-                LayoutInflater? layoutInflater = LayoutInflater.From(Platform.CurrentActivity);
-                Android.Views.View? progressDialogBox = layoutInflater?.Inflate(Resource.Layout.progressbardialog, null);
-                AndroidX.AppCompat.App.AlertDialog.Builder alertDialogBuilder = new(Platform.CurrentActivity);
-                alertDialogBuilder.SetView(progressDialogBox);
-
-                var progressBar = progressDialogBox?.FindViewById<Android.Widget.ProgressBar>(Resource.Id.progressBar);
-                var progressBarText1 = progressDialogBox?.FindViewById<MaterialTextView>(Resource.Id.progressBarText1);
-                var progressBarText2 = progressDialogBox?.FindViewById<MaterialTextView>(Resource.Id.progressBarText2);
-
-                if (progressBar == null || progressBarText1 == null || progressBarText2 == null)
-                {
-                    return;
-                }
-
-                progressBar.Max = 100;
-                progressBar.Progress = 0;
-                progressBarText1.Text = strTitle;
-
-                _dialog = alertDialogBuilder.Create();
-                _dialog.SetCancelable(true);
-                _dialog.Show();
-
-                var updateProgressBar = new UpdateProgressBar(progressBar, progressBarText2);
-                await updateProgressBar.RunAsync();
+                return;
             }
-            catch (Exception ex)
+
+            LayoutInflater? layoutInflater = LayoutInflater.From(Platform.CurrentActivity);
+            Android.Views.View? progressDialogBox = layoutInflater?.Inflate(Resource.Layout.progressbardialog, null);
+            AndroidX.AppCompat.App.AlertDialog.Builder alertDialogBuilder = new(Platform.CurrentActivity);
+            alertDialogBuilder.SetView(progressDialogBox);
+
+            var progressBar = progressDialogBox?.FindViewById<Android.Widget.ProgressBar>(Resource.Id.progressBar);
+            var progressBarText1 = progressDialogBox?.FindViewById<MaterialTextView>(Resource.Id.progressBarText1);
+            var progressBarText2 = progressDialogBox?.FindViewById<MaterialTextView>(Resource.Id.progressBarText2);
+
+            if (progressBar == null || progressBarText1 == null || progressBarText2 == null)
             {
-                Serilog.Log.Error(ex, "Failed to create ProgressDialogBox");
+                return;
             }
+
+            progressBar.Max = 100;
+            progressBar.Progress = 0;
+            progressBarText1.Text = strTitle;
+
+            _dialog = alertDialogBuilder.Create();
+            _dialog.SetCancelable(true);
+            _dialog.Show();
+
+            var updateProgressBar = new UpdateProgressBar(progressBar, progressBarText2);
+            await updateProgressBar.RunAsync();
         }
 
         public static void Dismiss()
@@ -87,37 +75,23 @@ namespace hajk.Progressbar
 
         public async Task RunAsync()
         {
-            try
+            var progress = new Progress<double>(percent =>
             {
-                var progress = new Progress<double>(percent =>
-                {
-                    // Update the ProgressBar and TextView on the UI thread
-                    _progressBar.Progress = Convert.ToInt32(percent);
-                    _textView.Text = _messageBody;
-                });
+                // Update the ProgressBar and TextView on the UI thread
+                _progressBar.Progress = Convert.ToInt32(percent);
+                _textView.Text = _messageBody;
+            });
 
-                await Task.Run(() => DoWork(progress));
-                _dialog?.Dismiss();
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, "Failed to update Progressbar");
-            }
+            await Task.Run(() => DoWork(progress));
+            _dialog?.Dismiss();
         }
 
         private static void DoWork(IProgress<double> progress)
         {
-            try
+            while (_progress < 100)
             {
-                while (_progress < 100)
-                {
-                    progress.Report(_progress);
-                    Thread.Sleep(10);
-                }
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, "Failed to Loop the Progressbar updates");
+                progress.Report(_progress);
+                Thread.Sleep(10);
             }
         }
     }
