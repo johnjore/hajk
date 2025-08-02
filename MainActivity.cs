@@ -238,6 +238,8 @@ namespace hajk
 
                 //Clean share folder
                 Share.CleanSharefolder();
+
+                Class1.GetSafProviders(Platform.AppContext);
             }
             catch (Exception ex)
             {
