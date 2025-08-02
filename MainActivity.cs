@@ -133,7 +133,7 @@ namespace hajk
             try
             {
                 //Extract initial map, if not there
-                Utils.Misc.ExtractInitialMap(this, Fragment_Preferences.LiveData + "/" + "OpenStreetMap.mbtiles");
+                Utils.Misc.ExtractInitialMap(this, Fragment_Preferences.MapFolder + "/" + "OpenStreetMap.mbtiles");
 
                 //GUI
                 SetContentView(Resource.Layout.activity_main);
