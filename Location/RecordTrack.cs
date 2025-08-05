@@ -78,6 +78,10 @@ namespace hajk
                 //nav?.Invalidate();
 
                 Log.Information("Create CheckPoint file");
+                if (MainActivity.ActiveRoute != null)
+                {
+                    trackGpx.Metadata.keywords = MainActivity.ActiveRoute.Metadata.keywords; //Route ID from Database
+                }
                 trackGpx.ToFile(Fragment_Preferences.CheckpointGPX);
 
                 //Reset elevation counters
@@ -543,14 +547,27 @@ namespace hajk
                         GPX = trackGpx.ToXml(),
                     };
 
-                        await Task.Run(() =>
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                         {
+                        int iD = -1;
+                        Serilog.Log.Debug("Adding route following to map");
+                        int.TryParse(trackGpx.Metadata.keywords, out iD);
+
+                        if (iD >= 0)
+                        {
+                            var routetrack = RouteDatabase.GetRouteAsync(iD).Result;
+                            string layerName = routetrack.Name + "|" + routetrack.Id;
+
+                            DisplayMapItems.AddRouteTrackToMap(routetrack, false, layerName, false);
+
+                            Serilog.Log.Debug("Adding route following to map");
+                            MainActivity.ActiveRoute = GpxClass.FromXml(routetrack.GPX);
+                            MainActivity.ActiveRoute.Metadata.keywords = routetrack.Id.ToString();
+                        }
+
                             Serilog.Log.Debug("Adding recording to map");
                             DisplayMapItems.AddRouteTrackToMap(r, true, Fragment_Preferences.Layer_Track, true);
-                        });
 
-                    await MainThread.InvokeOnMainThreadAsync(() =>
-                    {
                             Serilog.Log.Debug("Call StartTrackTimer()");
                     StartTrackTimer();
                     });
