@@ -1,9 +1,10 @@
-﻿using SharpGPX.GPX1_1;
-using SharpGPX;
+﻿using SharpGPX;
+using SharpGPX.GPX1_1;
 using SimplifyCSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
+using System.Xml.Serialization;
 
 namespace hajk.GPX
 {
@@ -13,7 +14,10 @@ namespace hajk.GPX
 
         public static GpxClass Optimize(GpxClass gpx)
         {
-            foreach (trkType track in gpx.Tracks)
+            //Dont update original variable, create a copy
+            var gpxCopy = CloneGpx(gpx);
+
+            foreach (trkType track in gpxCopy.Tracks)
             {
                 foreach (trksegType trkseg in track.trkseg)
                 {
@@ -27,7 +31,7 @@ namespace hajk.GPX
                 }
             }
 
-            foreach (rteType route in gpx.Routes)
+            foreach (rteType route in gpxCopy.Routes)
             {
                 wptTypeCollection? points = route.rtept;
                                 
@@ -38,7 +42,7 @@ namespace hajk.GPX
                 }
             }
 
-            return gpx;
+            return gpxCopy;
         }
 
         public static wptTypeCollection? OptimizePoints(wptTypeCollection? points)
@@ -63,6 +67,12 @@ namespace hajk.GPX
             Serilog.Log.Debug("To:   " + reducedPoints.Count.ToString("#,0") + " points");
             
             return new wptTypeCollection(reducedPoints);
+        }
+
+        public static GpxClass CloneGpx(GpxClass original)
+        {
+            string xml = original.ToXml();
+            return GpxClass.FromXml(xml);
         }
     }
 }
