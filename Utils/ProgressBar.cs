@@ -37,45 +37,45 @@ namespace hajk.Progressbar
             try
             {
                 if (Platform.CurrentActivity == null)
-                {
                     return;
-                }
 
-                if (Looper.MyLooper() == null)
+                // Ensure all UI code runs on the main thread
+                await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
-                    Looper.Prepare();
-                }
+                    LayoutInflater? layoutInflater = LayoutInflater.From(Platform.CurrentActivity);
+                    Android.Views.View? progressDialogBox = layoutInflater?.Inflate(Resource.Layout.progressbardialog, null);
+                    if (progressDialogBox == null)
+                        return;
 
-                LayoutInflater? layoutInflater = LayoutInflater.From(Platform.CurrentActivity);
-                Android.Views.View? progressDialogBox = layoutInflater?.Inflate(Resource.Layout.progressbardialog, null);
-                AndroidX.AppCompat.App.AlertDialog.Builder alertDialogBuilder = new(Platform.CurrentActivity);
-                alertDialogBuilder.SetView(progressDialogBox);
+                    AndroidX.AppCompat.App.AlertDialog.Builder alertDialogBuilder = new(Platform.CurrentActivity);
+                    alertDialogBuilder.SetView(progressDialogBox);
 
-                var progressBar = progressDialogBox?.FindViewById<Android.Widget.ProgressBar>(Resource.Id.progressBar);
-                var progressBarText1 = progressDialogBox?.FindViewById<MaterialTextView>(Resource.Id.progressBarText1);
-                var progressBarText2 = progressDialogBox?.FindViewById<MaterialTextView>(Resource.Id.progressBarText2);
+                    var progressBar = progressDialogBox.FindViewById<Android.Widget.ProgressBar>(Resource.Id.progressBar);
+                    var progressBarText1 = progressDialogBox.FindViewById<MaterialTextView>(Resource.Id.progressBarText1);
+                    var progressBarText2 = progressDialogBox.FindViewById<MaterialTextView>(Resource.Id.progressBarText2);
 
-                if (progressBar == null || progressBarText1 == null || progressBarText2 == null)
-                {
-                    return;
-                }
+                    if (progressBar == null || progressBarText1 == null || progressBarText2 == null)
+                        return;
 
-                progressBar.Max = 100;
-                progressBar.Progress = 0;
-                progressBarText1.Text = strTitle;
+                    progressBar.Max = 100;
+                    progressBar.Progress = 0;
+                    progressBarText1.Text = strTitle;
 
-                _dialog = alertDialogBuilder.Create();
-                _dialog.SetCancelable(true);
-                _dialog.Show();
+                    _dialog = alertDialogBuilder.Create();
+                    _dialog.SetCancelable(true);
+                    _dialog.Show();
 
-                var updateProgressBar = new UpdateProgressBar(progressBar, progressBarText2);
-                await updateProgressBar.RunAsync();
+                    // You can call RunAsync even inside this context
+                    var updateProgressBar = new UpdateProgressBar(progressBar, progressBarText2);
+                    await updateProgressBar.RunAsync();
+                });
             }
             catch (Exception ex)
             {
                 Serilog.Log.Error(ex, "Failed to create ProgressDialogBox");
             }
         }
+
 
         public static void Dismiss()
         {
