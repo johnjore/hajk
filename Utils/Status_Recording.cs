@@ -59,7 +59,7 @@ namespace hajk
                 g.Clear();
                 DisplayElevationData(view, GpsPosition, MapPosition);
                 InformationAtMapLocation(view, route, GpsPosition, MapPosition);
-                double DistanceTravelled = (RecordedStats(view) / 1000.0);
+                (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) = (RecordedStats(view));
                 RouteStats(view, route, GpsPosition, MapPosition);
 
                 PlotView? plotView = view.FindViewById<PlotView>(Resource.Id.oxyPlotWalkDone);
@@ -73,7 +73,7 @@ namespace hajk
                                 {
                                     Position = AxisPosition.Bottom,
                                     FormatAsFractions = false,
-                                    Unit = $"Travelled {DistanceTravelled:N2} / {'\u25B2'} {RollingElevationAnalyzer.TotalAscent:N0}m / {'\u25BC'} {RollingElevationAnalyzer.TotalDescent:N0}m",
+                                    Unit = $"Travelled {TrackDistanceFromStart_m / 1000.0:N2}km / {'\u25B2'} {RollingElevationAnalyzer.TotalAscent:N0} / {TrackAscentFromStart_m:N0}m - {'\u25BC'} {RollingElevationAnalyzer.TotalDescent:N0} / {TrackDescentFromStart_m:N0}m)",
                                 },
                                 new LinearAxis
                                 {
@@ -253,7 +253,7 @@ namespace hajk
 
         }
 
-        public static int RecordedStats(Android.Views.View view)
+        public static (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) RecordedStats(Android.Views.View view)
         {
             try
             {
@@ -274,27 +274,17 @@ namespace hajk
             //Calculate Distance / Ascent / Descent from Start to Current Position
             try
             {
-                var CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} N/A / " +
-                                    $"{char.ConvertFromUtf32(0x1f53c)} N/A / " +
-                                    $"{char.ConvertFromUtf32(0x1f53d)} N/A";
-                view.FindViewById<TextView>(Resource.Id.Completed).Text = CompletedText;
-
                 if (RecordTrack.trackGpx.Waypoints.Count > 0)
                 {
                     (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) = GPXUtils.GPXUtils.CalculateElevationDistanceData(RecordTrack.trackGpx.Waypoints, 0, RecordTrack.trackGpx.Waypoints.Count - 1);
                     var DistanceTravelled = (TrackDistanceFromStart_m / 1000.0).ToString("N2") + "km";
                     Serilog.Log.Debug($"TrackDistanceFromStart_m: '{TrackDistanceFromStart_m.ToString()}', DistanceTravelled: '{DistanceTravelled}', TrackAscentFromStart_m: '{TrackAscentFromStart_m.ToString()}', TrackDescentFromStart_m: '{TrackDescentFromStart_m}'");
 
-                    CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} {DistanceTravelled:N2} / " +
-                                    $"{char.ConvertFromUtf32(0x1f53c)} {TrackAscentFromStart_m:N0}m / " +
-                                    $"{char.ConvertFromUtf32(0x1f53d)} {TrackDescentFromStart_m:N0}m";
-                    view.FindViewById<TextView>(Resource.Id.Completed).Text = CompletedText;
-
                     //Graph from RecordTrack
                     Graph s1 = CreateSeries(RecordTrack.trackGpx?.Waypoints, "#4CAF50", "#00FFFFFF", 0.0, 0, RecordTrack.trackGpx?.Waypoints.Count - 1);    //Recording, the past
                     g.Add(s1);
 
-                    return TrackDistanceFromStart_m;
+                    return (AscentFromStart_m: TrackAscentFromStart_m, DescentFromStart_m: TrackDescentFromStart_m, DistanceFromStart_m: TrackDistanceFromStart_m);
                 }
             }
             catch (Exception ex)
@@ -302,7 +292,7 @@ namespace hajk
                 Serilog.Log.Error($"Failed to calculate distance/ascent/descent from start of recording");
             }
 
-            return 0;            
+            return (0, 0, 0);            
         }
 
         public static void RouteStats(Android.Views.View view, rteType route, Position? GpsPosition, Position? MapPosition)
