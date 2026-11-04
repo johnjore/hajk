@@ -50,7 +50,13 @@ namespace Utils
         //Calculate and return size of folder in bytes
         public static long DirectorySizeBytes(DirectoryInfo d)
         {
+            if (d == null || !d.Exists)
+            {
+                return 0;
+            }
+
             long size = 0;
+
             // Add file sizes.
             FileInfo[] fis = d.GetFiles();
             foreach (FileInfo fi in fis)
@@ -64,6 +70,7 @@ namespace Utils
             {
                 size += DirectorySizeBytes(di);
             }
+
             return size;
         }
 
