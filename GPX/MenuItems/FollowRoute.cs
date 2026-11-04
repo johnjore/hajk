@@ -1,8 +1,8 @@
 ﻿using Android.Views;
 using AndroidX.Fragment.App;
 using hajk.Data;
-using SharpGPX;
 using Serilog;
+using SharpGPX;
 
 namespace hajk.GPX
 {

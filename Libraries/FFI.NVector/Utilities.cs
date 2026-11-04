@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FFI.NVector
+﻿namespace FFI.NVector
 {
     /// <summary>
     ///  Basic matrix library for NVMath. The library serves as a minimum matrix library for 
@@ -16,7 +10,7 @@ namespace FFI.NVector
         public static double Dot(double[] a, double[] b)
         {
             var sum = 0.0;
-            for (int i=0; i < a.Length; i++)
+            for (int i = 0; i < a.Length; i++)
             {
                 sum += a[i] * b[i];
             }
@@ -26,8 +20,8 @@ namespace FFI.NVector
         public static double[] Cross(double[] a, double[] b)
         {
             return new double[3] {
-                a[1] * b[2] - a[2] * b[1], 
-                -a[0] * b[2] + a[2] * b[0], 
+                a[1] * b[2] - a[2] * b[1],
+                -a[0] * b[2] + a[2] * b[0],
                 a[0] * b[1] - a[1] * b[0]
             };
         }
@@ -124,7 +118,7 @@ namespace FFI.NVector
             int num = v.Length;
             for (int i = 0; i < num; i++)
             {
-                sum += Math.Pow(v[i],2);
+                sum += Math.Pow(v[i], 2);
             }
             return Math.Sqrt(sum);
         }

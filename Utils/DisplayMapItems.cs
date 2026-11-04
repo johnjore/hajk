@@ -209,7 +209,7 @@ namespace hajk
                 return null;
             }
         }
-               
+
         private static MemoryLayer? CreateRouteandTrackLayer(Coordinate[]? coords, Mapsui.Styles.Color sColor, IStyle? style = null)
         {
             if (coords == null || coords.Length < 1)
@@ -322,8 +322,9 @@ namespace hajk
             {
                 Fill = null,
                 Outline = null,
-                Line = new Pen { 
-                    Color = Mapsui.Styles.Color.FromString(colour), 
+                Line = new Pen
+                {
+                    Color = Mapsui.Styles.Color.FromString(colour),
                     Width = 4,
                     PenStyle = PenStyle.Solid
                 }

@@ -2,10 +2,7 @@
 using Android.Content;
 using Android.Locations;
 using Android.OS;
-using Android.Views;
-using Android.Widget;
 using Java.Util.Functions;
-using System;
 
 namespace hajk.Utilities
 {
@@ -24,7 +21,7 @@ namespace hajk.Utilities
             {
                 long AlarmTimeInMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() + (Fragment_Preferences.WakeLockInterval * 1000);
                 alarmManager.Set(AlarmType.RtcWakeup, AlarmTimeInMilliseconds, pi);
-                
+
                 DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(AlarmTimeInMilliseconds);
                 Serilog.Log.Debug($"Alarm set for {dateTimeOffset.DateTime.ToLocalTime()}");
             }

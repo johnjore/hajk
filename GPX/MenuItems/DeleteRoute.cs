@@ -44,7 +44,7 @@ namespace hajk.GPX
                     totalTilesCount += TotalTiles;
                     missingTilesCount += MissingTiles;
                     Progressbar.UpdateProgressBar.Progress = zoom - Fragment_Preferences.MinZoom + 1;
-                    Log.Information($"Need to update '{TotalTiles-MissingTiles}' tiles for zoom level '{zoom}', total to update '{totalTilesCount-missingTilesCount}'");
+                    Log.Information($"Need to update '{TotalTiles - MissingTiles}' tiles for zoom level '{zoom}', total to update '{totalTilesCount - missingTilesCount}'");
                 }
 
                 //Remove reference in tiles

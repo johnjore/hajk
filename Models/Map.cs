@@ -1,7 +1,4 @@
-﻿using System;
-using SQLite;
-
-namespace hajk.Models
+﻿namespace hajk.Models
 {
     public class Map
     {

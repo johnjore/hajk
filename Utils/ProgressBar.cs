@@ -1,7 +1,5 @@
 ﻿using Android.App;
-using Android.OS;
 using Android.Views;
-using Android.Widget;
 using Google.Android.Material.TextView;
 
 namespace hajk.Progressbar

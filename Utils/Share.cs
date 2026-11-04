@@ -1,8 +1,4 @@
 ﻿using Android.Content;
-using AndroidX.Core.Content;
-using Android.Net;
-using System.IO;
-using Java.IO;
 
 namespace hajk
 {

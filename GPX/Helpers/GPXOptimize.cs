@@ -1,10 +1,6 @@
 ﻿using SharpGPX;
 using SharpGPX.GPX1_1;
 using SimplifyCSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Serialization;
 
 namespace hajk.GPX
 {
@@ -34,7 +30,7 @@ namespace hajk.GPX
             foreach (rteType route in gpxCopy.Routes)
             {
                 wptTypeCollection? points = route.rtept;
-                                
+
                 var op = OptimizePoints(points);
                 if (op != null)
                 {
@@ -51,7 +47,7 @@ namespace hajk.GPX
             {
                 return null;
             }
-            
+
             Serilog.Log.Debug("From: " + points.Count.ToString("#,0") + " points");
 
             //https://github.com/rohaanhamid/simplify-csharp
@@ -65,7 +61,7 @@ namespace hajk.GPX
                             );
 
             Serilog.Log.Debug("To:   " + reducedPoints.Count.ToString("#,0") + " points");
-            
+
             return new wptTypeCollection(reducedPoints);
         }
 

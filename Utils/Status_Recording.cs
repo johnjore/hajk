@@ -293,7 +293,7 @@ namespace hajk
                 Serilog.Log.Error($"Failed to calculate distance/ascent/descent from start of recording");
             }
 
-            return (0, 0, 0);            
+            return (0, 0, 0);
         }
 
         public static void RouteStats(Android.Views.View view, rteType route, Position? GpsPosition, Position? MapPosition)

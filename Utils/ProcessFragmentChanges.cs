@@ -1,22 +1,8 @@
-﻿using Android.Content;
-using Android.Content.Res;
-using Android.Graphics.Drawables;
-using Android.Runtime;
-using Android.Views;
-using AndroidX.AppCompat.App;
-using AndroidX.Core.App;
-using AndroidX.Core.View;
-using AndroidX.Fragment;
+﻿using Android.Views;
 using AndroidX.Fragment.App;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Navigation;
 using hajk.Fragments;
-using Java.Interop;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace hajk
 {
@@ -59,8 +45,8 @@ namespace hajk
                     if (item.TitleFormatted.ToString() == cActivity.Resources.GetString(Resource.String.Tracks))
                     {
                         var mi = nav.Menu.FindItem(Resource.Id.nav_tracks);
-                         mi.SetTitle(Resource.String.Map);
-                         mi.SetIcon(Resource.Drawable.maps);
+                        mi.SetTitle(Resource.String.Map);
+                        mi.SetIcon(Resource.Drawable.maps);
                     }
 
                     break;
@@ -90,7 +76,8 @@ namespace hajk
             var sfm = activity.SupportFragmentManager;
 
             var frag = sfm.FindFragmentByTag(Fragment_Tag);
-            if (frag != null) {
+            if (frag != null)
+            {
                 sfm.BeginTransaction()
                     .Show(frag)
                     .Commit();

@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace hajk.Models.MapSource
+﻿namespace hajk.Models.MapSource
 {
     public class MapSource
     {
-        public string Name { get; private set; }        
+        public string Name { get; private set; }
         public string BaseURL { get; private set; }
         public string Token { get; private set; }
 

@@ -1,15 +1,5 @@
-﻿using Android.App;
-using Android.Content;
-using Android.Graphics;
-using Android.Graphics.Text;
-using Android.Locations;
-using Android.Widget;
+﻿using Android.Widget;
 using GPXUtils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 //https://www.nps.gov/shen/planyourvisit/how-to-determine-hiking-difficulty.htm
 
@@ -21,7 +11,7 @@ namespace hajk
         {
             try
             {
-                float shenandoahscale = (float)Math.Sqrt((double)((decimal)DistanceConverter.ConvertMetersToFeet(ascent_m) *  2 * (decimal)DistanceConverter.ConvertKilometersToMiles(distance_km)));
+                float shenandoahscale = (float)Math.Sqrt((double)((decimal)DistanceConverter.ConvertMetersToFeet(ascent_m) * 2 * (decimal)DistanceConverter.ConvertKilometersToMiles(distance_km)));
                 return shenandoahscale;
             }
             catch (Exception ex)

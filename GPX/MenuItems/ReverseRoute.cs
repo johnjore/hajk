@@ -3,7 +3,6 @@ using hajk.Fragments;
 using hajk.Models;
 using Serilog;
 using SharpGPX;
-using System.Threading.Tasks;
 
 namespace hajk.GPX
 {
@@ -16,7 +15,7 @@ namespace hajk.GPX
                 Log.Fatal("vh.Id can't be null here");
                 return;
             }
-                
+
 
             Log.Information($"Reverse route '{vh.Name?.Text}'");
 
@@ -86,7 +85,7 @@ namespace hajk.GPX
             var dbID = RouteDatabase.SaveRoute(routeToReverse);
 
             Log.Debug($"Update map tiles with new reference");
-            await Task.Run(async() =>
+            await Task.Run(async () =>
             {
                 await DownloadRasterImageMap.DownloadMap(gpxToReverse.Routes[0].GetBounds(), dbID);
             });

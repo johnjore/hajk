@@ -1,13 +1,9 @@
 ﻿using Android.App;
-using Android.Content;
 using Android.OS;
 using Android.Widget;
 using AndroidX.DocumentFile.Provider;
-using SharpCompress.Common;
-using SharpCompress.Writers;
 using SQLite;
 using System.Text.Json;
-using System;
 
 namespace hajk
 {
@@ -85,8 +81,8 @@ namespace hajk
                 Preferences.Get("BackupPreferences", true),
                 Preferences.Get("BackupRoute&TrackData", true),
                 Preferences.Get("BackupPOIData", true),
-                Preferences.Get("BackupMapTiles", true), 
-                Preferences.Get("BackupElevationData", true),                
+                Preferences.Get("BackupMapTiles", true),
+                Preferences.Get("BackupElevationData", true),
             ];
 
             //Create dialogbox
@@ -370,7 +366,7 @@ namespace hajk
             try
             {
                 Serilog.Log.Information("Backing up POI Data");
-                string Source_DB = Path.Combine(Fragment_Preferences.LiveData,  Fragment_Preferences.POIDB);
+                string Source_DB = Path.Combine(Fragment_Preferences.LiveData, Fragment_Preferences.POIDB);
                 string Destination_DB = Path.Combine(BackupFolder, Fragment_Preferences.POIDB);
 
                 SQLiteConnection DBBackupConnection = new(Source_DB, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
@@ -449,8 +445,10 @@ namespace hajk
                     Serilog.Log.Debug(fileName);
 
                 //Avoid Nextcloud etc from seeing folder as a new one to sync
-                using (File.Create(Destination_Folder + "/" + ".noimage")) { };
-                using (File.Create(Destination_Folder + "/" + ".nomedia")) { };
+                using (File.Create(Destination_Folder + "/" + ".noimage")) { }
+                ;
+                using (File.Create(Destination_Folder + "/" + ".nomedia")) { }
+                ;
 
                 //Copy each file
                 foreach (string fileName in Directory.GetFiles(Source_Folder))

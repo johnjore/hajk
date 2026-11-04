@@ -1,19 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Android.App;
-using Android.Util;
+﻿using Android.App;
 using Android.Content;
-using Android.Runtime;
 using Android.Locations;
 using Android.OS;
-using Android.Preferences;
+using Android.Runtime;
 using AndroidX.Core.App;
-using AndroidX.Fragment.App;
-using Microsoft.Maui.Storage;
 using hajk.Fragments;
 
 namespace hajk

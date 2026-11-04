@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-public static class RollingElevationAnalyzer
+﻿public static class RollingElevationAnalyzer
 {
     private static int _smoothingWindow = 3;
     private static double _noiseBand = 0.35;

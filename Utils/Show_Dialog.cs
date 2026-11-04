@@ -4,9 +4,7 @@ using Android.Text.Method;
 using Android.Text.Style;
 using Android.Util;
 using Android.Widget;
-using System;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 //https://forums.xamarin.com/discussion/comment/251826/#Comment_251826
 
@@ -65,7 +63,7 @@ public class Show_Dialog(Activity activity) : object()
         {
             tcs.SetResult(NeutralButton);
         });
-        
+
         MainThread.BeginInvokeOnMainThread(() =>
         {
             builder.Show();

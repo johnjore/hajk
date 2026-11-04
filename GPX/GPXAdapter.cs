@@ -1,38 +1,10 @@
-﻿using Android.Content;
-using Android.Views;
+﻿using Android.Views;
 using Android.Widget;
-using AndroidX.Fragment;
-using AndroidX.Fragment.App;
 using AndroidX.RecyclerView.Widget;
-using GeoTiffCOG.Struture;
-using Google.Android.Material.Navigation;
-using GPXUtils;
 using hajk.Data;
-using hajk.Fragments;
 using hajk.GPX;
 using hajk.Models;
-using Mapsui;
-using Mapsui.Layers;
-using Mapsui.Nts;
-using Mapsui.Projections;
-using Mapsui.Providers;
-using Mapsui.Styles;
-using Mapsui.Utilities;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Storage;
-using OxyPlot;
-using OxyPlot.Axes;
-using OxyPlot.Series;
-using Serilog;
 using SharpGPX;
-using SharpGPX.GPX1_1;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace hajk.Adapter
 {
@@ -64,7 +36,7 @@ namespace hajk.Adapter
                 vh.GPXType = mGpxData[position].GPXType;
                 vh.Name.Text = mGpxData[position].Name;
                 vh.Distance.Text = "Length: " + (mGpxData[position].Distance).ToString("N1") + "km";
-                
+
                 //Ascent / Descent fields
                 vh.Ascent.Text = "Ascent: ";
                 vh.Descent.Text = "Descent: ";
@@ -85,10 +57,12 @@ namespace hajk.Adapter
                 if (vh.GPXType == GPXType.Route)
                 {
                     vh.GPXTypeLogo.SetImageResource(Resource.Drawable.route);
-                } else if (vh.GPXType == GPXType.Track)
+                }
+                else if (vh.GPXType == GPXType.Track)
                 {
                     vh.GPXTypeLogo.SetImageResource(Resource.Drawable.track);
-                } else
+                }
+                else
                 {
                     Serilog.Log.Fatal("GPXType must be a route or track");
                 }

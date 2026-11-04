@@ -3,37 +3,21 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Content.Res;
 using Android.OS;
-using Android.Runtime;
 using Android.Views;
-using Android.Widget;
 using AndroidX.AppCompat.App;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
-using AndroidX.Fragment.App;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Navigation;
-using Google.Android.Material.Snackbar;
 using hajk.Data;
 using hajk.Fragments;
 using hajk.Models;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Devices;
-using Microsoft.Maui.Storage;
-using Sentry;
-using Sentry.Android;
-using Sentry.Serilog;
 using Serilog;
 using Serilog.Events;
 using SharpGPX;
 using SQLite;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace hajk
 {
@@ -82,7 +66,7 @@ namespace hajk
 #if DEBUG
             if (string.IsNullOrEmpty(Resources?.GetString(Resource.String.Sentry_APIKey)))
             {
-               Serilog.Log.Information("Sentry DSN entry is missing and in debug mode");
+                Serilog.Log.Information("Sentry DSN entry is missing and in debug mode");
             }
 #endif
 
@@ -95,10 +79,10 @@ namespace hajk
                     outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}"
                 )
                 .WriteTo.File(
-                    _Path, 
+                    _Path,
                     rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 2, 
-                    fileSizeLimitBytes: 20*1024*1024,
+                    retainedFileCountLimit: 2,
+                    fileSizeLimitBytes: 20 * 1024 * 1024,
                     outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}{NewLine}"
                 )
                 .WriteTo.Sentry(options =>
@@ -112,7 +96,7 @@ namespace hajk
             .CreateLogger();
 
             Log.Information($"Logging to '{_Path}'");
-            
+
             //Enable Mapsui logging
             /**/
             //MapsuiLogging.AttachMapsuiLogging();
@@ -127,7 +111,7 @@ namespace hajk
                 catch (Exception ex)
                 {
                     Log.Fatal(ex, $"MainActivity - Failed to Create LiveData Folder");
-                }            
+                }
             }
 
             //Make sure GeoTiff folder exists
@@ -153,7 +137,7 @@ namespace hajk
                 FloatingActionButton? fabCompass = FindViewById<FloatingActionButton>(Resource.Id.fabCompass);
                 if (fabCompass != null)
                 {
-                    fabCompass.Click += FabOnClick;                    
+                    fabCompass.Click += FabOnClick;
                 }
 
                 FloatingActionButton? fabCamera = FindViewById<FloatingActionButton>(Resource.Id.fabCamera);
@@ -190,7 +174,7 @@ namespace hajk
                 {
                     await Utilities.AppPermissions.CheckAndRequestPermissionAsync<Permissions.PostNotifications>();
                 }
-                
+
                 Log.Debug($"Create Location Service");
                 if (await Permissions.CheckStatusAsync<Permissions.LocationAlways>() == PermissionStatus.Granted || await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>() == PermissionStatus.Granted)
                 {
@@ -334,7 +318,7 @@ namespace hajk
                     else
                     {
                         Serilog.Log.Error("Failed to add POI to database");
-                    }                    
+                    }
                 }
             }
             if (id == Resource.Id.SaveGPSasPOI)
@@ -392,7 +376,7 @@ namespace hajk
 
                 return true;
             }
-            
+
             return base.OnOptionsItemSelected(item);
         }
 
@@ -652,7 +636,8 @@ namespace hajk
                 alert.SetTitle(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources.GetString(Resource.String.About));
                 alert.SetMessage(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources.GetString(Resource.String.Build) + ": " + Microsoft.Maui.ApplicationModel.AppInfo.Version.ToString());
                 alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
-                alert.SetNegativeButton("Upload Log files", (sender, args) => {
+                alert.SetNegativeButton("Upload Log files", (sender, args) =>
+                {
                     SentrySdk.CaptureMessage("Log files", scope =>
                     {
                         //Copy log files to Backup folder
@@ -664,7 +649,7 @@ namespace hajk
                             Serilog.Log.Debug($"Name: {file}, Size: {length} bytes");
                             if (length >= 20 * 1024 * 1024)
                                 Serilog.Log.Error("Attachments too large for Sentry!");
-                            
+
                             scope.AddAttachment(file);
                             _ = SafServices.CopyFileToSafAsync(Platform.AppContext, file);
                         }
@@ -721,7 +706,7 @@ namespace hajk
                     }
                 });
             }
-            
+
             DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             drawer?.CloseDrawer(GravityCompat.Start);
             drawer?.Invalidate();

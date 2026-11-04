@@ -1,16 +1,11 @@
 ﻿using Android.App;
 using Android.Content;
-using Android.Net;
 using Android.Preferences;
-using Android.Provider;
 using Android.Webkit;
-using Android.Widget;
 using AndroidX.DocumentFile.Provider;
 using SharpCompress.Common;
 using SharpCompress.Writers;
 using System.Globalization;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace hajk
 {

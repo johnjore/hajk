@@ -1,16 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using BruTile;
+﻿using BruTile;
 using BruTile.Cache;
 using BruTile.Predefined;
 using BruTile.Web;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Storage;
-using SQLite;
 using hajk.Models;
-using Android.Systems;
 using hajk.Models.MapSource;
+using SQLite;
 
 //From https://github.com/spaddlewit/MBTilesPersistentCache
 
@@ -43,7 +37,7 @@ namespace hajk
                 mbTileCache = new MbTileCache(Fragment_Preferences.MapFolder + "/" + TileBrowseSource + ".mbtiles", "png");
 
                 var MapSource = Fragment_Preferences.MapSources.Where(x => x.Name.Equals(TileBrowseSource, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                if (MapSource == null) 
+                if (MapSource == null)
                 {
                     Serilog.Log.Error("No MapSource defined");
                     return null;
@@ -52,7 +46,7 @@ namespace hajk
                 if (TileBrowseSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
                 {
                     src = new(new GlobalSphericalMercator(Fragment_Preferences.MinZoom, Fragment_Preferences.MaxZoom),
-                        MapSource.BaseURL, new[] { "a", "b", "c" }, 
+                        MapSource.BaseURL, new[] { "a", "b", "c" },
                         name: MapSource.Name,
                         persistentCache: mbTileCache,
                         userAgent: MapSource.Name + " in Mapsui (hajk)",

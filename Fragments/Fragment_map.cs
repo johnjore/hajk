@@ -5,13 +5,13 @@ using CoordinateSharp;
 using GPXUtils;
 using hajk.Data;
 using hajk.Models;
+using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Projections;
 using Mapsui.UI.Android;
-using Mapsui.Widgets.ScaleBar;
 using Mapsui.Widgets;
-using Mapsui;
+using Mapsui.Widgets.ScaleBar;
 using System.Text;
 
 namespace hajk.Fragments
@@ -69,7 +69,7 @@ namespace hajk.Fragments
                 Serilog.Log.Information($"Cache downloaded tiles");
                 DownloadRasterImageMap.LoadOSMLayer();
 
-                
+
                 //Wait for each layer to complete
                 foreach (ILayer layer in map.Layers)
                 {
@@ -162,7 +162,7 @@ namespace hajk.Fragments
                     {
                         var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
                         var text = "Location:";
-                        
+
                         //GPS
                         text += $"\nGPS: {lat.ToString("0.000000")}, {lon.ToString("0.000000")}";
 
@@ -175,7 +175,7 @@ namespace hajk.Fragments
                         var result = await msg.ShowDialog("Create POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
                         if (result == Show_Dialog.MessageResult.YES)
                         {
-                            Serilog.Log.Debug($"{args.MapInfo}");                            
+                            Serilog.Log.Debug($"{args.MapInfo}");
 
                             GPXDataPOI p = new()
                             {
@@ -185,7 +185,7 @@ namespace hajk.Fragments
                                 Lat = (decimal)lat,
                                 Lon = (decimal)lon,
                             };
-                            
+
                             var r = POIDatabase.SavePOI(p);
                             DisplayMapItems.AddPOIToMap();
                         }

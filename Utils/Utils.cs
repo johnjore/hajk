@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using Android.App;
+﻿using Android.App;
 using Android.Graphics;
 using Android.Util;
-using Mapsui.Layers;
 using hajk;
-using Microsoft.Maui.ApplicationModel;
+using Mapsui.Layers;
+using System.Reflection;
 
 namespace Utils
 {
@@ -26,7 +20,7 @@ namespace Utils
                     return;
                 }
 
-                System.IO.DirectoryInfo di = new (directoryName);
+                System.IO.DirectoryInfo di = new(directoryName);
 
                 foreach (FileInfo file in di.GetFiles())
                 {
@@ -192,7 +186,7 @@ namespace Utils
 
             return new Mapsui.MPoint()
             {
-                X = p1.Latitude  + (fraction * (p2.Latitude  - p1.Latitude )),
+                X = p1.Latitude + (fraction * (p2.Latitude - p1.Latitude)),
                 Y = p1.Longitude + (fraction * (p2.Longitude - p1.Longitude))
             };
         }
@@ -230,12 +224,12 @@ namespace Utils
                 return;
             }
 
-            
+
             using (var alert = new AlertDialog.Builder(Platform.CurrentActivity))
             {
                 alert.SetTitle(Platform.CurrentActivity?.Resources?.GetString(hajk.Resource.String.ExitTitle));
                 alert.SetMessage(Platform.CurrentActivity?.Resources?.GetString(hajk.Resource.String.ExitPrompt));
-                alert.SetPositiveButton(hajk.Resource.String.Yes, (sender, args) => 
+                alert.SetPositiveButton(hajk.Resource.String.Yes, (sender, args) =>
                 {
                     Task.Run(async () =>
                     {
@@ -247,7 +241,7 @@ namespace Utils
                         Platform.CurrentActivity?.FinishAffinity();
                     });
                 });
-                alert.SetNegativeButton(hajk.Resource.String.No, (sender, args) => 
+                alert.SetNegativeButton(hajk.Resource.String.No, (sender, args) =>
                 {
                 });
 

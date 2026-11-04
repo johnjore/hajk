@@ -3,11 +3,6 @@ using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using SharpGPX;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace hajk.GPX
 {

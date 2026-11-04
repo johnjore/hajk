@@ -1,7 +1,5 @@
 ﻿using Android.OS;
-using Android.Views;
 using Android.Widget;
-using AndroidX.AppCompat.App;
 using AndroidX.Fragment.App;
 using GPXUtils;
 using hajk.Data;
@@ -11,11 +9,9 @@ using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Projections;
 using Mapsui.Rendering.Skia;
-using NetTopologySuite.Noding;
 using SharpGPX;
-using SharpGPX.GPX1_1;
 using SharpGPX.Extensions.Garmin;
-using System;
+using SharpGPX.GPX1_1;
 using System.Globalization;
 using System.Xml;
 
@@ -86,7 +82,7 @@ namespace hajk
                 {
                     if (GpxClass.CheckFile(fileName.FullPath) == false)
                     {
-                        Show_Dialog? msg2 = new (Platform.CurrentActivity); //Don't use cached value
+                        Show_Dialog? msg2 = new(Platform.CurrentActivity); //Don't use cached value
                         await msg2.ShowDialog($"'{fileName}'", "is not a valid GPX file. Unable to import file.", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.OK);
                     }
                     else
@@ -104,7 +100,7 @@ namespace hajk
                         string t = (tempGPX.Tracks.Count == 1) ? "track" : "tracks";
                         string p = (tempGPX.Waypoints.Count == 1) ? "POI" : "POIs";
 
-                        Show_Dialog? msg1 = new (Platform.CurrentActivity); //Don't use cached value
+                        Show_Dialog? msg1 = new(Platform.CurrentActivity); //Don't use cached value
                         Show_Dialog.MessageResult dialogResult = await msg1?.ShowDialog($"'{fileName.FileName}'", $"Found {tempGPX.Routes.Count} {r}, {tempGPX.Tracks.Count} {t} and {tempGPX.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
                         if (dialogResult.Equals(Show_Dialog.MessageResult.YES))
                         {
@@ -194,7 +190,7 @@ namespace hajk
                 foreach (trkType track in gpxData.Tracks)
                 {
                     Serilog.Log.Information($"Importing {track.name}");
-                    
+
                     if (AddGPXTrack(track, DownloadOfflineMap)?.Result == false)
                     {
                         Toast.MakeText(Platform.AppContext, $"Failed to import '{track.name}'", ToastLength.Short)?.Show();
@@ -222,7 +218,8 @@ namespace hajk
             catch (Exception ex)
             {
                 Serilog.Log.Fatal(ex, $"Import - GetRoute()");
-            };
+            }
+            ;
         }
 
         public static void GPXImportfromIntent(Android.Content.Intent? intent)
@@ -276,7 +273,7 @@ namespace hajk
                     {
                         MainThread.BeginInvokeOnMainThread(async () =>
                         {
-                            Show_Dialog? msg2 = new (Platform.CurrentActivity); //Don't use cached value
+                            Show_Dialog? msg2 = new(Platform.CurrentActivity); //Don't use cached value
                             await msg2?.ShowDialog($"{uri?.PathSegments[uri.PathSegments.Count - 1]}", "is not a valid GPX file. Unable to import file.", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.OK);
                         });
                         return;
@@ -288,7 +285,7 @@ namespace hajk
 
                     MainThread.BeginInvokeOnMainThread(async () =>
                     {
-                        Show_Dialog msg = new (Platform.CurrentActivity);
+                        Show_Dialog msg = new(Platform.CurrentActivity);
                         if (await msg?.ShowDialog($"{uri.LastPathSegment}", $"Found {gpx.Routes.Count} {r}, {gpx.Tracks.Count} {t} and {gpx.Waypoints.Count} {p}. Import?", Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO) == Show_Dialog.MessageResult.YES)
                         {
                             await Task.Run(() =>
@@ -376,7 +373,7 @@ namespace hajk
 
                 foreach (var i in LatLon)
                 {
-                    wptType wptType = new ()
+                    wptType wptType = new()
                     {
                         lat = (decimal)i.Latitude,
                         lon = (decimal)i.Longitude,
@@ -429,9 +426,9 @@ namespace hajk
 
             return true;
         }
-                
+
         private static async Task<bool>? AddGPXTrack(trkType track, bool DownloadOfflineMap)
-        {            
+        {
             try
             {
                 //Parse and extract information from GPX file
@@ -471,7 +468,7 @@ namespace hajk
 
                 foreach (var i in LatLon)
                 {
-                    wptType wptType = new ()
+                    wptType wptType = new()
                     {
                         lat = (decimal)i.Latitude,
                         lon = (decimal)i.Longitude,
@@ -740,7 +737,7 @@ namespace hajk
                         LineString += ",";
                     }
 
-                    LineString += route.rtept[i].lat+ " " + route.rtept[i].lon;
+                    LineString += route.rtept[i].lat + " " + route.rtept[i].lon;
                 }
 
                 LineString += ")";
@@ -757,7 +754,7 @@ namespace hajk
         {
             try
             {
-                XmlDocument xmlDocument = new ();
+                XmlDocument xmlDocument = new();
                 xmlDocument.LoadXml(content);
                 return xmlDocument.DocumentElement != null && (xmlDocument.DocumentElement.NamespaceURI == "http://www.topografix.com/GPX/1/0" || xmlDocument.DocumentElement.NamespaceURI == "http://www.topografix.com/GPX/1/1");
             }
@@ -813,10 +810,10 @@ namespace hajk
 
             //Add elevation data
             route_to_download.GPX = gpx_to_import.ToXml();
-            
+
             //Naismith Travel Time
             (int travel_hours, int travel_min) = Naismith.CalculateTime(route_to_download.Distance, Fragment_Preferences.naismith_speed_kmh, route_to_download.Ascent, route_to_download.Descent);
-            route_to_download.NaismithTravelTime = $"{string.Format("{0:D2}", travel_hours)}:{ string.Format("{0:D2}", travel_min)}";
+            route_to_download.NaismithTravelTime = $"{string.Format("{0:D2}", travel_hours)}:{string.Format("{0:D2}", travel_min)}";
 
             //Shenandoahs's Hiking Difficulty
             float ShenandoahsHikingDifficultyScale = ShenandoahsHikingDifficulty.CalculateScale(route_to_download.Distance, route_to_download.Ascent);

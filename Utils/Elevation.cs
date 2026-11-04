@@ -2,19 +2,10 @@
 using Android.Widget;
 using GeoTiffCOG;
 using GPXUtils;
-using hajk.Models;
 using Mapsui.Projections;
 using SharpGPX;
 using SharpGPX.GPX1_1;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace hajk
 {
@@ -30,7 +21,7 @@ namespace hajk
                 string GeoTiffFolder = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder + "/";
 
                 //Make sure GeoTiff folder exists 
-                if (!Directory.Exists(GeoTiffFolder)) 
+                if (!Directory.Exists(GeoTiffFolder))
                 {
                     Directory.CreateDirectory(GeoTiffFolder);
                 }
@@ -367,7 +358,7 @@ namespace hajk
                         {
                             Serilog.Log.Error(ex, $"Failed to lookup ElevationData for x:{x}, y{y} in {FileName}");
                             e.ele = 0;
-                            e.eleSpecified = false;                            
+                            e.eleSpecified = false;
                         }
                         finally
                         {
@@ -408,7 +399,7 @@ namespace hajk
                     var data = DownloadImageAsync(url);
                     WriteCOGGeoTiff(COGfileName, data);
                 }
-     
+
                 //Lookup elevation at that location
                 var geoTiff = new GeoTiff(COGfileName);
                 var (y, x) = SphericalMercator.FromLonLat((double)position.Longitude, (double)position.Latitude);
@@ -433,7 +424,7 @@ namespace hajk
             var filtered = positions.Where(x => x.ElevationSpecified).ToList();
             return CalculateAscentDescentCore(filtered, x => (decimal)x.Elevation);
         }
-        
+
         /// <summary>
         /// Loop through a route with elevation data and calculate how much ascent and descent
         /// </summary>
@@ -515,7 +506,7 @@ namespace hajk
                             {
                                 var url = COGGeoTiffServer + $"{tile.Zoom}/{tile.X}/{tile.Y}.tif";
                                 data = DownloadImageAsync(url);
-                                                                
+
                                 if (data != null)
                                 {
                                     Serilog.Log.Information($"Downloaded Elevation Tile: x/y: {tile.X}/{tile.Y}, ID: {tile.Id} from '{url}'");
@@ -539,7 +530,8 @@ namespace hajk
                                 }
                             }
                         }
-                    };
+                    }
+                    ;
                 }
                 catch (Exception ex)
                 {

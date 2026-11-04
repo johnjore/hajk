@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace hajk.Models.Elevation
+﻿namespace hajk.Models.Elevation
 {
     public class Location
     {

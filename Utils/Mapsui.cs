@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace hajk
+﻿namespace hajk
 {
     internal class MapsuiLogging
     {
         public static void AttachMapsuiLogging()
         {
             var mapsuiPrefix = "[Mapsui]";
-            Mapsui.Logging.Logger.LogDelegate += (level, message, ex) => {
+            Mapsui.Logging.Logger.LogDelegate += (level, message, ex) =>
+            {
                 if (level == Mapsui.Logging.LogLevel.Error)
                     Serilog.Log.Error(ex, $"{mapsuiPrefix} {message}");
                 else if (level == Mapsui.Logging.LogLevel.Warning)
