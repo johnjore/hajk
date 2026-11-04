@@ -191,15 +191,17 @@ namespace hajk
             //Create zip file
             string[] allfiles = Directory.GetFiles(BackupFolder, "*", SearchOption.AllDirectories);
             using (var zip = context.ContentResolver.OpenOutputStream(targetFile.Uri, "w"))
-            using (var zipWriter = WriterFactory.Open(zip, ArchiveType.Zip, CompressionType.None))
+            using (var zipWriter = WriterFactory.OpenWriter(zip, ArchiveType.Zip, new WriterOptions(CompressionType.None)))
             {
                 foreach (string file in allfiles)
                 {
                     if (file.Contains(".nomedia") == false && file.Contains(".noimage") == false)
                     {
                         string entryPath = Path.GetFileName(file); //Strip off the full Android pathname
-                        var inputStream = new FileStream(file, FileMode.Open, FileAccess.Read);
-                        zipWriter.Write(entryPath, inputStream);
+                        using (var inputStream = new FileStream(file, FileMode.Open, FileAccess.Read))
+                        {
+                            zipWriter.Write(entryPath, inputStream);
+                        }
                     }
                 }
             }

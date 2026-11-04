@@ -96,7 +96,7 @@ namespace hajk
                 //Count files in file to unpack
                 int Entries = 0;
                 using (Stream? stream = context?.ContentResolver?.OpenInputStream(uri))
-                using (var reader = ReaderFactory.Open(stream))
+                using (var reader = ReaderFactory.OpenReader(stream))
                 {
                     while (reader.MoveToNextEntry())
                     {
@@ -108,7 +108,7 @@ namespace hajk
                 Serilog.Log.Information($"Entries in Stream '{Entries}'. Each Progressbar increment is '{ProgressBarIncrement}'");
 
                 using (Stream stream = context?.ContentResolver?.OpenInputStream(uri))
-                using (var reader = ReaderFactory.Open(stream))
+                using (var reader = ReaderFactory.OpenReader(stream))
                 {
                     while (reader.MoveToNextEntry())
                     {
