@@ -102,8 +102,8 @@
     <PackageReference Include="SkiaSharp.Extended" Version="2.0.0" />
     <PackageReference Include="SkiaSharp.Svg" Version="1.60.0" />
     <PackageReference Include="SkiaSharp.Views" Version="3.119.0" />
-    <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
-    <PackageReference Include="System.Text.Json" Version="9.0.7" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
+    <PackageReference Include="System.Text.Json" Version="10.0.14" />
     <PackageReference Include="tilebelt" Version="2.0.1" />
     <PackageReference Include="Tnn.OxyPlot.Xamarin.Android" Version="2.1.2" />
     <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.35" />
