@@ -134,7 +134,7 @@ namespace hajk.Adapter
                     //Elevation plot
                     if (routetrackInfo.GPX != null && routetrackInfo.GPX.Length > 0)
                     {
-                        var elevationModel = Helpers.CreatePlotModel(GpxClass.FromXml(routetrackInfo.GPX));
+                        var elevationModel = GPX.Helpers.CreatePlotModel(GpxClass.FromXml(routetrackInfo.GPX));
                         if (elevationModel != null)
                         {
                             vh.TrackRouteElevation.Model = elevationModel;

@@ -31,7 +31,7 @@ using NetTopologySuite.Geometries;
 using Serilog;
 using SharpGPX;
 using SharpGPX.GPX1_1;
-using SharpGPX.GPX1_1.Topografix;
+using SharpGPX.Extensions.Topografix;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

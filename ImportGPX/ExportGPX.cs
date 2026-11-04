@@ -9,8 +9,6 @@ using hajk.Models;
 using Mapsui.Layers;
 using SharpGPX;
 using SharpGPX.GPX1_1;
-using SharpGPX.GPX1_1.Garmin;
-using SharpGPX.GPX1_1.Topografix;
 using Android.Content.Res;
 using SQLite;
 
