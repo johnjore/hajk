@@ -108,10 +108,11 @@
     <PackageReference Include="Tnn.OxyPlot.Xamarin.Android" Version="2.1.2" />
     <PackageReference Include="Xamarin.AndroidX.CardView" Version="1.0.0.39" />
     <PackageReference Include="Xamarin.AndroidX.DocumentFile" Version="1.1.0.4" />
-    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.6.2" />
-    <PackageReference Include="Xamarin.AndroidX.Preference" Version="1.2.1.14" />
+    <PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.9.1" />
+	<PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.9.1" />
+    <PackageReference Include="Xamarin.AndroidX.Preference" Version="1.2.1.18" />
     <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.4.0.6" />
-    <PackageReference Include="Xamarin.Google.Android.Material" Version="1.12.0.4" />
+    <PackageReference Include="Xamarin.Google.Android.Material" Version="1.14.0.6" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Images\Arrow-up.svg" />
