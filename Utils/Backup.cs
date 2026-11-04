@@ -13,7 +13,7 @@ namespace hajk
 {
     internal class Backup
     {
-        public static void RunDailyBackup()
+        public static async Task RunDailyBackupAsync()
         {
             bool[] checkedItems = [
                 Preferences.Get("BackupPreferences", true),
@@ -58,7 +58,7 @@ namespace hajk
             Progressbar.UpdateProgressBar.MessageBody = $"Starting backup";
             int ProgressBarIncrement = (int)Math.Ceiling((double)(100 / (checkedItems.Count(c => c == true) + 2))); //2 = Compress and remove old backup files
 
-            Task.Run(() =>
+            await Task.Run(() =>
             {
                 PerformBackups(ProgressBarIncrement);
             });
@@ -523,7 +523,7 @@ namespace hajk
                 Serilog.Log.Information("Remove old backup files");
 
                 int KeepNBackups = int.Parse(Preferences.Get("KeepNBackups", Fragment_Preferences.KeepNBackups.ToString()));
-                SafServices.PruneOldFiles(Platform.AppContext, "ZIP", ".zip", KeepNBackups);
+                SafServices.PruneOldFiles(Platform.AppContext, ".zip", KeepNBackups);
 
                 var baseFiles = SafServices.ListFilesInFolder(Platform.AppContext);
                 if (baseFiles != null)

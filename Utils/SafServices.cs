@@ -115,9 +115,9 @@ namespace hajk
                 .ToList();
         }
 
-        public static void PruneOldFiles(Context context, string relativeFolderPath, string fileExtension, int maxToKeep)
+        public static void PruneOldFiles(Context context, string fileExtension, int maxToKeep)
         {
-            var files = ListFilesInFolder(context, relativeFolderPath);
+            var files = ListFilesInFolder(context);
             if (files == null || files.Count == 0) return;
 
             var matchingFiles = files

@@ -206,12 +206,6 @@ namespace hajk
                     }
                 }
 
-                Log.Debug($"Notify user if battery save mode is enabled?");
-                Utilities.BatteryOptimization.BatterySaveModeNotification();
-
-                Log.Debug($"Notify user if location permission does not allow background collection");
-                await Utilities.AppPermissions.LocationPermissionNotification(this);
-
                 //Enable Compass Sensor
                 CompassData.EnableCompass();
 
@@ -221,7 +215,16 @@ namespace hajk
                 Log.Information($"Daily Backup?");
                 if (Preferences.Get("EnableBackupAtStartup", Fragment_Preferences.EnableBackupAtStartup))
                 {
-                    MainThread.BeginInvokeOnMainThread(() => Backup.RunDailyBackup());
+                    // Wait for the cache database connection before attempting backup
+                    while (TileCache.MbTileCache.sqlConn == null)
+                    {
+                        await Task.Delay(100);
+                    }
+
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await Backup.RunDailyBackupAsync();
+                    });
                 }
 
                 //Enumerate all files
@@ -245,6 +248,12 @@ namespace hajk
 
                 //Clean share folder
                 Share.CleanSharefolder();
+
+                Log.Debug($"Notify user if battery save mode is enabled?");
+                Utilities.BatteryOptimization.BatterySaveModeNotification();
+
+                Log.Debug($"Notify user if location permission does not allow background collection");
+                await Utilities.AppPermissions.LocationPermissionNotification(this);
             }
             catch (Exception ex)
             {
