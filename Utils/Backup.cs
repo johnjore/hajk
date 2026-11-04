@@ -1,5 +1,4 @@
 ﻿using Android.App;
-using Android.Content.Res;
 using Android.Content;
 using Android.OS;
 using Android.Widget;
@@ -26,27 +25,30 @@ namespace hajk
 
             //All backup files
             var baseFiles = SafServices.ListFilesInFolder(Platform.AppContext);
-            foreach (DocumentFile fileName in baseFiles)
+            if (baseFiles != null)
             {
-                Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
-            }
-
-            //Backup taken today?
-            foreach (DocumentFile fileName in baseFiles)
-            {
-                Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
-
-                var localDate = DateTimeOffset
-                    .FromUnixTimeMilliseconds(fileName.LastModified())
-                    .DateTime
-                    .ToLocalTime();
-
-                Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()} / '{localDate.Date}'");
-
-                if (localDate.Date >= DateTime.Today)
+                foreach (DocumentFile fileName in baseFiles)
                 {
-                    Serilog.Log.Information($"Backup already taken today '{DateTime.Today.ToString("yyMMdd")}'");
-                    return;
+                    Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
+                }
+
+                //Backup taken today?
+                foreach (DocumentFile fileName in baseFiles)
+                {
+                    Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
+
+                    var localDate = DateTimeOffset
+                        .FromUnixTimeMilliseconds(fileName.LastModified())
+                        .DateTime
+                        .ToLocalTime();
+
+                    Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()} / '{localDate.Date}'");
+
+                    if (localDate.Date >= DateTime.Today)
+                    {
+                        Serilog.Log.Information($"Backup already taken today '{DateTime.Today.ToString("yyMMdd")}'");
+                        return;
+                    }
                 }
             }
 
@@ -524,9 +526,16 @@ namespace hajk
                 SafServices.PruneOldFiles(Platform.AppContext, "ZIP", ".zip", KeepNBackups);
 
                 var baseFiles = SafServices.ListFilesInFolder(Platform.AppContext);
-                foreach (DocumentFile fileName in baseFiles)
+                if (baseFiles != null)
                 {
-                    Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length} bytes / Modified: {fileName.LastModified}");
+                    foreach (DocumentFile fileName in baseFiles)
+                    {
+                        Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length} bytes / Modified: {fileName.LastModified}");
+                    }
+                }
+                else
+                {
+                    Serilog.Log.Debug($"No Backup files");
                 }
             }
             catch (Exception ex)
