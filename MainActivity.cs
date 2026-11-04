@@ -130,6 +130,13 @@ namespace hajk
                 }            
             }
 
+            //Make sure GeoTiff folder exists
+            string GeoTiffFolder = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder;
+            if (!Directory.Exists(GeoTiffFolder))
+            {
+                Directory.CreateDirectory(GeoTiffFolder);
+            }
+
             try
             {
                 //Extract initial map, if not there
