@@ -69,7 +69,6 @@ namespace hajk
             {
                 Name = LocationLayerName,
                 Style = null,
-                IsMapInfoLayer = false,
             };
 
             layer.Add(CreateLocationMarker(GPSLocation));

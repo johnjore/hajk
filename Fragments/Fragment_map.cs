@@ -2,17 +2,23 @@
 using Android.Views;
 using AndroidX.Fragment.App;
 using CoordinateSharp;
+using DotSpatial.Projections.Transforms;
 using GPXUtils;
+using hajk;
 using hajk.Data;
+using hajk.Fragments;
 using hajk.Models;
 using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
+using Mapsui.Manipulations;
 using Mapsui.Projections;
 using Mapsui.UI.Android;
 using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace hajk.Fragments
 {
@@ -23,6 +29,17 @@ namespace hajk.Fragments
         private static Position? MapPressed = null;
         private static long? Id = null;
         private static long? MovingPOI = -1;               //For MapInfo, if >=0, next tap is new location for POI #
+
+        private CancellationTokenSource? _pendingSingleTap;
+
+        // How long to wait after a SingleTap to see whether a DoubleTap follows
+        private static readonly TimeSpan SingleTapDelay = TimeSpan.FromMilliseconds(300);
+
+        private void CancelPendingSingleTap()
+        {
+            _pendingSingleTap?.Cancel();
+            _pendingSingleTap = null;
+        }
 
         public override void OnCreate(Bundle? savedInstanceState)
         {
@@ -95,8 +112,7 @@ namespace hajk.Fragments
                     ScaleBarMode = ScaleBarMode.Both,
                     UnitConverter = MetricUnitConverter.Instance,
                     SecondaryUnitConverter = ImperialUnitConverter.Instance,
-                    MarginX = 10,
-                    MarginY = 20,
+                    Margin = new MRect(10, 20),
                 });
 
                 Serilog.Log.Information($"Import POIs");
@@ -137,37 +153,103 @@ namespace hajk.Fragments
             return null;
         }
 
+        // Runs the action after SingleTapDelay, unless a DoubleTap cancels it first.
+        private void RunAfterSingleTapDelay(Func<Task> action)
+        {
+            var cts = new CancellationTokenSource();
+            _pendingSingleTap = cts;
+
+            Task.Run(async () =>
+            {
+            try
+            {
+                    await Task.Delay(SingleTapDelay, cts.Token);
+                    await action();
+                }
+                catch (System.OperationCanceledException)
+                {
+                    // A DoubleTap arrived, so the single tap action is skipped.
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Fatal(ex, $"Fragment_map - RunAfterSingleTapDelay()");
+                }
+            });
+        }
+
+        // Places the POI that is being moved (MovingPOI) at the tapped world position.
+        private async Task MovePOIAsync(double worldX, double worldY)
+        {
+            try
+            {
+                if (MovingPOI < 0)
+                    return;
+
+                var movingId = MovingPOI;
+                MovingPOI = -1;
+
+                GPXDataPOI p = await POIDatabase.GetPOIAsync(movingId);
+                var latLon = SphericalMercator.ToLonLat(worldX, worldY);
+                p.Lat = (decimal)latLon.lat;
+                p.Lon = (decimal)latLon.lon;
+
+                var r = POIDatabase.SavePOI(p);
+                DisplayMapItems.AddPOIToMap();
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Fatal(ex, $"Fragment_map - MovePOIAsync()");
+            }
+        }
+
         private void MapOnInfo(object? sender, MapInfoEventArgs? args)
         {
             try
             {
-                if (args == null)
+                if (args == null || args.GestureType == null || args.Map == null || args.Map.Layers == null)
                     return;
 
-                if (args.MapInfo == null)
-                    return;
+                // A DoubleTap is always preceded by a SingleTap. Cancel that SingleTap's pending action first, before any of the early returns below.
+                if (args.GestureType == GestureType.DoubleTap)
+                    CancelPendingSingleTap();
 
-                if (args.MapInfo.WorldPosition == null)
+                var mapInfo = args.GetMapInfo(args.Map.Layers);
+
+                if (mapInfo == null || mapInfo.WorldPosition == null)
                     return;
 
                 //Update MapPressed
-                var b = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+                var b = SphericalMercator.ToLonLat(mapInfo.WorldPosition.X, mapInfo.WorldPosition.Y);
                 MapPressed = new Position(b.lat, b.lon, 0, false, null);
                 Serilog.Log.Debug($"Route Object. GPS Position: " + b.ToString());
 
+                //Moving POI. The next tap places the POI. This is checked before "Create POI?" so the DoubleTap that follows a placing SingleTap can't also open the "Create POI?" dialog.
+                if (MovingPOI >= 0)
+                {
+                    var worldX = mapInfo.WorldPosition.X;
+                    var worldY = mapInfo.WorldPosition.Y;
+
+                    if (args.GestureType == GestureType.SingleTap)
+                        RunAfterSingleTapDelay(() => MovePOIAsync(worldX, worldY)); // A DoubleTap cancels this and places it itself.
+                    else
+                        _ = Task.Run(() => MovePOIAsync(worldX, worldY));
+
+                    return;
+                }
+
                 //Create POI?
-                if (args.MapInfo?.Feature == null && args.NumTaps >= 2 && args.MapInfo?.WorldPosition != null)
+                if (mapInfo.Feature.Fields.Count() == 0 && args.GestureType == GestureType.DoubleTap && mapInfo?.WorldPosition != null)
                 {
                     Task.Run(async () =>
                     {
-                        var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
+                        var lonLat = SphericalMercator.ToLonLat(mapInfo.WorldPosition.X, mapInfo.WorldPosition.Y);
                         var text = "Location:";
 
                         //GPS
-                        text += $"\nGPS: {lat.ToString("0.000000")}, {lon.ToString("0.000000")}";
+                        text += $"\nGPS: {lonLat.lat.ToString("0.000000")}, {lonLat.lon.ToString("0.000000")}";
 
                         //UTM
-                        UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lat, lon);
+                        CoordinateSharp.UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lonLat.lat, lonLat.lon);
                         text += ($"\nUTM: {utm?.LongZone}{utm?.LatZone} {utm?.Easting.ToString("0")} E {utm?.Northing.ToString("0")} N");
 
 
@@ -175,15 +257,15 @@ namespace hajk.Fragments
                         var result = await msg.ShowDialog("Create POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
                         if (result == Show_Dialog.MessageResult.YES)
                         {
-                            Serilog.Log.Debug($"{args.MapInfo}");
+                            Serilog.Log.Debug($"{mapInfo}");
 
                             GPXDataPOI p = new()
                             {
                                 Name = "Manual Entry",
                                 Description = "",
                                 Symbol = null,
-                                Lat = (decimal)lat,
-                                Lon = (decimal)lon,
+                                Lat = (decimal)lonLat.lat,
+                                Lon = (decimal)lonLat.lon,
                             };
 
                             var r = POIDatabase.SavePOI(p);
@@ -194,74 +276,73 @@ namespace hajk.Fragments
                     });
                 }
 
-                //Moving POI
-                if (MovingPOI >= 0 && args.MapInfo.WorldPosition != null)
-                {
-                    GPXDataPOI p = POIDatabase.GetPOIAsync(MovingPOI).Result;
-                    var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-                    p.Lat = (decimal)lat;
-                    p.Lon = (decimal)lon;
-
-                    var r = POIDatabase.SavePOI(p);
-                    DisplayMapItems.AddPOIToMap();
-
-                    MovingPOI = -1;
-                }
-
-                if (args.MapInfo.Layer?.Name == null)
+                if (mapInfo.Layer?.Name == null)
                     return;
 
-                if (args.MapInfo.Layer.Tag == null)
+                if (mapInfo.Layer.Tag == null)
                     return;
 
                 //Simplify
-                var layer = args.MapInfo.Layer;
-                var style = args.MapInfo.Style;
+                var layer = mapInfo.Layer;
+                var style = mapInfo.Style;
 
                 //POI?
-                if (layer.Name == Fragment_Preferences.Layer_Poi && layer.Tag.ToString() == Fragment_Preferences.Layer_Poi && args.MapInfo != null && args.MapInfo.WorldPosition != null)
+                if (layer.Name == Fragment_Preferences.Layer_Poi && layer.Tag.ToString() == Fragment_Preferences.Layer_Poi && mapInfo != null && mapInfo.WorldPosition != null)
                 {
                     Serilog.Log.Debug($"POI Object");
-                    var (lon, lat) = SphericalMercator.ToLonLat(args.MapInfo.WorldPosition.X, args.MapInfo.WorldPosition.Y);
-                    var text = "Name:\n" + args.MapInfo?.Feature["name"] + "\n\nDescription:\n" + args.MapInfo?.Feature["description"] + "\n\nLocation:\n";
-                    Id = Convert.ToInt64(args.MapInfo?.Feature?["id"]);
+                    var lonLat = SphericalMercator.ToLonLat(mapInfo.WorldPosition.X, mapInfo.WorldPosition.Y);
+                    var text = "Name:\n" + mapInfo?.Feature["name"] + "\n\nDescription:\n" + mapInfo?.Feature["description"] + "\n\nLocation:\n";
+
+                    // Local copy, because the delayed dialog below must not use the Id field (it can change during the delay).
+                    var poiId = Convert.ToInt64(mapInfo?.Feature?["id"]);
+                    Id = poiId;
 
                     //GPS
-                    text += $"GPS: {lat.ToString("0.000000")}, {lon.ToString("0.000000")}";
+                    text += $"GPS: {lonLat.lat.ToString("0.000000")}, {lonLat.lon.ToString("0.000000")}";
 
                     //Add UTM values
-                    UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lat, lon);
+                    CoordinateSharp.UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lonLat.lat, lonLat.lon);
                     text += ($"\nUTM: {utm?.LongZone}{utm?.LatZone} {utm?.Easting.ToString("0")} E {utm?.Northing.ToString("0")} N");
 
-                    Serilog.Log.Debug($"{text}/n{Id}");
+                    Serilog.Log.Debug($"{text}/n{poiId}");
 
-                    Task.Run(async () =>
+                    //Delete POI. Deferred, so a DoubleTap on the same POI cancels it and only "Move POI?" is shown.
+                    if (args.GestureType == GestureType.SingleTap)
                     {
-                        Show_Dialog msg = new(Platform.CurrentActivity);
-
-                        //Delete POI
-                        if (args.NumTaps == 1)
+                        RunAfterSingleTapDelay(async () =>
                         {
-                            var result = await msg.ShowDialog2("Delete POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
+                            Show_Dialog msg = new(Platform.CurrentActivity);
+                            var result = await msg.ShowDialog("Delete POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
                             if (result == Show_Dialog.MessageResult.YES)
                             {
-                                Serilog.Log.Debug($"Deleting {Id} from POI DB and MemoryLayer");
-                                var r = await POIDatabase.DeletePOIAsync(Id);
+                                Serilog.Log.Debug($"Deleting {poiId} from POI DB and MemoryLayer");
+                                var r = await POIDatabase.DeletePOIAsync(poiId);
                                 DisplayMapItems.AddPOIToMap();
                             }
+                        });
                         }
 
                         //Move POI
-                        if (args.NumTaps == 2)
+                    if (args.GestureType == GestureType.DoubleTap)
                         {
+                        Task.Run(async () =>
+                        {
+                            try
+                            {
+                                Show_Dialog msg = new(Platform.CurrentActivity);
                             var result = await msg.ShowDialog("Move POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
                             if (result == Show_Dialog.MessageResult.YES)
                             {
-                                Serilog.Log.Debug($"Moving {Id} ing POI DB and MemoryLayer");
-                                MovingPOI = Id;
+                                    Serilog.Log.Debug($"Moving {poiId} ing POI DB and MemoryLayer");
+                                    MovingPOI = poiId;
                             }
+                            }
+                            catch (Exception ex)
+                            {
+                                Serilog.Log.Fatal(ex, $"Fragment_map - Move POI dialog");
                         }
                     });
+                }
                 }
 
                 //Track?
@@ -332,6 +413,5 @@ namespace hajk.Fragments
         {
             return Id;
         }
-
     }
 }

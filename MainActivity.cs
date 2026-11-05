@@ -97,9 +97,8 @@ namespace hajk
 
             Log.Information($"Logging to '{_Path}'");
 
-            //Enable Mapsui logging
-            /**/
-            //MapsuiLogging.AttachMapsuiLogging();
+            //Mapsui logging
+            Mapsui.Widgets.InfoWidgets.LoggingWidget.ShowLoggingInMap = Mapsui.Widgets.ActiveMode.No;
 
             //Make sure LiveData folder exists
             if (!Directory.Exists(Fragment_Preferences.LiveData))

@@ -590,8 +590,9 @@ namespace hajk
                     }
                 }
 
-                //Create the thumbprint
-                MemoryStream bitmap = new MapRenderer().RenderToBitmapStream(Fragment_map.map.Navigator.Viewport, Fragment_map.map.Layers, Fragment_map.map.BackColor);
+                // Create the thumbprint
+                var renderer = new MapRenderer();
+                using var bitmap = renderer.RenderToBitmapStream(Fragment_map.map);
                 bitmap.Position = 0;
                 string ImageBase64String = Convert.ToBase64String(bitmap.ToArray());
 

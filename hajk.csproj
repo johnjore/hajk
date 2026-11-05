@@ -81,14 +81,14 @@
     <PackageReference Include="AsyncEnumerator" Version="4.0.2" />
     <PackageReference Include="BlueToque.SharpGPX" Version="2.25.1230" />
     <PackageReference Include="BlueToque.SharpGPX.Extensions" Version="2.25.1230" />
-    <PackageReference Include="BruTile" Version="5.0.6" />
-    <PackageReference Include="BruTile.MbTiles" Version="5.0.6" />
+    <PackageReference Include="BruTile" Version="6.0.0" />
+    <PackageReference Include="BruTile.MbTiles" Version="6.0.0" />
     <PackageReference Include="CoordinateSharp" Version="3.5.1.1" />
     <PackageReference Include="HtmlAgilityPack" Version="1.13.1" />
-    <PackageReference Include="Mapsui" Version="4.1.9" />
-    <PackageReference Include="Mapsui.Android" Version="4.1.9" />
-    <PackageReference Include="Mapsui.Extensions" Version="4.1.9" />
-    <PackageReference Include="Mapsui.Nts" Version="4.1.9" />
+    <PackageReference Include="Mapsui" Version="5.1.0" />
+    <PackageReference Include="Mapsui.Android" Version="5.1.0" />
+    <PackageReference Include="Mapsui.Extensions" Version="5.1.0" />
+    <PackageReference Include="Mapsui.Nts" Version="5.1.0" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.120" />
     <PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.120" />
     <PackageReference Include="Sentry" Version="6.12.1" />

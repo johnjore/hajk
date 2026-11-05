@@ -139,29 +139,6 @@ namespace Utils
             return null;
         }
 
-        public static int GetBitmapIdForEmbeddedResource(string imagePath)
-        {
-            try
-            {
-                var assembly = typeof(MainActivity).GetTypeInfo().Assembly;
-                var image = assembly.GetManifestResourceStream(imagePath);
-
-                if (image == null)
-                {
-                    Serilog.Log.Fatal($"Utils - GetBitmapIdForEmbeddedResource() is null for {imagePath}");
-                    return 0;
-                }
-
-                var bitmapId = Mapsui.Styles.BitmapRegistry.Instance.Register(image);
-                return bitmapId;
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, $"Utils - GetBitmapIdForEmbeddedResource()");
-                return 0;
-            }
-        }
-
         public static Mapsui.MPoint CalculateCenter(double BoundsRight, double BoundsTop, double BoundsLeft, double BoundsBottom)
         {
             return new Mapsui.MPoint()

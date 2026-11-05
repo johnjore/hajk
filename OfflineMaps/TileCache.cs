@@ -46,11 +46,12 @@ namespace hajk
                 if (TileBrowseSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
                 {
                     src = new(new GlobalSphericalMercator(Fragment_Preferences.MinZoom, Fragment_Preferences.MaxZoom),
-                        MapSource.BaseURL, new[] { "a", "b", "c" },
+                        MapSource.BaseURL, 
+                        new[] { "a", "b", "c" },
                         name: MapSource.Name,
                         persistentCache: mbTileCache,
-                        userAgent: MapSource.Name + " in Mapsui (hajk)",
-                        attribution: new Attribution("(c) " + MapSource.Name + " contributors", "https://www.openstreetmap.org/copyright"));
+                        attribution: new Attribution("(c) " + MapSource.Name + " contributors", "https://www.openstreetmap.org/copyright"),
+                        configureHttpRequestMessage: r => r.Headers.TryAddWithoutValidation("User-Agent", MapSource.Name + " in Mapsui (hajk)"));
                 }
                 else if (TileBrowseSource.Equals("Custom", StringComparison.OrdinalIgnoreCase))
                 {
@@ -61,7 +62,7 @@ namespace hajk
                         url + token,
                         name: MapSource.Name,
                         persistentCache: mbTileCache,
-                        userAgent: MapSource.Name + " in Mapsui (hajk)");
+                        configureHttpRequestMessage: r => r.Headers.TryAddWithoutValidation("User-Agent", MapSource.Name + " in Mapsui (hajk)"));
                 }
                 else //Mapbox || Thunderforest || Stadia Maps
                 {
@@ -81,7 +82,7 @@ namespace hajk
                         MapSource.BaseURL + token,
                         name: MapSource.Name,
                         persistentCache: mbTileCache,
-                        userAgent: MapSource.Name + " in Mapsui (hajk)");
+                        configureHttpRequestMessage: r => r.Headers.TryAddWithoutValidation("User-Agent", MapSource.Name + " in Mapsui (hajk)"));
                 }
 
                 return src;
