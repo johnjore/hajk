@@ -252,7 +252,6 @@ namespace hajk.Fragments
                         CoordinateSharp.UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lonLat.lat, lonLat.lon);
                         text += ($"\nUTM: {utm?.LongZone}{utm?.LatZone} {utm?.Easting.ToString("0")} E {utm?.Northing.ToString("0")} N");
 
-
                         Show_Dialog msg = new(Platform.CurrentActivity);
                         var result = await msg.ShowDialog("Create POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
                         if (result == Show_Dialog.MessageResult.YES)
@@ -391,6 +390,8 @@ namespace hajk.Fragments
             }
         }
 
+        /**///Disabled on 261105 - Used?
+        /*
         public Func<IFeature?, string> FeatureToText { get; set; } = (f) =>
         {
             if (f is null) return string.Empty;
