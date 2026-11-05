@@ -512,22 +512,16 @@ namespace hajk
                     }
                     else
                     {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
                         string contents = File.ReadAllText(Fragment_Preferences.CheckpointGPX);
                         trackGpx = GpxClass.FromXml(contents);
 
-                        GPXDataRouteTrack r = new()
-                        {
-                            GPXType = GPXType.Track,
-                            GPX = trackGpx.ToXml(),
-                        };
-
-                        await MainThread.InvokeOnMainThreadAsync(() =>
-                            {
                                 int iD = -1;
-                                Serilog.Log.Debug("Adding route following to map");
+                            Serilog.Log.Debug("Adding the route being followed to map");
                                 int.TryParse(trackGpx.Metadata.keywords, out iD);
 
-                                if (iD >= 0)
+                            if (iD >= 0 && trackGpx.Metadata.keywords != null)
                                 {
                                     var routetrack = RouteDatabase.GetRouteAsync(iD).Result;
                                     string layerName = routetrack.Name + "|" + routetrack.Id;
@@ -540,6 +534,11 @@ namespace hajk
                                 }
 
                                 Serilog.Log.Debug("Adding recording to map");
+                            GPXDataRouteTrack r = new()
+                            {
+                                GPXType = GPXType.Track,
+                                GPX = contents,
+                            };
                                 DisplayMapItems.AddRouteTrackToMap(r, true, Fragment_Preferences.Layer_Track, true);
 
                                 Serilog.Log.Debug("Call StartTrackTimer()");
