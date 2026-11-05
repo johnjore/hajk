@@ -537,14 +537,14 @@ namespace hajk
 
                     //Set loction to match route/ track and change viewport to fill available size
                     Fragment_map.mapControl?.Map.Navigator.SetViewport(viewport);
-                    //Fragment_map.mapControl?.Map.Navigator.ZoomToBox(viewport.ToExtent());  <--- Should work in 5.x?!?!?
+                    //Fragment_map.mapControl?.Map.Navigator.ZoomToBox(viewport.ToExtent());
                 }
 
                 //Overlay GPX on map and zoom
                 var bounds = newGPX.GetBounds();
 
-                var (min_x, min_y) = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
-                var (max_x, max_y) = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
+                var (min_x, min_y) = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.minlat);
+                var (max_x, max_y) = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.maxlat);
 
                 /**///Workaround for https://github.com/Mapsui/Mapsui/issues/3048
                 int diff = 1500;
