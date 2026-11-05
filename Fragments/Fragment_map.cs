@@ -15,6 +15,7 @@ using Mapsui.Manipulations;
 using Mapsui.Projections;
 using Mapsui.UI.Android;
 using Mapsui.Widgets;
+using Mapsui.Widgets.InfoWidgets;
 using Mapsui.Widgets.ScaleBar;
 using System.Text;
 using System.Threading;
@@ -95,6 +96,13 @@ namespace hajk.Fragments
                         Serilog.Log.Information("Waiting for layers to initialize before adding scalebar");
                         Thread.Sleep(1);
                     }
+                }
+
+                //Disable performance metrics (bottom right corner)
+                var performanceWidget = map.Widgets.OfType<PerformanceWidget>().FirstOrDefault();
+                if (performanceWidget != null)
+                {
+                    performanceWidget.Performance.IsActive = ActiveMode.No;
                 }
 
                 Serilog.Log.Information($"Add scalebar - X");
