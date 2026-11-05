@@ -404,6 +404,7 @@ namespace hajk.Fragments
             result.Remove(result.Length - 2, 2);
             return result.ToString();
         };
+        */
 
         public static Position? GetMapPressedCoordinates()
         {
