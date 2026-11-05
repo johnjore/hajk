@@ -101,9 +101,9 @@ namespace hajk
                     var bounds = gpx.GetBounds();
                     if (bounds?.maxlon != null && bounds?.minlat != null && bounds?.minlon != null && bounds?.maxlat != null)
                     {
-                        (double x1, double y1) = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
-                        (double x2, double y2) = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
-                        Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(x1, y1, x2, y2), MBoxFit.Fit);
+                        var (min_x, min_y) = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.minlat);
+                        var (max_x, max_y) = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.maxlat);
+                        Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min_x, min_y, max_x, max_y), MBoxFit.Fit);
                     }
                 }
             }
