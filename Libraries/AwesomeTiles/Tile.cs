@@ -20,8 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
-
 namespace AwesomeTiles
 {
     /// <summary>
@@ -121,7 +119,7 @@ namespace AwesomeTiles
         /// <summary>
         /// Gets the parent tile.
         /// </summary>
-        public Tile Parent => new (this.X / 2, this.Y / 2, this.Zoom - 1);
+        public Tile Parent => new(this.X / 2, this.Y / 2, this.Zoom - 1);
 
         /// <summary>
         /// Returns a hashcode for this tile position.
@@ -342,7 +340,7 @@ namespace AwesomeTiles
                 x = this.X * factor;
                 y = this.Y * factor;
             }
-            else if(lat >= this.CenterLat && lon >= this.CenterLon)
+            else if (lat >= this.CenterLat && lon >= this.CenterLon)
             {
                 x = this.X * factor + factor - 1;
                 y = this.Y * factor;
@@ -382,7 +380,7 @@ namespace AwesomeTiles
                 this.Y * factor + factor - 1,
                 zoom);
         }
-        
+
         /// <summary>
         /// Inverts the X-coordinate.
         /// </summary>

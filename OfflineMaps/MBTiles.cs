@@ -1,13 +1,7 @@
-﻿using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Devices;
-using Microsoft.Maui.Storage;
+﻿using hajk.Models;
+using Serilog;
 using SQLite;
-using hajk.Models;
+using System.Text.Json;
 using static hajk.TileCache;
 
 //This is a partial rewrite of https://github.com/bertt/MBTiles
@@ -220,12 +214,12 @@ namespace hajk
             string TileBulkDownloadSource = Preferences.Get(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source), Fragment_Preferences.TileBrowseSource);
 
             var MapSource = Fragment_Preferences.MapSources.Where(x => x.Name.Equals(TileBulkDownloadSource, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-            if (MapSource == null) 
+            if (MapSource == null)
             {
                 Serilog.Log.Error("No MapSource defined");
                 return;
             }
-                
+
             if (TileBulkDownloadSource.Equals("OpenStreetMap", StringComparison.OrdinalIgnoreCase))
             {
                 Serilog.Log.Error("Can't use OSM as a bulkdownload server");

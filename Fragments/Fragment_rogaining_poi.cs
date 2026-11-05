@@ -1,28 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Net;
-using System.Reflection;
-using System.Threading.Tasks;
-using Android.App;
-using Android.Content;
-using Android.Content.Res;
-using Android.OS;
-using Android.Runtime;
-using Android.Util;
+﻿using Android.OS;
 using Android.Views;
 using Android.Widget;
-using AndroidX.Fragment;
-using AndroidX.Fragment.App;
-using AndroidX.AppCompat.App;
-using AndroidX.AppCompat.Widget;
-using AndroidX.Core.View;
-using AndroidX.DrawerLayout.Widget;
-using AndroidX.RecyclerView;
-using Serilog;
-using Microsoft.Maui.Storage;
 
 
 namespace hajk.Fragments
@@ -44,7 +22,7 @@ namespace hajk.Fragments
             view?.SetBackgroundColor(Android.Graphics.Color.White);
             Dialog?.Window?.RequestFeature(WindowFeatures.NoTitle);
             Dialog?.SetCanceledOnTouchOutside(false);
-        
+
             //Populate with some defaults / last uage            
             var mapUTMZone = view?.FindViewById<EditText>(Resource.Id.editUTMZone);
             if (mapUTMZone != null)
@@ -102,7 +80,7 @@ namespace hajk.Fragments
                         {
                             Toast.MakeText(Android.App.Application.Context, "Failed to add POI to database", ToastLength.Long)?.Show();
                         }
-                        
+
                         //Reset GUI
                         (view?.FindViewById<EditText>(Resource.Id.editOffsetX)).Text = string.Empty;
                         (view?.FindViewById<EditText>(Resource.Id.editOffsetY)).Text = string.Empty;

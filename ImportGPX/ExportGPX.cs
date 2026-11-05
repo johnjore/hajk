@@ -1,18 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Serilog;
-using hajk.Models;
-using Mapsui.Layers;
+﻿using hajk.Models;
 using SharpGPX;
 using SharpGPX.GPX1_1;
-using SharpGPX.GPX1_1.Garmin;
-using SharpGPX.GPX1_1.Topografix;
-using Android.Content.Res;
-using SQLite;
 
 
 namespace hajk
@@ -28,7 +16,7 @@ namespace hajk
                 Metadata = new metadataType()
                 {
                     author = new personType("walkabout"),
-                    name = name,                    
+                    name = name,
                 },
             };
 
@@ -46,7 +34,7 @@ namespace hajk
 
             GpxClass.XmlWriterSettings.Encoding = System.Text.Encoding.UTF8;
             string? DownLoadFolder = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
-            string backupFileName = DownLoadFolder + "/POI-" + name + "-" +(DateTime.Now).ToString("yyMMdd-HHmmss") + ".gpx";
+            string backupFileName = DownLoadFolder + "/POI-" + name + "-" + (DateTime.Now).ToString("yyMMdd-HHmmss") + ".gpx";
             gpx.ToFile(backupFileName);
         }
     }

@@ -4,10 +4,6 @@ using Android.Views;
 using Android.Widget;
 using AndroidX.Fragment.App;
 using GPXUtils;
-using hajk.Data;
-using hajk.Models;
-using OxyPlot.Series;
-using SharpGPX;
 using System.Diagnostics;
 
 namespace hajk.Fragments
@@ -75,7 +71,7 @@ namespace hajk.Fragments
                     Status_Recording.ShowInfoPage(view, Id, GpsPosition, MapPosition);
                 }
 
-                
+
                 sw.Stop();
                 Serilog.Log.Information($"Elapsed time for OnCreateView - PosInfo : {sw.ElapsedMilliseconds} ms");
 

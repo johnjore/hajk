@@ -1,8 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Collections.Generic;
-using System.IO;
-using BitMiracle.LibTiff.Classic;
+﻿using BitMiracle.LibTiff.Classic;
 using GeoTiffCOG.Struture;
 using System.Xml;
 

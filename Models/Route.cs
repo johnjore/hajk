@@ -6,7 +6,7 @@ namespace hajk.Models
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }                             //Autoincremented record ID number
-        public GPXType GPXType{ get; set; }                     //0 if Route, 1 if Track
+        public GPXType GPXType { get; set; }                     //0 if Route, 1 if Track
         public string? Name { get; set; }                       //Name of route / track
         public float Distance { get; set; }                     //Calculated distance / length
         public int Ascent { get; set; }                         //Calculated ascent
@@ -25,7 +25,7 @@ namespace hajk.Models
         Track = 1
     }
 
-    public enum SortOrder: uint
+    public enum SortOrder : uint
     {
         Ascending = 0,
         Descending = 1

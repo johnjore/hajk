@@ -1,20 +1,15 @@
 ﻿using Android.App;
-using Android.Content.Res;
-using Android.Content;
 using Android.OS;
 using Android.Widget;
 using AndroidX.DocumentFile.Provider;
-using SharpCompress.Common;
-using SharpCompress.Writers;
 using SQLite;
 using System.Text.Json;
-using System;
 
 namespace hajk
 {
     internal class Backup
     {
-        public static void RunDailyBackup()
+        public static async Task RunDailyBackupAsync()
         {
             bool[] checkedItems = [
                 Preferences.Get("BackupPreferences", true),
@@ -26,27 +21,30 @@ namespace hajk
 
             //All backup files
             var baseFiles = SafServices.ListFilesInFolder(Platform.AppContext);
-            foreach (DocumentFile fileName in baseFiles)
+            if (baseFiles != null)
             {
-                Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
-            }
-
-            //Backup taken today?
-            foreach (DocumentFile fileName in baseFiles)
-            {
-                Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
-
-                var localDate = DateTimeOffset
-                    .FromUnixTimeMilliseconds(fileName.LastModified())
-                    .DateTime
-                    .ToLocalTime();
-
-                Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()} / '{localDate.Date}'");
-
-                if (localDate.Date >= DateTime.Today)
+                foreach (DocumentFile fileName in baseFiles)
                 {
-                    Serilog.Log.Information($"Backup already taken today '{DateTime.Today.ToString("yyMMdd")}'");
-                    return;
+                    Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
+                }
+
+                //Backup taken today?
+                foreach (DocumentFile fileName in baseFiles)
+                {
+                    Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()}");
+
+                    var localDate = DateTimeOffset
+                        .FromUnixTimeMilliseconds(fileName.LastModified())
+                        .DateTime
+                        .ToLocalTime();
+
+                    Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length()} bytes / Modified: {fileName.LastModified()} / '{localDate.Date}'");
+
+                    if (localDate.Date >= DateTime.Today)
+                    {
+                        Serilog.Log.Information($"Backup already taken today '{DateTime.Today.ToString("yyMMdd")}'");
+                        return;
+                    }
                 }
             }
 
@@ -56,7 +54,7 @@ namespace hajk
             Progressbar.UpdateProgressBar.MessageBody = $"Starting backup";
             int ProgressBarIncrement = (int)Math.Ceiling((double)(100 / (checkedItems.Count(c => c == true) + 2))); //2 = Compress and remove old backup files
 
-            Task.Run(() =>
+            await Task.Run(() =>
             {
                 PerformBackups(ProgressBarIncrement);
             });
@@ -83,8 +81,8 @@ namespace hajk
                 Preferences.Get("BackupPreferences", true),
                 Preferences.Get("BackupRoute&TrackData", true),
                 Preferences.Get("BackupPOIData", true),
-                Preferences.Get("BackupMapTiles", true), 
-                Preferences.Get("BackupElevationData", true),                
+                Preferences.Get("BackupMapTiles", true),
+                Preferences.Get("BackupElevationData", true),
             ];
 
             //Create dialogbox
@@ -368,7 +366,7 @@ namespace hajk
             try
             {
                 Serilog.Log.Information("Backing up POI Data");
-                string Source_DB = Path.Combine(Fragment_Preferences.LiveData,  Fragment_Preferences.POIDB);
+                string Source_DB = Path.Combine(Fragment_Preferences.LiveData, Fragment_Preferences.POIDB);
                 string Destination_DB = Path.Combine(BackupFolder, Fragment_Preferences.POIDB);
 
                 SQLiteConnection DBBackupConnection = new(Source_DB, SQLiteOpenFlags.ReadOnly | SQLiteOpenFlags.FullMutex, true);
@@ -447,8 +445,10 @@ namespace hajk
                     Serilog.Log.Debug(fileName);
 
                 //Avoid Nextcloud etc from seeing folder as a new one to sync
-                using (File.Create(Destination_Folder + "/" + ".noimage")) { };
-                using (File.Create(Destination_Folder + "/" + ".nomedia")) { };
+                using (File.Create(Destination_Folder + "/" + ".noimage")) { }
+                ;
+                using (File.Create(Destination_Folder + "/" + ".nomedia")) { }
+                ;
 
                 //Copy each file
                 foreach (string fileName in Directory.GetFiles(Source_Folder))
@@ -521,12 +521,19 @@ namespace hajk
                 Serilog.Log.Information("Remove old backup files");
 
                 int KeepNBackups = int.Parse(Preferences.Get("KeepNBackups", Fragment_Preferences.KeepNBackups.ToString()));
-                SafServices.PruneOldFiles(Platform.AppContext, "ZIP", ".zip", KeepNBackups);
+                SafServices.PruneOldFiles(Platform.AppContext, ".zip", KeepNBackups);
 
                 var baseFiles = SafServices.ListFilesInFolder(Platform.AppContext);
-                foreach (DocumentFile fileName in baseFiles)
+                if (baseFiles != null)
                 {
-                    Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length} bytes / Modified: {fileName.LastModified}");
+                    foreach (DocumentFile fileName in baseFiles)
+                    {
+                        Serilog.Log.Debug($"Backup files: {fileName.Name} / {fileName.Length} bytes / Modified: {fileName.LastModified}");
+                    }
+                }
+                else
+                {
+                    Serilog.Log.Debug($"No Backup files");
                 }
             }
             catch (Exception ex)

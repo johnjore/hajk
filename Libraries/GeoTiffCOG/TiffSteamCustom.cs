@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net;
 
 namespace GeoTiffCOG
 {
-    internal class TiffSteamCustom: BitMiracle.LibTiff.Classic.TiffStream
+    internal class TiffSteamCustom : BitMiracle.LibTiff.Classic.TiffStream
     {
 
         long position;
@@ -29,7 +23,7 @@ namespace GeoTiffCOG
             directoryCache = Path.Combine(directoryCacheChk, Utils.CreateMD5(urlCOG.ToLower()));
             if (!Directory.Exists(directoryCache))
                 Directory.CreateDirectory(directoryCache);
-            
+
             currentWebProxy = webProxy;
             currentCredentials = credentials;
         }
@@ -55,7 +49,7 @@ namespace GeoTiffCOG
             if (origin == SeekOrigin.Begin)
             {
                 position = offset;
-            } 
+            }
             else
             {
 
@@ -87,7 +81,7 @@ namespace GeoTiffCOG
             MemoryStream ms = new MemoryStream();
 
             string fileCache = string.Format("{0}-{1}-{2}.chk", position, offset, count);
-            
+
             //Restore cache
             if (!string.IsNullOrWhiteSpace(directoryCache) && File.Exists(Path.Combine(directoryCache, fileCache)))
             {

@@ -1,10 +1,4 @@
-﻿using System;
-using BitMiracle.LibTiff.Classic;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BitMiracle.LibTiff.Classic;
 
 namespace GeoTiffCOG.Struture
 {

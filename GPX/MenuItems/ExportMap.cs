@@ -1,11 +1,9 @@
-﻿using Android.Content;
-using Android.Views;
+﻿using Android.Views;
 using Android.Widget;
 using hajk.Data;
 using hajk.Models;
 using Serilog;
 using SharpGPX;
-using System;
 
 namespace hajk.GPX
 {

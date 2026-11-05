@@ -1,31 +1,8 @@
-﻿using Android.Content;
-using Android.Content.Res;
-using Android.OS;
-using Android.Runtime;
-using Android.Util;
+﻿using Android.OS;
 using Android.Views;
 using Android.Widget;
-using AndroidX.AppCompat.App;
-using AndroidX.AppCompat.Widget;
-using AndroidX.Core.View;
-using AndroidX.DrawerLayout.Widget;
-using AndroidX.Fragment;
-using AndroidX.Fragment.App;
-using AndroidX.RecyclerView;
 using AndroidX.RecyclerView.Widget;
 using hajk.Adapter;
-using hajk.Data;
-using hajk.Fragments;
-using Microsoft.Maui.Controls;
-using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace hajk.Fragments
 {
@@ -37,7 +14,7 @@ namespace hajk.Fragments
         public static GpxAdapter? mAdapter;
         public static Models.GPXType GPXDisplay = Models.GPXType.Route;
         private static IParcelable _recyclerViewState;
-        private static Dictionary<Models.GPXType, IParcelable> _scrollStates = new();        
+        private static Dictionary<Models.GPXType, IParcelable> _scrollStates = new();
 
         public override void OnCreate(Bundle? savedInstanceState)
         {
@@ -142,7 +119,7 @@ namespace hajk.Fragments
 
                     popup.Show();
                 };
-            
+
                 //RecycleView
                 mRecycleView = view?.FindViewById<RecyclerView>(Resource.Id.recyclerView);
                 if (mRecycleView != null && view != null)
@@ -150,7 +127,7 @@ namespace hajk.Fragments
                     mLayoutManager = new LinearLayoutManager(view?.Context);
                     mRecycleView.SetLayoutManager(mLayoutManager);
                     mRecycleView.Visibility = ViewStates.Visible;
-                    
+
                     mGpxData = new GpxData(GPXDisplay);
                     mAdapter = new GpxAdapter(mGpxData);
                     //mAdapter.ItemClick += GpxAdapter.MAdapter_ItemClick;

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using SQLite;
+﻿using SQLite;
 
 namespace hajk.Models
 {
@@ -17,7 +15,7 @@ namespace hajk.Models
         public int id { get; set; }
         public int? zoom_level { get; set; }
         public int? tile_column { get; set; }
-        public int? tile_row { get; set; }        
+        public int? tile_row { get; set; }
         public byte[]? tile_data { get; set; }
         public DateTime createDate { get; set; }
         public string? reference { get; set; }

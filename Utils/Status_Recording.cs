@@ -1,23 +1,15 @@
-﻿using Android.Media;
-using Android.Renderscripts;
-using Android.Views;
+﻿using Android.Views;
 using Android.Widget;
-using CoordinateSharp;
-using ExCSS;
 using GPXUtils;
 using hajk.Data;
 using hajk.Models;
-using Mapsui.Extensions;
 using OxyPlot;
 using OxyPlot.Axes;
+using OxyPlot.Legends;
 using OxyPlot.Series;
 using OxyPlot.Xamarin.Android;
 using SharpGPX;
 using SharpGPX.GPX1_1;
-using SharpGPX.GPX1_1.Garmin;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace hajk
 {
@@ -56,11 +48,10 @@ namespace hajk
                     route = gpx.Routes.FirstOrDefault();
                 }
 
-
                 g.Clear();
                 DisplayElevationData(view, GpsPosition, MapPosition);
                 InformationAtMapLocation(view, route, GpsPosition, MapPosition);
-                double DistanceTravelled = (RecordedStats(view) / 1000.0);
+                (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) = (RecordedStats(view));
                 RouteStats(view, route, GpsPosition, MapPosition);
 
                 PlotView? plotView = view.FindViewById<PlotView>(Resource.Id.oxyPlotWalkDone);
@@ -74,7 +65,7 @@ namespace hajk
                                 {
                                     Position = AxisPosition.Bottom,
                                     FormatAsFractions = false,
-                                    Unit = $"Travelled {DistanceTravelled:N2} / {'\u25B2'} {RollingElevationAnalyzer.TotalAscent:N0}m / {'\u25BC'} {RollingElevationAnalyzer.TotalDescent:N0}m",
+                                    Unit = $"Travelled {TrackDistanceFromStart_m / 1000.0:N2}km / {'\u25B2'} {RollingElevationAnalyzer.TotalAscent:N0} / {TrackAscentFromStart_m:N0}m - {'\u25BC'} {RollingElevationAnalyzer.TotalDescent:N0} / {TrackDescentFromStart_m:N0}m)",
                                 },
                                 new LinearAxis
                                 {
@@ -86,10 +77,19 @@ namespace hajk
                                 }
                             }
                     };
+
                     foreach (Graph s in g)
                     {
-                        plotView.Model.Series.Add(s.Series);
+                        if (s != null)
+                        {
+                            plotView.Model.Series.Add(s.Series);
+                        }
                     }
+
+                    plotView.Model.Legends.Add(new Legend()
+                    {
+                        LegendPosition = LegendPosition.TopLeft,
+                    });
 
                     plotView.Visibility = ViewStates.Visible;
                 }
@@ -122,7 +122,7 @@ namespace hajk
 
                 //Graph of track / route
                 g.Clear();
-                g.Add(CreateSeries(gpx.Routes.FirstOrDefault().rtept, gColour, fColour, GPXRouteTrack.Distance, 0, gpx.Routes.FirstOrDefault().rtept.Count));
+                g.Add(CreateSeries(gpx.Routes.FirstOrDefault().rtept, gColour, fColour, GPXRouteTrack.Distance, 0, gpx.Routes.FirstOrDefault().rtept.Count, string.Empty));
 
                 PlotView? plotView = view.FindViewById<PlotView>(Resource.Id.oxyPlot2);
                 if (plotView != null)
@@ -254,7 +254,7 @@ namespace hajk
 
         }
 
-        public static int RecordedStats(Android.Views.View view)
+        public static (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) RecordedStats(Android.Views.View view)
         {
             try
             {
@@ -275,29 +275,17 @@ namespace hajk
             //Calculate Distance / Ascent / Descent from Start to Current Position
             try
             {
-                view.FindViewById<TextView>(Resource.Id.MapPosition).Text = "Not Following a Route!";
-                
-                var CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} N/A / " +
-                                    $"{char.ConvertFromUtf32(0x1f53c)} N/A / " +
-                                    $"{char.ConvertFromUtf32(0x1f53d)} N/A";
-                view.FindViewById<TextView>(Resource.Id.Completed).Text = CompletedText;
-
                 if (RecordTrack.trackGpx.Waypoints.Count > 0)
                 {
                     (int TrackAscentFromStart_m, int TrackDescentFromStart_m, int TrackDistanceFromStart_m) = GPXUtils.GPXUtils.CalculateElevationDistanceData(RecordTrack.trackGpx.Waypoints, 0, RecordTrack.trackGpx.Waypoints.Count - 1);
                     var DistanceTravelled = (TrackDistanceFromStart_m / 1000.0).ToString("N2") + "km";
                     Serilog.Log.Debug($"TrackDistanceFromStart_m: '{TrackDistanceFromStart_m.ToString()}', DistanceTravelled: '{DistanceTravelled}', TrackAscentFromStart_m: '{TrackAscentFromStart_m.ToString()}', TrackDescentFromStart_m: '{TrackDescentFromStart_m}'");
 
-                    CompletedText = $"{char.ConvertFromUtf32(0x1f7e2)} {DistanceTravelled:N2} / " +
-                                    $"{char.ConvertFromUtf32(0x1f53c)} {TrackAscentFromStart_m:N0}m / " +
-                                    $"{char.ConvertFromUtf32(0x1f53d)} {TrackDescentFromStart_m:N0}m";
-                    view.FindViewById<TextView>(Resource.Id.Completed).Text = CompletedText;
-
                     //Graph from RecordTrack
-                    Graph s1 = CreateSeries(RecordTrack.trackGpx?.Waypoints, "#4CAF50", "#00FFFFFF", 0.0, 0, RecordTrack.trackGpx?.Waypoints.Count - 1);    //Recording, the past
+                    Graph? s1 = CreateSeries(RecordTrack.trackGpx?.Waypoints, "#4CAF50", "#00FFFFFF", 0.0, 0, RecordTrack.trackGpx?.Waypoints.Count - 1, "Walked_"); //Recording, the past
                     g.Add(s1);
 
-                    return TrackDistanceFromStart_m;
+                    return (AscentFromStart_m: TrackAscentFromStart_m, DescentFromStart_m: TrackDescentFromStart_m, DistanceFromStart_m: TrackDistanceFromStart_m);
                 }
             }
             catch (Exception ex)
@@ -305,7 +293,7 @@ namespace hajk
                 Serilog.Log.Error($"Failed to calculate distance/ascent/descent from start of recording");
             }
 
-            return 0;            
+            return (0, 0, 0);
         }
 
         public static void RouteStats(Android.Views.View view, rteType route, Position? GpsPosition, Position? MapPosition)
@@ -319,11 +307,11 @@ namespace hajk
                 //Swap around if needed
                 if (map_index < gps_index) (map_index, gps_index) = (gps_index, map_index);
 
-                Graph s2 = CreateSeries(route?.rtept, "#F44336", "#00FFFFFF", 0.0, 0, gps_index + 1);                        //From Start to GPS position
+                Graph s2 = CreateSeries(route?.rtept, "#F44336", "#00FFFFFF", 0.0, 0, gps_index + 1, string.Empty);                        //From Start to GPS position
                 g.Add(s2);
-                Graph s3 = CreateSeries(route?.rtept, "#2196F3", "#00FFFFFF", s2.Distance, gps_index, map_index + 1);          //From GPS position to Map Position
+                Graph s3 = CreateSeries(route?.rtept, "#2196F3", "#00FFFFFF", s2.Distance, gps_index, map_index + 1, string.Empty);        //From GPS position to Map Position
                 g.Add(s3);
-                Graph s4 = CreateSeries(route?.rtept, "#FFC107", "#00FFFFFF", s3.Distance, map_index, route?.rtept.Count);     //From Map Position to End
+                Graph s4 = CreateSeries(route?.rtept, "#FFC107", "#00FFFFFF", s3.Distance, map_index, route?.rtept.Count, string.Empty);   //From Map Position to End
                 g.Add(s4);
             }
             catch (Exception ex)
@@ -332,7 +320,7 @@ namespace hajk
             }
         }
 
-        private static Graph? CreateSeries(wptTypeCollection? waypoints, string? hexcolor1, string? hexcolor2, double distance_m, int start, int? end)
+        private static Graph? CreateSeries(wptTypeCollection? waypoints, string? hexcolor1, string? hexcolor2, double distance_m, int start, int? end, string? title)
         {
             if (waypoints == null)
                 return null;
@@ -340,6 +328,14 @@ namespace hajk
             //Sanitize end point
             if (end > waypoints?.Count - 1)
                 end = waypoints?.Count - 1;
+
+            //Does start position + 1m exceed end of index?
+            if (start + 1 > waypoints?.Count - 1)
+                return null;
+
+            //Is delta between start and end 1 or more points?
+            if (end - start < 1)
+                return null;
 
             double ele = (double)waypoints[start].ele;
             double min = ele, max = ele;
@@ -353,6 +349,7 @@ namespace hajk
                 Color = OxyColor.Parse(hexcolor1),
                 Fill = OxyColor.Parse(hexcolor2),
                 Points = { new DataPoint(distance_m / 1000, ele) },
+                Title = title,
             };
 
             var ph = new PositionHandler();

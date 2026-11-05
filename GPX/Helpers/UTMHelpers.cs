@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text;
-using CoordinateSharp;
+﻿using CoordinateSharp;
 using hajk.Data;
 using hajk.Models;
 

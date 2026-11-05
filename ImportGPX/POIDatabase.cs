@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.Maui.Storage;
+﻿using hajk.Models;
 using SQLite;
-using Serilog;
-using hajk.Models;
 
 //https://docs.microsoft.com/en-us/xamarin/get-started/quickstarts/database?pivots=windows
 
@@ -106,7 +100,7 @@ namespace hajk.Data
 
         // Delete a waypoint
         public static Task<int> DeleteRouteAsync(GPXDataPOI waypoint)
-        {            
+        {
             return database.DeleteAsync(waypoint);
         }
 

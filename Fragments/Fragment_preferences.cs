@@ -8,10 +8,7 @@ using Google.Android.Material.FloatingActionButton;
 using hajk.Fragments;
 using hajk.Models;
 using hajk.Models.MapSource;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Storage;
 using Serilog;
-using System.Globalization;
 
 namespace hajk
 {
@@ -131,7 +128,7 @@ namespace hajk
                 // Call SAF folder picker
                 SafServices.RequestFolderSelection(Platform.CurrentActivity);
             };
-            
+
             //Populate the ListPreference's
             CreateArrayList((ListPreference)FindPreference(Platform.CurrentActivity?.GetString(Resource.String.OSM_Browse_Source)));
 
@@ -208,7 +205,7 @@ namespace hajk
                 pref.Summary = $"Backup Folder: {doc?.Name}";
             }
         }
-        
+
         public void OnSharedPreferenceChanged(ISharedPreferences? prefs, string? key)
         {
             if (prefs == null || key == null)
@@ -240,7 +237,7 @@ namespace hajk
                     {
                         editTextPref.Summary = Platform.CurrentActivity?.GetString(Resource.String.NotSet);
                     }
-                    else 
+                    else
                     {
                         editTextPref.Summary = Platform.CurrentActivity?.GetString(Resource.String.Hidden);
                     }

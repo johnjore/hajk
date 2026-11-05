@@ -1,10 +1,6 @@
-﻿using Android.Content;
+﻿using Android.App;
+using Android.Content;
 using Android.OS;
-using System;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Devices;
-using AndroidX.AppCompat.App;
-using Android.App;
 
 namespace hajk.Utilities
 {
@@ -19,7 +15,7 @@ namespace hajk.Utilities
             {
                 return false;
             }
-            
+
             if (Build.VERSION.SdkInt < BuildVersionCodes.M)
             {
                 Serilog.Log.Debug($"BatteryOptimizations Not Supported (Requires M or above)");

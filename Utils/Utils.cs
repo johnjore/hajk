@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using Android.App;
+﻿using Android.App;
 using Android.Graphics;
 using Android.Util;
-using Mapsui.Layers;
 using hajk;
-using Microsoft.Maui.ApplicationModel;
+using Mapsui.Layers;
+using System.Reflection;
 
 namespace Utils
 {
@@ -26,7 +20,7 @@ namespace Utils
                     return;
                 }
 
-                System.IO.DirectoryInfo di = new (directoryName);
+                System.IO.DirectoryInfo di = new(directoryName);
 
                 foreach (FileInfo file in di.GetFiles())
                 {
@@ -50,7 +44,13 @@ namespace Utils
         //Calculate and return size of folder in bytes
         public static long DirectorySizeBytes(DirectoryInfo d)
         {
+            if (d == null || !d.Exists)
+            {
+                return 0;
+            }
+
             long size = 0;
+
             // Add file sizes.
             FileInfo[] fis = d.GetFiles();
             foreach (FileInfo fi in fis)
@@ -64,6 +64,7 @@ namespace Utils
             {
                 size += DirectorySizeBytes(di);
             }
+
             return size;
         }
 
@@ -138,29 +139,6 @@ namespace Utils
             return null;
         }
 
-        public static int GetBitmapIdForEmbeddedResource(string imagePath)
-        {
-            try
-            {
-                var assembly = typeof(MainActivity).GetTypeInfo().Assembly;
-                var image = assembly.GetManifestResourceStream(imagePath);
-
-                if (image == null)
-                {
-                    Serilog.Log.Fatal($"Utils - GetBitmapIdForEmbeddedResource() is null for {imagePath}");
-                    return 0;
-                }
-
-                var bitmapId = Mapsui.Styles.BitmapRegistry.Instance.Register(image);
-                return bitmapId;
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Fatal(ex, $"Utils - GetBitmapIdForEmbeddedResource()");
-                return 0;
-            }
-        }
-
         public static Mapsui.MPoint CalculateCenter(double BoundsRight, double BoundsTop, double BoundsLeft, double BoundsBottom)
         {
             return new Mapsui.MPoint()
@@ -185,7 +163,7 @@ namespace Utils
 
             return new Mapsui.MPoint()
             {
-                X = p1.Latitude  + (fraction * (p2.Latitude  - p1.Latitude )),
+                X = p1.Latitude + (fraction * (p2.Latitude - p1.Latitude)),
                 Y = p1.Longitude + (fraction * (p2.Longitude - p1.Longitude))
             };
         }
@@ -223,12 +201,12 @@ namespace Utils
                 return;
             }
 
-            
+
             using (var alert = new AlertDialog.Builder(Platform.CurrentActivity))
             {
                 alert.SetTitle(Platform.CurrentActivity?.Resources?.GetString(hajk.Resource.String.ExitTitle));
                 alert.SetMessage(Platform.CurrentActivity?.Resources?.GetString(hajk.Resource.String.ExitPrompt));
-                alert.SetPositiveButton(hajk.Resource.String.Yes, (sender, args) => 
+                alert.SetPositiveButton(hajk.Resource.String.Yes, (sender, args) =>
                 {
                     Task.Run(async () =>
                     {
@@ -240,7 +218,7 @@ namespace Utils
                         Platform.CurrentActivity?.FinishAffinity();
                     });
                 });
-                alert.SetNegativeButton(hajk.Resource.String.No, (sender, args) => 
+                alert.SetNegativeButton(hajk.Resource.String.No, (sender, args) =>
                 {
                 });
 

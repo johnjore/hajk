@@ -39,7 +39,6 @@ namespace hajk
                     Name = Fragment_Preferences.Layer_Poi,
                     Tag = Fragment_Preferences.Layer_Poi,
                     Enabled = true,
-                    IsMapInfoLayer = true,
                     Features = ConvertListToFeatures(POIs),
                     Style = new SymbolStyle { Enabled = false },
                 };
@@ -91,7 +90,6 @@ namespace hajk
 
                     if (lineStringLayer == null) return;
 
-                    lineStringLayer.IsMapInfoLayer = true;
                     lineStringLayer.Enabled = true;
                     lineStringLayer.Tag = routetrack.GPXType == GPXType.Route ? Fragment_Preferences.Layer_Route : Fragment_Preferences.Layer_Track;
                     lineStringLayer.Name = name ?? string.Empty;
@@ -103,9 +101,9 @@ namespace hajk
                     var bounds = gpx.GetBounds();
                     if (bounds?.maxlon != null && bounds?.minlat != null && bounds?.minlon != null && bounds?.maxlat != null)
                     {
-                        (double x1, double y1) = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.minlat);
-                        (double x2, double y2) = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.maxlat);
-                        Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(x1, y1, x2, y2), MBoxFit.Fit);
+                        var (min_x, min_y) = SphericalMercator.FromLonLat((double)bounds.minlon, (double)bounds.minlat);
+                        var (max_x, max_y) = SphericalMercator.FromLonLat((double)bounds.maxlon, (double)bounds.maxlat);
+                        Fragment_map.mapControl?.Map.Navigator.ZoomToBox(new MRect(min_x, min_y, max_x, max_y), MBoxFit.Fit);
                     }
                 }
             }
@@ -209,7 +207,7 @@ namespace hajk
                 return null;
             }
         }
-               
+
         private static MemoryLayer? CreateRouteandTrackLayer(Coordinate[]? coords, Mapsui.Styles.Color sColor, IStyle? style = null)
         {
             if (coords == null || coords.Length < 1)
@@ -256,7 +254,6 @@ namespace hajk
                 features.Add(FeatureStart);
 
                 //Add arrow halfway between waypoints and highlight routing points
-                var bitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource("hajk.Images.Arrow-up.png");
                 for (int i = 0; i < lineString.NumPoints - 1; i++)
                 {
                     //End points for line
@@ -266,23 +263,16 @@ namespace hajk
                     //Quarter point on line for arrow
                     MPoint p_quarter = Utils.Misc.CalculateQuarter(lineString.Coordinates[i].Y, lineString.Coordinates[i].X, lineString.Coordinates[i + 1].Y, lineString.Coordinates[i + 1].X);
 
-                    //Bearing of arrow
-                    var p = new PositionHandler();
-                    var angle = p.CalculateBearing(p1, p2);
-
                     var FeatureArrow = new PointFeature(new MPoint(p_quarter));
-                    FeatureArrow.Styles.Add(new SymbolStyle
+                    FeatureArrow.Styles.Add(new ImageStyle
                     {
-                        BitmapId = bitmapId,
-                        SymbolScale = 0.5f,
+                        Image = "embedded://hajk.Images.Arrow-up.png",
+                        SymbolScale = 0.3f,
                         MaxVisible = 2.0f,
                         MinVisible = 0.0f,
                         RotateWithMap = true,
-                        SymbolRotation = angle,
-                        SymbolOffset = new Offset(0, 0),
-                        SymbolType = SymbolType.Triangle,
-                        Fill = new Mapsui.Styles.Brush { FillStyle = FillStyle.Solid, Color = sColor, Background = sColor },
-                        Outline = new Pen { Color = sColor, Width = 1.5f },
+                        SymbolRotation = new PositionHandler().CalculateProjectedBearing(p1, p2),
+                        Offset = new Offset(0, 0),
                     });
                     features.Add(FeatureArrow);
 
@@ -326,8 +316,9 @@ namespace hajk
             {
                 Fill = null,
                 Outline = null,
-                Line = new Pen { 
-                    Color = Mapsui.Styles.Color.FromString(colour), 
+                Line = new Pen
+                {
+                    Color = Mapsui.Styles.Color.FromString(colour),
                     Width = 4,
                     PenStyle = PenStyle.Solid
                 }
@@ -394,11 +385,11 @@ namespace hajk
                 }
 
                 //Style
-                feature.Styles.Add(new SymbolStyle
+                feature.Styles.Add(new ImageStyle
                 {
                     SymbolScale = 1.0f,
                     RotateWithMap = true,
-                    BitmapId = Utils.Misc.GetBitmapIdForEmbeddedResource(icon),
+                    Image = "embedded://" + icon,
                     MaxVisible = 30.0f,
                     MinVisible = 0.0f,
                 });

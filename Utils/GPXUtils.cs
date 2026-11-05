@@ -1,11 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using hajk.Models;
-using FFI.NVector;
+﻿using FFI.NVector;
 using SharpGPX;
 using SharpGPX.GPX1_1;
-using Microsoft.Maui.Devices.Sensors;
 
 //https://danielsaidi.com/blog/2011/02/04/calculate-distance-and-bearing-between-two-positions
 
@@ -161,7 +156,7 @@ namespace GPXUtils
                     }
 
                     var p = new PositionHandler();
-                    var p1 = new Position((float)Waypoints[j    ].lat, (float)Waypoints[j    ].lon, 0, false, null);
+                    var p1 = new Position((float)Waypoints[j].lat, (float)Waypoints[j].lon, 0, false, null);
                     var p2 = new Position((float)Waypoints[j + 1].lat, (float)Waypoints[j + 1].lon, 0, false, null);
                     distance += (decimal)p.CalculateDistance(p1, p2, DistanceType.Meters);
                 }
@@ -262,21 +257,45 @@ namespace GPXUtils
         }
 
         public static double EarthRadiusInMeters { get { return 6371008.7714; } }
-        public static double EarthRadiusInMiles { get { return 3956.0; } }        
+        public static double EarthRadiusInMiles { get { return 3956.0; } }
 
         public double CalculateBearing(Position position1, Position position2)
         {
             var lat1 = angleConverter.ConvertDegreesToRadians(position1.Latitude);
+            var lon1 = angleConverter.ConvertDegreesToRadians(position1.Longitude);
             var lat2 = angleConverter.ConvertDegreesToRadians(position2.Latitude);
-            var long1 = angleConverter.ConvertDegreesToRadians(position2.Longitude);
-            var long2 = angleConverter.ConvertDegreesToRadians(position1.Longitude);
-            var dLon = long1 - long2;
+            var lon2 = angleConverter.ConvertDegreesToRadians(position2.Longitude);
+
+            var dLon = lon2 - lon1;
 
             var y = Math.Sin(dLon) * Math.Cos(lat2);
-            var x = Math.Cos(lat1) * Math.Sin(lat2) - Math.Sin(lat1) * Math.Cos(lat2) * Math.Cos(dLon);
-            var brng = Math.Atan2(y, x);
+            var x = Math.Cos(lat1) * Math.Sin(lat2) -
+                    Math.Sin(lat1) * Math.Cos(lat2) * Math.Cos(dLon);
 
+            var brng = Math.Atan2(y, x);
             return (angleConverter.ConvertRadiansToDegrees(brng) + 360) % 360;
+        }
+
+        public double CalculateProjectedBearing(double x1, double y1, double x2, double y2)
+        {
+            var dx = x2 - x1;
+            var dy = y2 - y1;
+
+            var angleRad = Math.Atan2(dx, dy);
+            var angleDeg = angleRad * 180.0 / Math.PI;
+
+            return (angleDeg + 360) % 360;
+        }
+
+        public double CalculateProjectedBearing(Position p1, Position p2)
+        {
+            var dx = p2.Latitude - p1.Latitude;
+            var dy = p2.Longitude - p1.Longitude;
+
+            var angleRad = Math.Atan2(dx, dy);
+            var angleDeg = angleRad * 180.0 / Math.PI;
+
+            return (angleDeg + 360) % 360;
         }
 
         public double CalculateDistance(Position position1, Position position2, DistanceType distanceType)
@@ -290,7 +309,7 @@ namespace GPXUtils
                 case DistanceType.Kilometers: { R = EarthRadiusInMeters / 1000; break; }
                 case DistanceType.Miles: { R = EarthRadiusInMiles; break; }
             }
-           
+
             var dLat = angleConverter.ConvertDegreesToRadians(position2.Latitude) - angleConverter.ConvertDegreesToRadians(position1.Latitude);
             var dLon = angleConverter.ConvertDegreesToRadians(position2.Longitude) - angleConverter.ConvertDegreesToRadians(position1.Longitude);
             var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) + Math.Cos(angleConverter.ConvertDegreesToRadians(position1.Latitude)) * Math.Cos(angleConverter.ConvertDegreesToRadians(position2.Latitude)) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
@@ -298,7 +317,7 @@ namespace GPXUtils
             var distance = c * R;
 
             return Math.Round(distance, 2);
-        }        
+        }
 
         public double CalculateDistance(Position position1, Android.Locations.Location location2, DistanceType distanceType)
         {
@@ -367,7 +386,7 @@ namespace GPXUtils
             var dist = Math.Sqrt(dLat * dLat + q * q * dLon * dLon) * R;
 
             return dist;
-        }        
+        }
     }
 
     //This is from https://www.ffi.no/en/research/n-vector
@@ -437,7 +456,7 @@ namespace GPXUtils
         //Calculate distance between two locations
         public static double CalculateDistance(wptType wpt_a1, wptType a2)
         {
-            var a2_p = new Position((double)a2.lat, (double)a2.lon, 0, false,null);
+            var a2_p = new Position((double)a2.lat, (double)a2.lon, 0, false, null);
             var s_AB = CalculateDistance(wpt_a1, a2_p);
 
             return s_AB;

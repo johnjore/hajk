@@ -1,24 +1,12 @@
-﻿using Android.App;
-using Android.Content;
-using Android.OS;
-using Android.Widget;
+﻿using Android.OS;
 using Android.Views;
+using Android.Widget;
 using hajk.Data;
-using hajk.Fragments;
 using hajk.Models;
 using hajk.Models.DefaultPrefSettings;
-using SharpCompress.Common;
-using SharpCompress.Readers;
 using SQLite;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using static hajk.TileCache;
-using AndroidX.Fragment.App;
 
 namespace hajk.Fragments
 {
@@ -245,7 +233,7 @@ namespace hajk.Fragments
 
             return view;
         }
-                
+
         private static bool RestorePreferences(string RestoreFolder)
         {
             try
@@ -281,7 +269,7 @@ namespace hajk.Fragments
                 Preferences.Set("CustomToken", prefSettings.CustomToken);
                 Preferences.Set("StadiaToken", prefSettings.StadiaToken);
                 Preferences.Set("MapboxToken", prefSettings.MapboxToken);
-                Preferences.Set("ThunderforestToken", prefSettings.ThunderforestToken);                
+                Preferences.Set("ThunderforestToken", prefSettings.ThunderforestToken);
 
                 Preferences.Set("mapScale", prefSettings.mapScale);
                 Preferences.Set("mapUTMZone", prefSettings.mapUTMZone);
@@ -355,7 +343,7 @@ namespace hajk.Fragments
                         Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
                         Progressbar.UpdateProgressBar.MessageBody = $"'{newPOI.Name}'";
                         Serilog.Log.Debug($"Restoring: '{newPOI.Name}'");
-                        
+
                         GPXDataPOI? oldPOI = allPOIs.Where(x =>
                             x.Name == newPOI.Name &&
                             x.Description == newPOI.Description &&
@@ -515,7 +503,7 @@ namespace hajk.Fragments
 
 
                 if (RestoreChoice == RestoreSelection.Overwrite)
-                { 
+                {
                     DownloadRasterImageMap.LoadOSMLayer();
                     Progressbar.UpdateProgressBar.Progress = 100;
                 }

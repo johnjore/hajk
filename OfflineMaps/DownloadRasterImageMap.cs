@@ -1,24 +1,13 @@
-﻿using Android.Views;
-using Android.Widget;
+﻿using Android.Widget;
 using Dasync.Collections;
 using hajk.Models;
-using Mapsui.Layers;
 using Mapsui.Tiling.Layers;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Networking;
-using Microsoft.Maui.Storage;
 using Serilog;
 using SharpGPX;
 using SharpGPX.GPX1_1;
 using SQLite;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using static hajk.TileCache;
 
 namespace hajk
@@ -306,7 +295,7 @@ namespace hajk
             {
                 Log.Fatal(ex, $"DownloadRasterIamgeMap - DownloadImageAsync()");
             }
-            
+
             return null;
         }
 

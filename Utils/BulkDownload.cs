@@ -4,12 +4,6 @@ using Android.Widget;
 using hajk.Data;
 using hajk.Models;
 using SharpGPX;
-using SharpGPX.GPX1_1;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace hajk.Utilities
 {

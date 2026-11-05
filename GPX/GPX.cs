@@ -1,17 +1,9 @@
-﻿using Android.Health.Connect.DataTypes;
-using Android.Views;
-using Android.Widget;
-using AndroidX.RecyclerView;
-using AndroidX.RecyclerView.Widget;
+﻿using Android.Widget;
 using GPXUtils;
 using hajk.Data;
 using hajk.Fragments;
 using hajk.Models;
 using OxyPlot.Xamarin.Android;
-using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace hajk
 {
@@ -64,7 +56,8 @@ namespace hajk
                     //Should not happen...
                     gpx = null;
                     break;
-            };
+            }
+            ;
 
             //Reverse order?
             if ((SortOrder)Preferences.Get("GPXSortingOrder", (int)Fragment_Preferences.GPXSortingOrder) == SortOrder.Descending)
@@ -105,7 +98,7 @@ namespace hajk
                     DistanceToStart = p.CalculateDistance(item.GPXStartLocation, _currentLocation, DistanceType.Meters),
                 })
                 .ToList();
-            
+
             //Sort the records based on Distance from our location - Note: This is reversed, and will be undone later
             if ((SortOrder)Preferences.Get("GPXSortingOrder", (int)Fragment_Preferences.GPXSortingOrder) == SortOrder.Ascending)
             {

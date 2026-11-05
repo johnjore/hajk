@@ -1,14 +1,4 @@
-﻿using Android.App;
-using Android.Content;
-using Android.Graphics.Text;
-using Android.Locations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace hajk
+﻿namespace hajk
 {
     internal class Naismith
     {

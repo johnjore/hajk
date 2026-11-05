@@ -3,37 +3,21 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Content.Res;
 using Android.OS;
-using Android.Runtime;
 using Android.Views;
-using Android.Widget;
 using AndroidX.AppCompat.App;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
-using AndroidX.Fragment.App;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Navigation;
-using Google.Android.Material.Snackbar;
 using hajk.Data;
 using hajk.Fragments;
 using hajk.Models;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Devices;
-using Microsoft.Maui.Storage;
-using Sentry;
-using Sentry.Android;
-using Sentry.Serilog;
 using Serilog;
 using Serilog.Events;
 using SharpGPX;
 using SQLite;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace hajk
 {
@@ -82,23 +66,23 @@ namespace hajk
 #if DEBUG
             if (string.IsNullOrEmpty(Resources?.GetString(Resource.String.Sentry_APIKey)))
             {
-               Serilog.Log.Information("Sentry DSN entry is missing and in debug mode");
+                Serilog.Log.Information("Sentry DSN entry is missing and in debug mode");
             }
 #endif
 
             //Logging
             string _Path = System.IO.Path.Combine(Fragment_Preferences.rootPath, Fragment_Preferences.logFile);
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Verbose()
                 .Enrich.FromLogContext()
                 .WriteTo.AndroidLog(
                     outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}"
                 )
                 .WriteTo.File(
-                    _Path, 
+                    _Path,
                     rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 2, 
-                    fileSizeLimitBytes: 20*1024*1024,
+                    retainedFileCountLimit: 2,
+                    fileSizeLimitBytes: 20 * 1024 * 1024,
                     outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj} ({SourceContext}) {Exception}{NewLine}"
                 )
                 .WriteTo.Sentry(options =>
@@ -112,9 +96,9 @@ namespace hajk
             .CreateLogger();
 
             Log.Information($"Logging to '{_Path}'");
-            
-            //Enable Mapsui logging
-            MapsuiLogging.AttachMapsuiLogging();
+
+            //Disable Mapsui logging
+            Mapsui.Widgets.InfoWidgets.LoggingWidget.ShowLoggingInMap = Mapsui.Widgets.ActiveMode.No;
 
             //Make sure LiveData folder exists
             if (!Directory.Exists(Fragment_Preferences.LiveData))
@@ -126,13 +110,20 @@ namespace hajk
                 catch (Exception ex)
                 {
                     Log.Fatal(ex, $"MainActivity - Failed to Create LiveData Folder");
-                }            
+                }
+            }
+
+            //Make sure GeoTiff folder exists
+            string GeoTiffFolder = Fragment_Preferences.LiveData + "/" + Fragment_Preferences.GeoTiffFolder;
+            if (!Directory.Exists(GeoTiffFolder))
+            {
+                Directory.CreateDirectory(GeoTiffFolder);
             }
 
             try
             {
                 //Extract initial map, if not there
-                Utils.Misc.ExtractInitialMap(this, Fragment_Preferences.LiveData + "/" + "OpenStreetMap.mbtiles");
+                Utils.Misc.ExtractInitialMap(this, Fragment_Preferences.MapFolder + "/" + "OpenStreetMap.mbtiles");
 
                 //GUI
                 SetContentView(Resource.Layout.activity_main);
@@ -145,7 +136,7 @@ namespace hajk
                 FloatingActionButton? fabCompass = FindViewById<FloatingActionButton>(Resource.Id.fabCompass);
                 if (fabCompass != null)
                 {
-                    fabCompass.Click += FabOnClick;                    
+                    fabCompass.Click += FabOnClick;
                 }
 
                 FloatingActionButton? fabCamera = FindViewById<FloatingActionButton>(Resource.Id.fabCamera);
@@ -182,7 +173,7 @@ namespace hajk
                 {
                     await Utilities.AppPermissions.CheckAndRequestPermissionAsync<Permissions.PostNotifications>();
                 }
-                
+
                 Log.Debug($"Create Location Service");
                 if (await Permissions.CheckStatusAsync<Permissions.LocationAlways>() == PermissionStatus.Granted || await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>() == PermissionStatus.Granted)
                 {
@@ -198,12 +189,6 @@ namespace hajk
                     }
                 }
 
-                Log.Debug($"Notify user if battery save mode is enabled?");
-                Utilities.BatteryOptimization.BatterySaveModeNotification();
-
-                Log.Debug($"Notify user if location permission does not allow background collection");
-                await Utilities.AppPermissions.LocationPermissionNotification(this);
-
                 //Enable Compass Sensor
                 CompassData.EnableCompass();
 
@@ -213,7 +198,16 @@ namespace hajk
                 Log.Information($"Daily Backup?");
                 if (Preferences.Get("EnableBackupAtStartup", Fragment_Preferences.EnableBackupAtStartup))
                 {
-                    MainThread.BeginInvokeOnMainThread(() => Backup.RunDailyBackup());
+                    // Wait for the cache database connection before attempting backup
+                    while (TileCache.MbTileCache.sqlConn == null)
+                    {
+                        await Task.Delay(100);
+                    }
+
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await Backup.RunDailyBackupAsync();
+                    });
                 }
 
                 //Enumerate all files
@@ -237,6 +231,12 @@ namespace hajk
 
                 //Clean share folder
                 Share.CleanSharefolder();
+
+                Log.Debug($"Notify user if battery save mode is enabled?");
+                Utilities.BatteryOptimization.BatterySaveModeNotification();
+
+                Log.Debug($"Notify user if location permission does not allow background collection");
+                await Utilities.AppPermissions.LocationPermissionNotification(this);
             }
             catch (Exception ex)
             {
@@ -317,7 +317,7 @@ namespace hajk
                     else
                     {
                         Serilog.Log.Error("Failed to add POI to database");
-                    }                    
+                    }
                 }
             }
             if (id == Resource.Id.SaveGPSasPOI)
@@ -375,7 +375,7 @@ namespace hajk
 
                 return true;
             }
-            
+
             return base.OnOptionsItemSelected(item);
         }
 
@@ -635,7 +635,8 @@ namespace hajk
                 alert.SetTitle(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources.GetString(Resource.String.About));
                 alert.SetMessage(Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.Resources.GetString(Resource.String.Build) + ": " + Microsoft.Maui.ApplicationModel.AppInfo.Version.ToString());
                 alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
-                alert.SetNegativeButton("Upload Log files", (sender, args) => {
+                alert.SetNegativeButton("Upload Log files", (sender, args) =>
+                {
                     SentrySdk.CaptureMessage("Log files", scope =>
                     {
                         //Copy log files to Backup folder
@@ -647,7 +648,7 @@ namespace hajk
                             Serilog.Log.Debug($"Name: {file}, Size: {length} bytes");
                             if (length >= 20 * 1024 * 1024)
                                 Serilog.Log.Error("Attachments too large for Sentry!");
-                            
+
                             scope.AddAttachment(file);
                             _ = SafServices.CopyFileToSafAsync(Platform.AppContext, file);
                         }
@@ -704,7 +705,7 @@ namespace hajk
                     }
                 });
             }
-            
+
             DrawerLayout? drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             drawer?.CloseDrawer(GravityCompat.Start);
             drawer?.Invalidate();

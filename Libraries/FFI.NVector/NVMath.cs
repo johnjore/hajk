@@ -36,13 +36,6 @@
 //   Originated: 2016 Jørn Inge Vestgården, FFI
 //   Based on original Matlab code by Kenneth Gade and Brita Hafskjold, FFI
 
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace FFI.NVector
 {
     /// <summary>

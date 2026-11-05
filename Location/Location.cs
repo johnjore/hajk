@@ -1,20 +1,11 @@
 ﻿using Google.Android.Material.FloatingActionButton;
 using hajk.Fragments;
+using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Nts.Extensions;
-using Mapsui.Nts;
 using Mapsui.Projections;
-using Mapsui.Providers;
 using Mapsui.Styles;
-using Mapsui;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Storage;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Threading;
-using System;
 
 
 namespace hajk
@@ -78,7 +69,6 @@ namespace hajk
             {
                 Name = LocationLayerName,
                 Style = null,
-                IsMapInfoLayer = false,
             };
 
             layer.Add(CreateLocationMarker(GPSLocation));

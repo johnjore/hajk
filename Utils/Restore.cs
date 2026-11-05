@@ -4,11 +4,6 @@ using AndroidX.Fragment.App;
 using hajk.Fragments;
 using SharpCompress.Common;
 using SharpCompress.Readers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace hajk
 {
@@ -96,7 +91,7 @@ namespace hajk
                 //Count files in file to unpack
                 int Entries = 0;
                 using (Stream? stream = context?.ContentResolver?.OpenInputStream(uri))
-                using (var reader = ReaderFactory.Open(stream))
+                using (var reader = ReaderFactory.OpenReader(stream))
                 {
                     while (reader.MoveToNextEntry())
                     {
@@ -108,7 +103,7 @@ namespace hajk
                 Serilog.Log.Information($"Entries in Stream '{Entries}'. Each Progressbar increment is '{ProgressBarIncrement}'");
 
                 using (Stream stream = context?.ContentResolver?.OpenInputStream(uri))
-                using (var reader = ReaderFactory.Open(stream))
+                using (var reader = ReaderFactory.OpenReader(stream))
                 {
                     while (reader.MoveToNextEntry())
                     {
@@ -117,7 +112,7 @@ namespace hajk
                             Progressbar.UpdateProgressBar.Progress += ProgressBarIncrement;
                             Progressbar.UpdateProgressBar.MessageBody = $"{Path.GetFileName(reader.Entry.Key)}";
                             Serilog.Log.Information($"Extracting filename: '{reader.Entry.Key}', Progress: {Progressbar.UpdateProgressBar.Progress}");
-                        
+
                             reader.WriteEntryToDirectory(tmpFolder, new ExtractionOptions()
                             {
                                 ExtractFullPath = true,

@@ -1,8 +1,8 @@
 ﻿using Android.Views;
 using AndroidX.Fragment.App;
 using hajk.Data;
-using SharpGPX;
 using Serilog;
+using SharpGPX;
 
 namespace hajk.GPX
 {
@@ -27,6 +27,7 @@ namespace hajk.GPX
 
             //Save Route for off-route detection - Non-optimized version, so it has all waypoints
             MainActivity.ActiveRoute = GpxClass.FromXml(routetrack.GPX);
+            MainActivity.ActiveRoute.Metadata.keywords = vh.Id.ToString();
 
             //Start recording
             RecordTrack.StartTrackTimer();
