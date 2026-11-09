@@ -218,14 +218,6 @@ namespace hajk
                     Serilog.Log.Debug(file);
                 }
 
-                //Wakelock - Wake-up phone when recording and in battery save mode, and screenlocked
-                if (Preferences.Get("EnableWakeLock", Fragment_Preferences.EnableWakeLock))
-                {
-                    PowerManager? powerManager = (PowerManager)Android.App.Application.Context.GetSystemService(Context.PowerService) as PowerManager;
-                    Utilities.Alarms.wakelock = powerManager?.NewWakeLock(WakeLockFlags.Full | WakeLockFlags.AcquireCausesWakeup | WakeLockFlags.OnAfterRelease, "walkabout:Alarms");
-                    Utilities.Alarms.wakelock?.SetReferenceCounted(false);
-                }
-
                 //Restore recording checkpoint file?
                 RecordTrack.RestoreCheckPoint();
 
@@ -399,18 +391,12 @@ namespace hajk
         {
             Log.Information($"OnPause()");
 
-            //Create alarm
-            Utilities.Alarms.CreateAlarm();
-
             base.OnPause();
         }
 
         protected override void OnResume()
         {
             Log.Information($"OnResume()");
-
-            //Cancel any alarms scheduled
-            Utilities.Alarms.CancelAlarm();
 
             base.OnResume();
         }
@@ -529,11 +515,15 @@ namespace hajk
 
                 if (item_nav?.TitleFormatted?.ToString() == Resources?.GetString(Resource.String.PauseRecord_Track))
                 {
+                    Location.WakeLock.Alarms.Cancel();
+
                     Preferences.Set("RecordingTrack", false);
                     item_nav?.SetTitle(Resource.String.ResumeRecord_Track);
                 }
                 else
                 {
+                    Location.WakeLock.Alarms.Schedule();
+
                     Preferences.Set("RecordingTrack", true);
                     item_nav?.SetTitle(Resource.String.PauseRecord_Track);
                 }

@@ -67,7 +67,7 @@ namespace hajk
 
             //Update location marker
             bool LockedMap = Preferences.Get("TrackLocation", false);
-            Task.Run(() => Location.UpdateLocationMarker(LockedMap, location));
+            Task.Run(() => LocationUpdater.UpdateLocationMarker(LockedMap, location));
         }
 
         public static Android.Locations.Location? GetLocation()
@@ -281,7 +281,7 @@ namespace hajk
             var location = _locationManager?.GetLastKnownLocation(LocationManager.GpsProvider);
             if (location != null)
             {
-                Location.UpdateLocationMarker(true, location);
+                LocationUpdater.UpdateLocationMarker(true, location);
                 Fragment_map.map.Navigator.ZoomToLevel(Fragment_Preferences.MaxZoom);
             }
         }

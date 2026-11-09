@@ -43,6 +43,7 @@ namespace hajk
         public readonly static int KeepNBackups = 10;                   //Backup copies to keep
         public readonly static bool EnableBackupAtStartup = true;       //Enable backup when starting app (once per day)
         public readonly static bool EnableWakeLock = true;              //Enable the usage of wakelock to get GPS data?
+        public const int WakeLockInterval = 300;                        //How long before each wakelock requests
 
         //GPX Routes / Tracks Sorting Values
         public readonly static SortOrder GPXSortingOrder = SortOrder.Ascending; //Sort list in ascending or descending order
@@ -76,13 +77,12 @@ namespace hajk
 
         public const int MinZoom = 0;                                   //MinZoom level to use
         public const int MaxZoom = 16;                                  //MaxZoom level to use
-        public const int LocationTimer = 1000;                          //How often new LocationData is provided
+        public const int LocationTimer = 1000;                          //How often new LocationData is provided (ms)
         public const int LocationDistance = 0;                          //Minimum distance for new LocationData
         public readonly static bool RecordingTrack = false;             //True when recording a Track
         public readonly static bool TrackLocation = false;              //True when map is continiously moved to center on our location
         public readonly static int OfflineMaxAge = 90;                  //Don't refresh tiles until this threashhold in days
-        public const int WakeLockInterval = 10;                         //How long before each wakelock request
-
+        
         //Location Service
         public const int SERVICE_RUNNING_NOTIFICATION_ID = 11000;
         public const string NOTIFICATION_CHANNEL_ID = "no.jore.walkabout";
@@ -256,23 +256,6 @@ namespace hajk
             }
             Fragment_map.map.Navigator.RotationLock = LockMapRotation;
             Log.Verbose($"Set map rotation (lock or not):" + LockMapRotation.ToString());
-
-            var a = Preferences.Get("Wakelock", Fragment_Preferences.EnableWakeLock);
-            if (Preferences.Get("Wakelock", Fragment_Preferences.EnableWakeLock))
-            {
-                PowerManager? powerManager = (PowerManager)Android.App.Application.Context.GetSystemService(Context.PowerService) as PowerManager;
-                Utilities.Alarms.wakelock = powerManager?.NewWakeLock(WakeLockFlags.Full | WakeLockFlags.AcquireCausesWakeup | WakeLockFlags.OnAfterRelease, "walkabout:Alarms");
-                Utilities.Alarms.wakelock?.SetReferenceCounted(false);
-            }
-            else
-            {
-                if (Utilities.Alarms.wakelock?.IsHeld == true)
-                {
-                    Utilities.Alarms.wakelock.Release();
-                }
-                Utilities.Alarms.wakelock = null;
-            }
-
 
             //Show FloatingActionButton
             Platform.CurrentActivity.FindViewById<FloatingActionButton>(Resource.Id.fabCompass).Visibility = ViewStates.Visible;

@@ -66,12 +66,16 @@ namespace hajk.Utilities
                 return;
             }
 
-            using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(Platform.CurrentActivity);
-            alert.SetTitle(Platform.CurrentActivity.Resources?.GetString(Resource.String.BatterySaveModeEnabledTitle));
-            alert.SetMessage(Platform.CurrentActivity.Resources?.GetString(Resource.String.BatterySaveModeEnabledDescription));
-            alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
-            var dialog = alert.Create();
-            dialog?.Show();
+            //Only display a warning if wakelock is not enabled
+            if (!Preferences.Get("EnableWakeLock", Fragment_Preferences.EnableWakeLock))
+            {
+                using var alert = new AndroidX.AppCompat.App.AlertDialog.Builder(Platform.CurrentActivity);
+                alert.SetTitle(Platform.CurrentActivity.Resources?.GetString(Resource.String.BatterySaveModeEnabledTitle));
+                alert.SetMessage(Platform.CurrentActivity.Resources?.GetString(Resource.String.BatterySaveModeEnabledDescription));
+                alert.SetNeutralButton(Resource.String.Ok, (sender, args) => { });
+                var dialog = alert.Create();
+                dialog?.Show();
+            }
         }
     }
 }

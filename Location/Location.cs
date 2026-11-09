@@ -10,7 +10,7 @@ using Mapsui.Styles;
 
 namespace hajk
 {
-    class Location
+    class LocationUpdater
     {
         private static readonly string LocationLayerName = "Location";
 
@@ -49,7 +49,7 @@ namespace hajk
                     }
                 }
 
-                FloatingActionButton? fabCompass = Platform.CurrentActivity?.FindViewById<FloatingActionButton>(Resource.Id.fabCompass);
+                FloatingActionButton? fabCompass = Platform.CurrentActivity?.FindViewById<FloatingActionButton>(Microsoft.Maui.Resource.Id.fabCompass);
                 if (fabCompass != null)
                 {
                     var rotationAngle = (float)CompassData.GetRotationAngle();

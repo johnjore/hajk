@@ -24,12 +24,15 @@ namespace hajk
         public static GpxClass trackGpx = new();
         private static Timer? Timer_WarnIfOffRoute;
         private static GenericCollectionLayer<List<IFeature>>? trackLayer;
-
+        
         public static void StartTrackTimer()
         {
             try
             {
                 Preferences.Set("RecordingTrack", true);
+
+                //ALARM: keep recording when the device is idle in battery-save mode
+                Location.WakeLock.Alarms.Schedule();
 
                 /**///Move to check when new location data is provided
                 int freq_OffRoute_s = int.Parse(Preferences.Get("freq_s_OffRoute", Fragment_Preferences.freq_OffRoute_s.ToString()));
@@ -72,6 +75,9 @@ namespace hajk
             try
             {
                 Preferences.Set("RecordingTrack", false);
+
+                //ALARM: must not fire when not recording
+                Location.WakeLock.Alarms.Cancel();
 
                 //Stop the timers
                 Timer_WarnIfOffRoute?.Dispose(); //Checking if OffRoute
@@ -347,8 +353,8 @@ namespace hajk
                     return;
                 }
 
-                //Return if not 0, 5, 10, 15, 20, ... 55 seconds and we have atleast 2 waypoints
-                if ((DateTime.Now.Second % 5 != 0) && (trackGpx.Waypoints.Count >= 2))
+                //Return if not 0, 5, 10, 15, 20, ... 55 seconds and we have at least 2 waypoints, unless an alarm woke the device to get a location
+                if ((DateTime.Now.Second % 5 != 0) && (trackGpx.Waypoints.Count >= 2) && !Location.WakeLock.Alarms.WaitingForLocation)
                 {
                     return;
                 }
@@ -396,7 +402,7 @@ namespace hajk
                 };
 
                 //Don't use if distance covered is more than possible in the timeframe provided
-                var previous_waypoint = trackGpx.Waypoints.LastOrDefault();
+                var previous_waypoint = trackGpx?.Waypoints?.LastOrDefault();
                 if (previous_waypoint != null)
                 {
                     var p1 = new GPXUtils.Position((float)previous_waypoint.lat, (float)previous_waypoint.lon, 0, false, null);
@@ -514,36 +520,36 @@ namespace hajk
                     {
                         await MainThread.InvokeOnMainThreadAsync(() =>
                         {
-                        string contents = File.ReadAllText(Fragment_Preferences.CheckpointGPX);
-                        trackGpx = GpxClass.FromXml(contents);
+                            string contents = File.ReadAllText(Fragment_Preferences.CheckpointGPX);
+                            trackGpx = GpxClass.FromXml(contents);
 
-                                int iD = -1;
+                            int iD = -1;
                             Serilog.Log.Debug("Adding the route being followed to map");
-                                int.TryParse(trackGpx.Metadata.keywords, out iD);
+                            int.TryParse(trackGpx.Metadata.keywords, out iD);
 
                             if (iD >= 0 && trackGpx.Metadata.keywords != null)
-                                {
-                                    var routetrack = RouteDatabase.GetRouteAsync(iD).Result;
-                                    string layerName = routetrack.Name + "|" + routetrack.Id;
+                            {
+                                var routetrack = RouteDatabase.GetRouteAsync(iD).Result;
+                                string layerName = routetrack.Name + "|" + routetrack.Id;
 
-                                    DisplayMapItems.AddRouteTrackToMap(routetrack, false, layerName, false);
+                                DisplayMapItems.AddRouteTrackToMap(routetrack, false, layerName, false);
 
-                                    Serilog.Log.Debug("Adding route following to map");
-                                    MainActivity.ActiveRoute = GpxClass.FromXml(routetrack.GPX);
-                                    MainActivity.ActiveRoute.Metadata.keywords = routetrack.Id.ToString();
-                                }
+                                Serilog.Log.Debug("Adding route following to map");
+                                MainActivity.ActiveRoute = GpxClass.FromXml(routetrack.GPX);
+                                MainActivity.ActiveRoute.Metadata.keywords = routetrack.Id.ToString();
+                            }
 
-                                Serilog.Log.Debug("Adding recording to map");
+                            Serilog.Log.Debug("Adding recording to map");
                             GPXDataRouteTrack r = new()
                             {
                                 GPXType = GPXType.Track,
                                 GPX = contents,
                             };
-                                DisplayMapItems.AddRouteTrackToMap(r, true, Fragment_Preferences.Layer_Track, true);
+                            DisplayMapItems.AddRouteTrackToMap(r, true, Fragment_Preferences.Layer_Track, true);
 
-                                Serilog.Log.Debug("Call StartTrackTimer()");
-                                StartTrackTimer();
-                            });
+                            Serilog.Log.Debug("Call StartTrackTimer()");
+                            StartTrackTimer();
+                        });
                     }
                 });
             }
