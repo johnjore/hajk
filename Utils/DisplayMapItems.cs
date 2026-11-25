@@ -343,46 +343,7 @@ namespace hajk
                 feature["id"] = POI.Id;
 
                 //Icon
-                string icon = "hajk.Images.Black-dot.png";
-                switch (POI.Symbol)
-                {
-                    case "Drinking Water":
-                        icon = "hajk.Images.Drinking-water.png";
-                        break;
-                    case "Campground":
-                        icon = "hajk.Images.Tent.png";
-                        break;
-                    case "Rogaining":
-                        icon = "hajk.Images.RoundFlag.png";
-                        break;
-                    case "Man Overboard":
-                        icon = "hajk.Images.RoundFlag.png";
-                        break;
-                    case "Lodge":
-                        icon = "hajk.Images.Cabin.png";
-                        break;
-                    case "Flag, Blue":
-                        icon = "hajk.Images.FlagBlue.png";
-                        break;
-                    case "Waypoint":
-                        icon = "hajk.Images.FlagCheck.png";
-                        break;
-                    case "Flag":
-                        icon = "hajk.Images.Flag.png";
-                        break;
-                    case "Dog Unknown":
-                        icon = "hajk.Images.Dog.png";
-                        break;
-                    case "Parking Area":
-                        icon = "hajk.Images.Parking.png";
-                        break;
-                    case "Picnic Area":
-                        icon = "hajk.Images.PicnicArea.png";
-                        break;
-                    case "Car":
-                        icon = "hajk.Images.Car.png";
-                        break;
-                }
+                string icon = POISymbols.GetIcon(POI.Symbol);
 
                 //Style
                 feature.Styles.Add(new ImageStyle
