@@ -29,7 +29,10 @@ namespace hajk.Fragments
         public static Mapsui.Map map = new();
         private static Position? MapPressed = null;
         private static long? Id = null;
-        private static long? MovingPOI = -1;               //For MapInfo, if >=0, next tap is new location for POI #
+        private static long? MovingPOI = -1;               // For MapInfo, if >=0, next tap is new location for POI #
+        private string? MovingPOISymbol = null;            // Symbol chosen in the "Move / Edit POI?" dialog, applied when the POI is placed. null = leave the symbol as it is
+        private string? MovingPOIName = null;              // Name chosen in the "Move / Edit POI?" dialog, applied when the POI is placed. null = leave the name as it is
+        private string? MovingPOIDescription = null;       // Description chosen in the "Move / Edit POI?" dialog, applied when the POI is placed. null = leave the description as it is
 
         private CancellationTokenSource? _pendingSingleTap;
 
@@ -185,7 +188,7 @@ namespace hajk.Fragments
             });
         }
 
-        // Places the POI that is being moved (MovingPOI) at the tapped world position.
+        // Places the POI that is being moved (MovingPOI) at the tapped world position, and applies the symbol chosen in the dialog.
         private async Task MovePOIAsync(double worldX, double worldY)
         {
             try
@@ -194,12 +197,28 @@ namespace hajk.Fragments
                     return;
 
                 var movingId = MovingPOI;
+                var newSymbol = MovingPOISymbol;
+                var newName = MovingPOIName;
+                var newDescription = MovingPOIDescription;
                 MovingPOI = -1;
+                MovingPOISymbol = null;
+                MovingPOIName = null;
+                MovingPOIDescription = null;
 
                 GPXDataPOI p = await POIDatabase.GetPOIAsync(movingId);
                 var latLon = SphericalMercator.ToLonLat(worldX, worldY);
                 p.Lat = (decimal)latLon.lat;
                 p.Lon = (decimal)latLon.lon;
+
+                //null = leave as it is (an empty string for Name / Description clears it)
+                if (newSymbol != null)
+                    p.Symbol = newSymbol;
+
+                if (newName != null)
+                    p.Name = newName;
+
+                if (newDescription != null)
+                    p.Description = newDescription;
 
                 var r = POIDatabase.SavePOI(p);
                 DisplayMapItems.AddPOIToMap();
@@ -260,17 +279,17 @@ namespace hajk.Fragments
                         CoordinateSharp.UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lonLat.lat, lonLat.lon);
                         text += ($"\nUTM: {utm?.LongZone}{utm?.LatZone} {utm?.Easting.ToString("0")} E {utm?.Northing.ToString("0")} N");
 
-                        Show_Dialog msg = new(Platform.CurrentActivity);
-                        var result = await msg.ShowDialog("Create POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
-                        if (result == Show_Dialog.MessageResult.YES)
+                        Show_POI_Dialog msg = new(Platform.CurrentActivity);
+                        var result = await msg.ShowPoiDialog("Create POI?", text, positiveText: "YES", negativeText: "NO", initialName: "POI", initialDescription: "");
+                        if (result?.Confirmed == true)
                         {
                             Serilog.Log.Debug($"{mapInfo}");
 
                             GPXDataPOI p = new()
                             {
-                                Name = "Manual Entry",
-                                Description = "",
-                                Symbol = null,
+                                Name = result.Name,
+                                Description = result.Description,
+                                Symbol = result.Selected?.Symbol,
                                 Lat = (decimal)lonLat.lat,
                                 Lon = (decimal)lonLat.lon,
                             };
@@ -297,27 +316,23 @@ namespace hajk.Fragments
                 if (layer.Name == Fragment_Preferences.Layer_Poi && layer.Tag.ToString() == Fragment_Preferences.Layer_Poi && mapInfo != null && mapInfo.WorldPosition != null)
                 {
                     Serilog.Log.Debug($"POI Object");
-                    var lonLat = SphericalMercator.ToLonLat(mapInfo.WorldPosition.X, mapInfo.WorldPosition.Y);
-                    var text = "Name:\n" + mapInfo?.Feature["name"] + "\n\nDescription:\n" + mapInfo?.Feature["description"] + "\n\nLocation:\n";
-
+                    
                     // Local copy, because the delayed dialog below must not use the Id field (it can change during the delay).
                     var poiId = Convert.ToInt64(mapInfo?.Feature?["id"]);
                     Id = poiId;
-
-                    //GPS
-                    text += $"GPS: {lonLat.lat.ToString("0.000000")}, {lonLat.lon.ToString("0.000000")}";
-
-                    //Add UTM values
-                    CoordinateSharp.UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lonLat.lat, lonLat.lon);
-                    text += ($"\nUTM: {utm?.LongZone}{utm?.LatZone} {utm?.Easting.ToString("0")} E {utm?.Northing.ToString("0")} N");
-
-                    Serilog.Log.Debug($"{text}/n{poiId}");
+                    Serilog.Log.Debug($"{poiId}");
 
                     //Delete POI. Deferred, so a DoubleTap on the same POI cancels it and only "Move POI?" is shown.
                     if (args.GestureType == GestureType.SingleTap)
                     {
                         RunAfterSingleTapDelay(async () =>
                         {
+                            var text = "Name:\n" + mapInfo?.Feature["name"] + "\n\nDescription:\n" + mapInfo?.Feature["description"] + "\n\nLocation:\n";
+                            var lonLat = SphericalMercator.ToLonLat(mapInfo.WorldPosition.X, mapInfo.WorldPosition.Y);
+                            text += $"GPS: {lonLat.lat.ToString("0.000000")}, {lonLat.lon.ToString("0.000000")}";
+                            CoordinateSharp.UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lonLat.lat, lonLat.lon);
+                            text += ($"\nUTM: {utm?.LongZone}{utm?.LatZone} {utm?.Easting.ToString("0")} E {utm?.Northing.ToString("0")} N");
+
                             Show_Dialog msg = new(Platform.CurrentActivity);
                             var result = await msg.ShowDialog("Delete POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
                             if (result == Show_Dialog.MessageResult.YES)
@@ -327,29 +342,76 @@ namespace hajk.Fragments
                                 DisplayMapItems.AddPOIToMap();
                             }
                         });
-                        }
-
-                        //Move POI
+                    }
+                    //Move / Edit POI
                     if (args.GestureType == GestureType.DoubleTap)
-                        {
+                    {
+                        var lonLat = SphericalMercator.ToLonLat(mapInfo.WorldPosition.X, mapInfo.WorldPosition.Y);
+                        var text = "Location:\n";
+                        text += $"GPS: {lonLat.lat.ToString("0.000000")}, {lonLat.lon.ToString("0.000000")}";
+                        CoordinateSharp.UniversalTransverseMercator? utm = GPX.UTMHelpers.LatLontoUTM(lonLat.lat, lonLat.lon);
+                        text += ($"\nUTM: {utm?.LongZone}{utm?.LatZone} {utm?.Easting.ToString("0")} E {utm?.Northing.ToString("0")} N");
+
                         Task.Run(async () =>
                         {
                             try
                             {
-                                Show_Dialog msg = new(Platform.CurrentActivity);
-                            var result = await msg.ShowDialog("Move POI?", text, Android.Resource.Attribute.DialogIcon, false, Show_Dialog.MessageResult.YES, Show_Dialog.MessageResult.NO);
-                            if (result == Show_Dialog.MessageResult.YES)
-                            {
+                                //Current values, so the dialog starts on them
+                                var current = await POIDatabase.GetPOIAsync(poiId);
+
+                                Show_POI_Dialog msg = new(Platform.CurrentActivity);
+                                var result = await msg.ShowPoiDialog("Move / Edit POI?", text, current?.Symbol, editing: true, positiveText: "MOVE", negativeText: "CANCEL", neutralText: "SAVE", initialName: current?.Name, initialDescription: current?.Description);
+                                if (result?.Confirmed == true)
+                                {
+                                    //MOVE: symbol, Name and Description are all applied when the next tap places the POI
                                     Serilog.Log.Debug($"Moving {poiId} ing POI DB and MemoryLayer");
+
+                                    //null = leave as it is (an empty string for Name / Description clears it)
+                                    MovingPOISymbol = (result.KeptCurrent || result.Selected == null) ? null : result.Selected.Symbol;
+                                    MovingPOIName = string.Equals(current?.Name ?? "", result.Name, StringComparison.Ordinal) ? null : result.Name;
+                                    MovingPOIDescription = string.Equals(current?.Description ?? "", result.Description, StringComparison.Ordinal) ? null : result.Description;
                                     MovingPOI = poiId;
-                            }
+                                }
+                                else if (result?.Saved == true)
+                                {
+                                    //SAVE: update symbol, Name and Description only, no Move sequence. Nothing to do if unchanged.
+                                    if (current != null)
+                                    {
+                                        bool changed = false;
+
+                                        if (!string.Equals(current.Name ?? "", result.Name, StringComparison.Ordinal))
+                                        {
+                                            current.Name = result.Name;
+                                            changed = true;
+                                        }
+
+                                        if (!string.Equals(current.Description ?? "", result.Description, StringComparison.Ordinal))
+                                        {
+                                            current.Description = result.Description;
+                                            changed = true;
+                                        }
+
+                                        if (!result.KeptCurrent && result.Selected != null
+                                            && !string.Equals(current.Symbol, result.Selected.Symbol, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            current.Symbol = result.Selected.Symbol;
+                                            changed = true;
+                                        }
+
+                                        if (changed)
+                                        {
+                                            _ = POIDatabase.SavePOI(current);
+                                            DisplayMapItems.AddPOIToMap();
+                                        }
+                                    }
+                                }
                             }
                             catch (Exception ex)
                             {
-                                Serilog.Log.Fatal(ex, $"Fragment_map - Move POI dialog");
-                        }
-                    });
-                }
+                                Serilog.Log.Fatal(ex, $"Fragment_map - Move / Edit POI dialog");
+                            }
+                        });
+                    }
                 }
 
                 //Track?
