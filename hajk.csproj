@@ -76,6 +76,8 @@
     <EmbeddedResource Include="Images\Parking.png" />
     <EmbeddedResource Include="Images\PicnicArea.png" />
     <EmbeddedResource Include="Images\RoundFlag.png" />
+    <EmbeddedResource Include="Images\Water-rain-tank.png" />
+    <EmbeddedResource Include="Images\Water-stream.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AsyncEnumerator" Version="4.0.2" />
