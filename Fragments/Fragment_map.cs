@@ -83,13 +83,23 @@ namespace hajk.Fragments
                 };
                 mapControl.Map = map;
 
+                //Disable performance metrics (bottom right corner)
+                var performanceWidget = map.Widgets.OfType<PerformanceWidget>().FirstOrDefault();
+                if (performanceWidget != null)
+                {
+                    performanceWidget.Performance.IsActive = ActiveMode.No;
+                }
+
+                //Fix for map rotation on v5
+                mapControl.Map.Navigator.UnSnapRotation = 0;
+                mapControl.Map.Navigator.ReSnapRotation = 0;
+
                 bool LockMapRotation = Preferences.Get("MapLockNorth", false);
                 Serilog.Log.Information($"Set map rotation (lock or not):" + LockMapRotation.ToString());
                 map.Navigator.RotationLock = LockMapRotation;
 
                 Serilog.Log.Information($"Cache downloaded tiles");
                 DownloadRasterImageMap.LoadOSMLayer();
-
 
                 //Wait for each layer to complete
                 foreach (ILayer layer in map.Layers)
@@ -99,13 +109,6 @@ namespace hajk.Fragments
                         Serilog.Log.Information("Waiting for layers to initialize before adding scalebar");
                         Thread.Sleep(1);
                     }
-                }
-
-                //Disable performance metrics (bottom right corner)
-                var performanceWidget = map.Widgets.OfType<PerformanceWidget>().FirstOrDefault();
-                if (performanceWidget != null)
-                {
-                    performanceWidget.Performance.IsActive = ActiveMode.No;
                 }
 
                 Serilog.Log.Information($"Add scalebar - X");
